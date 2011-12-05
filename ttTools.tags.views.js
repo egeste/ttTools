@@ -29,7 +29,7 @@ ttTools.tags.views = {
         }
       );
 
-      $('#resetTags').button().click(function() {
+      $('#resetTags').click(function() {
         if (!confirm('Are you sure? This will delete your entire tags database.')) { return false; }
         ttTools.tags.resetData();
       });
