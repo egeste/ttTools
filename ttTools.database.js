@@ -1,7 +1,7 @@
 turntable.hack.database = {
-	dbName        : 'turntable.hack.database',
-	dbDisplayName : 'Hack Database',
-	dbVersion     : '0.1',
+	dbName        : 'ttTools.database',
+	dbDisplayName : 'ttTools Database',
+	dbVersion     : '1.0',
 	dbMaxSize     : 10000000,
 	dbHandle      : false,
 

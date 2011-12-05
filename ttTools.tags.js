@@ -1,26 +1,24 @@
-turntable.hack.tags = {
+ttTools.tags = {
   dbTable : 'tags',
 
   init : function () {
-    $.getScript('http://dl.dropbox.com/u/40584302/Source/tt.fm/turntable.hack.tags.views.js', function() {
+    $.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.tags.views.js', function() {
       $('<link/>', {
         type : 'text/css',
         rel  : 'stylesheet',
         href : 'http://dl.dropbox.com/u/40584302/Source/jQuery-Tags-Input/jquery.tagsinput.css'
       }).appendTo(document.head);
       $.getScript('http://dl.dropbox.com/u/40584302/Source/jQuery-Tags-Input/jquery.tagsinput.js', function() {
-        turntable.hack.tags.createTable();
-        turntable.hack.tags.addClickEvent();
-        turntable.hack.tags.addSongOverride();
-        turntable.hack.tags.filterQueueOverride();
-        turntable.hack.tags.settingsTreeOverride();
-        turntable.hack.tags.settingsClickOverride();
+        ttTools.tags.createTable();
+        ttTools.tags.addClickEvent();
+        ttTools.tags.addSongOverride();
+        ttTools.tags.filterQueueOverride();
       });
     });
   },
 
   createTable : function () {
-    turntable.hack.database.execute(
+    ttTools.database.execute(
       'CREATE TABLE IF NOT EXISTS ' +
       this.dbTable + '(' +
       'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,' +
@@ -34,8 +32,8 @@ turntable.hack.tags = {
     $('div.song').unbind(
       'click'
     ).click(function(e) {
-      turntable.hack.tags.views.add.file = $(this).closest('.song').data('songData');
-      turntable.hack.tags.views.add.render();
+      ttTools.tags.views.add.file = $(this).closest('.song').data('songData');
+      ttTools.tags.views.add.render();
     });
   },
 
@@ -43,7 +41,7 @@ turntable.hack.tags = {
     turntable.playlist.addSongFunc = turntable.playlist.addSong;
     turntable.playlist.addSong = function (b, a) {
       turntable.playlist.addSongFunc(b, a);
-      turntable.hack.tags.addClickEvent();
+      ttTools.tags.addClickEvent();
     }
   },
 
@@ -52,7 +50,7 @@ turntable.hack.tags = {
     turntable.playlist.filterQueue = function (filter) {
       turntable.playlist.filterQueueFunc(filter);
       if (filter.length > 0) {
-        turntable.hack.tags.getFidsForTagLike(
+        ttTools.tags.getFidsForTagLike(
           filter,
           function (tx, result) {
             var fids = [];
@@ -72,35 +70,14 @@ turntable.hack.tags = {
     }
   },
 
-  settingsTreeOverride : function () {
-    var func = turntable.hack.views.settings.tree;
-    turntable.hack.views.settings.tree = function () {
-      var tree = func();
-      tree.push(['button#resetTags', 'Reset Tags']);
-      return tree;
-    }
-  },
-
-  settingsClickOverride : function () {
-    var func = turntable.hack.views.settings.render;
-    turntable.hack.views.settings.render = function () {
-      func();
-      $('#resetTags').button().click(function() {
-        if (!confirm('Are you sure? This will delete your entire tags database.')) { return false; }
-        turntable.hack.tags.resetData();
-      });
-    }
-    $('#hackSettings').unbind('click').click(turntable.hack.views.settings.render);
-  },
-
   resetData : function () {
-    turntable.hack.database.execute('DROP TABLE IF EXISTS ' + this.dbTable + ';');
+    ttTools.database.execute('DROP TABLE IF EXISTS ' + this.dbTable + ';');
     this.createTable();
     this.addTag('4dd6c222e8a6c404330002c5', 'trololo');
   },
 
   getTagsForFid : function (fid, success, failure) {
-    return turntable.hack.database.execute(
+    return ttTools.database.execute(
       'SELECT DISTINCT tag FROM ' + this.dbTable + ' WHERE fid="' + fid + '";',
       success,
       failure
@@ -108,7 +85,7 @@ turntable.hack.tags = {
   },
 
   getFidsForTagLike : function (tag, success, failure) {
-    return turntable.hack.database.execute(
+    return ttTools.database.execute(
       'SELECT DISTINCT fid FROM ' + this.dbTable + ' WHERE tag LIKE "%' + tag + '%";',
       success,
       failure
@@ -116,7 +93,7 @@ turntable.hack.tags = {
   },
 
   addTag : function (fid, tag, success, failure) {
-    return turntable.hack.database.execute(
+    return ttTools.database.execute(
       'INSERT OR ABORT INTO ' + this.dbTable + ' (fid,tag) VALUES("' + fid + '", "' + tag + '");',
       success,
       failure
@@ -124,7 +101,7 @@ turntable.hack.tags = {
   },
 
   removeTag : function (fid, tag, success, failure) {
-    return turntable.hack.database.execute(
+    return ttTools.database.execute(
       'DELETE FROM ' + this.dbTable + ' WHERE fid="' + fid + '" AND tag="' + tag + '";',
       success,
       failure

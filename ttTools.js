@@ -18,7 +18,7 @@
  * [ ] Persistent between rooms (maybe time for a chrome extension?)
  *
  * BOOKMARKLET:
- * javascript:(function(){$.getScript('http://dl.dropbox.com/u/40584302/Source/tt.fm/turntable.hack.js');})();
+ * javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.js');})();
  */
 
 Array.prototype.shuffle = function() {
@@ -32,7 +32,7 @@ Array.prototype.shuffle = function() {
   }
 };
 
-turntable.hack = {
+ttTools = {
   autoDJ      : false,
   autoDJDelay : 2000,
   
@@ -46,16 +46,16 @@ turntable.hack = {
       href : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/sunny/jquery-ui.css'
     }).appendTo(document.head);
     
-    $.getScript('http://dl.dropbox.com/u/40584302/Source/tt.fm/turntable.hack.views.js', function() {
+    $.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.views.js', function() {
       if (window.openDatabase) {
-        $.getScript('http://dl.dropbox.com/u/40584302/Source/tt.fm/turntable.hack.database.js', function() {
-          $.getScript('http://dl.dropbox.com/u/40584302/Source/tt.fm/turntable.hack.tags.js', function() {
-            turntable.hack.tags.init();
+        $.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.database.js', function() {
+          $.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.tags.js', function() {
+            ttTools.tags.init();
           });
         });
       }
-      turntable.hack.views.toolbar.render();
-      turntable.hack.views.download_button.render();
+      ttTools.views.toolbar.render();
+      ttTools.views.download_button.render();
     });
 
     this.idleTimeOverride();
@@ -111,7 +111,7 @@ turntable.hack = {
     turntable.reloadPageFunc = turntable.reloadPage;
     turntable.reloadPage = function (a) {
       this.reloadPageFunc(a);
-      $(document).ready(turntable.hack.init);
+      $(document).ready(ttTools.init);
     }
   },
 
@@ -120,14 +120,14 @@ turntable.hack = {
     if (!room) { return false; }
     room.removeDjFunc = room.removeDj;
     room.removeDj = function (userId) {
-      if (userId != this.selfId && !this.isDj() && turntable.hack.autoDJ) {
+      if (userId != this.selfId && !this.isDj() && ttTools.autoDJ) {
         setTimeout(function() {
           room.becomeDj();
           if (room.isDj()) {
-            turntable.hack.autoDJ = false;
+            ttTools.autoDJ = false;
             $('#autoDJ').prop('checked', false).button('refresh');
           }
-        }, turntable.hack.autoDJDelay);
+        }, ttTools.autoDJDelay);
       }
       this.removeDjFunc(userId);
     };
@@ -139,14 +139,14 @@ turntable.hack = {
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
-      if (turntable.hack.autoAwesome) {
+      if (ttTools.autoAwesome) {
         setTimeout(function() {
           turntable.whenSocketConnected(function() {
             room.connectRoomSocket('up');
           });
-        }, turntable.hack.autoAwesomeDelay);
+        }, ttTools.autoAwesomeDelay);
       }
     };
   }
 };
-turntable.hack.init();
+ttTools.init();

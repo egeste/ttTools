@@ -1,4 +1,4 @@
-turntable.hack.tags.views = {
+ttTools.tags.views = {
   add : {
     file : null,
 
@@ -8,18 +8,18 @@ turntable.hack.tags.views = {
       $('#tags').tagsInput({
         width       : '100%',
         onAddTag    : function (tag) {
-          turntable.hack.tags.addTag(file.fileId, tag);
+          ttTools.tags.addTag(file.fileId, tag);
         },
         onRemoveTag : function (tag) {
-          turntable.hack.tags.removeTag(file.fileId, tag);
+          ttTools.tags.removeTag(file.fileId, tag);
         }
       });
 
-      turntable.hack.database.execute(
+      ttTools.database.execute(
         'SELECT DISTINCT ' +
         'tag ' +
         'FROM ' +
-        turntable.hack.tags.dbTable + ' ' +
+        ttTools.tags.dbTable + ' ' +
         'WHERE ' +
         'fid = "' + this.file.fileId + '";',
         function (tx, result) {
@@ -28,6 +28,11 @@ turntable.hack.tags.views = {
           }
         }
       );
+
+      $('#resetTags').button().click(function() {
+        if (!confirm('Are you sure? This will delete your entire tags database.')) { return false; }
+        ttTools.tags.resetData();
+      });
     },
 
     tree : function () {
@@ -41,7 +46,8 @@ turntable.hack.tags.views = {
         ['h1', this.file.metadata.song],
         ['div', {}, this.file.metadata.artist],
         ['br'],
-        ['input#tags', { type : 'text' }]
+        ['input#tags', { type : 'text' }],
+        ['a#resetTags', { href : 'javascript:void(0);' }, 'Reset Tags Database']
       ];
     }
   }

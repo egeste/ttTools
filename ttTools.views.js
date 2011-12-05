@@ -1,4 +1,4 @@
-turntable.hack.views = {
+ttTools.views = {
 
   toolbar : {
     render : function() {
@@ -11,7 +11,7 @@ turntable.hack.views = {
         return a;
       }
 
-      turntable.hack.views.addStyle("\
+      ttTools.views.addStyle("\
         div.resultsLabel {\
           height:20px !important;\
           padding-top:7px !important;\
@@ -46,31 +46,31 @@ turntable.hack.views = {
         }\
       ");
 
-      $(util.buildTree(turntable.hack.views.toolbar.tree())).insertAfter(
+      $(util.buildTree(ttTools.views.toolbar.tree())).insertAfter(
         $('form.playlistSearch')
       );
 
       $('#switches').buttonset();
 
       $('#autoDJ').click(function() {
-        var room = turntable.hack.getRoom();
+        var room = ttTools.getRoom();
         if (!room) { return false; }
-        turntable.hack.autoDJ = !turntable.hack.autoDJ;
-        if(turntable.hack.autoDJ && !room.isDj() && room.djIds.length < room.maxDjs) {
+        ttTools.autoDJ = !ttTools.autoDJ;
+        if(ttTools.autoDJ && !room.isDj() && room.djIds.length < room.maxDjs) {
           room.becomeDj();
         }
-      }).prop('checked', turntable.hack.autoDJ).button('refresh');
+      }).prop('checked', ttTools.autoDJ).button('refresh');
 
       $('#autoAwesome').click(function() {
-        var room = turntable.hack.getRoom();
+        var room = ttTools.getRoom();
         if (!room) { return false; }
-        turntable.hack.autoAwesome = !turntable.hack.autoAwesome;
-        if(turntable.hack.autoAwesome) {
+        ttTools.autoAwesome = !ttTools.autoAwesome;
+        if(ttTools.autoAwesome) {
           turntable.whenSocketConnected(function() {
             room.connectRoomSocket('up');
           });
         }
-      }).prop('checked', turntable.hack.autoAwesome).button('refresh');
+      }).prop('checked', ttTools.autoAwesome).button('refresh');
 
       $('#showTheLove').button({
         text : false,
@@ -78,9 +78,9 @@ turntable.hack.views = {
           primary: 'ui-icon-heart'
         }
       }).click(function(){
-        var room = turntable.hack.getRoom();
+        var room = ttTools.getRoom();
         if (!room) { return false; }
-        var core = turntable.hack.getCore(room);
+        var core = ttTools.getCore(room);
         if (!core) { return false; }
         for (user in room.users) {
           core.show_heart(user);
@@ -102,7 +102,7 @@ turntable.hack.views = {
           primary: 'ui-icon-transfer-e-w'
         }
       }).click(function(e) {
-        var room = turntable.hack.getRoom();
+        var room = ttTools.getRoom();
         if (!room) { return false; }
         if (room.currentDj == room.selfId) {
           turntable.showAlert("Sorry, can't sort queue while DJing.");
@@ -118,7 +118,7 @@ turntable.hack.views = {
           primary: 'ui-icon-shuffle'
         }
       }).click(function(e) {
-        var room = turntable.hack.getRoom();
+        var room = ttTools.getRoom();
         if (!room) { return false; }
         if (room.currentDj == room.selfId) {
           turntable.showAlert("Sorry, can't sort queue while DJing.");
@@ -133,7 +133,7 @@ turntable.hack.views = {
         icons: {
           primary: 'ui-icon-wrench'
         }
-      }).click(turntable.hack.views.settings.render);
+      }).click(ttTools.views.settings.render);
     },
 
     tree : function() {
@@ -155,7 +155,7 @@ turntable.hack.views = {
   download_button : {
     render : function () {
       $('div.btn.rdio').remove();
-      turntable.hack.views.addStyle("\
+      ttTools.views.addStyle("\
         #download_song {\
           float:left;\
           margin:7px;\
@@ -171,18 +171,18 @@ turntable.hack.views = {
       ");
       $('<a/>', {
         id     : 'download_song',
-        href   : turntable.hack.views.getDownloadUrl(),
+        href   : ttTools.views.getDownloadUrl(),
         target : '_blank'
       }).click(function() {
-        $(this).attr('href', turntable.hack.views.getDownloadUrl());
+        $(this).attr('href', ttTools.views.getDownloadUrl());
       }).appendTo($('#songboard_add'));
     }
   },
 
   settings : {
     render : function () {
-      util.showOverlay(util.buildTree(turntable.hack.views.settings.tree()));
-      turntable.hack.views.addStyle("\
+      util.showOverlay(util.buildTree(ttTools.views.settings.tree()));
+      ttTools.views.addStyle("\
         div.field.settings {\
           padding:10px 20px;\
         }\
@@ -201,9 +201,9 @@ turntable.hack.views = {
         max   : 5000,
         min   : 0,
         step  : 100,
-        value : turntable.hack.autoDJDelay,
+        value : ttTools.autoDJDelay,
         slide : function(event, ui) {
-          turntable.hack.autoDJDelay = ui.value;
+          ttTools.autoDJDelay = ui.value;
           $('#autoDJDisplay').text(ui.value/1000 + ' s');
         }
       });
@@ -211,9 +211,9 @@ turntable.hack.views = {
         max   : 60000,
         min   : 0,
         step  : 1000,
-        value : turntable.hack.autoAwesomeDelay,
+        value : ttTools.autoAwesomeDelay,
         slide : function(event, ui) {
-          turntable.hack.autoAwesomeDelay = ui.value;
+          ttTools.autoAwesomeDelay = ui.value;
           $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
         }
       });
@@ -232,11 +232,11 @@ turntable.hack.views = {
           ['div.field.settings', {},
             ['div', {}, 'Auto DJ Delay'],
             ['div#autoDJDelay', {}],
-            ['div#autoDJDisplay', {}, turntable.hack.autoDJDelay/1000 + ' s'],
+            ['div#autoDJDisplay', {}, ttTools.autoDJDelay/1000 + ' s'],
             ['br'],
             ['div', {}, 'Auto Awesome Delay'],
             ['div#autoAwesomeDelay', {}],
-            ['div#autoAwesomeDisplay', {}, turntable.hack.autoAwesomeDelay/1000 + ' s']
+            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s']
           ],
         ]
       ];
@@ -251,7 +251,7 @@ turntable.hack.views = {
   },
 
   getDownloadUrl : function () {
-    var room = turntable.hack.getRoom();
+    var room = ttTools.getRoom();
     if (!room) { return false; }
     if (room.currentSong == null) { return 'javascript:void(0);'; }
     return window.location.protocol + "//" + MEDIA_HOST +
