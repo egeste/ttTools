@@ -47,6 +47,7 @@ ttTools.tags.views = {
         ['div', {}, this.file.metadata.artist],
         ['br'],
         ['input#tags', { type : 'text' }],
+        ['br'],
         ['a#resetTags', { href : 'javascript:void(0);' }, 'Reset Tags Database']
       ];
     }
