@@ -1,4 +1,4 @@
-turntable.hack.database = {
+ttTools.database = {
 	dbName        : 'ttTools.database',
 	dbDisplayName : 'ttTools Database',
 	dbVersion     : '1.0',
