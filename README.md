@@ -94,7 +94,7 @@ Allows you to listen to your playlist when alone in a turntable.fm room. Useful 
 </ul>
 
 # To use:
-Create a bookmark named ttTools, for the location enter:
+Create a bookmark named ttTools, for the location enter:  
     javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.js');})();
 
 # Who to blame:
