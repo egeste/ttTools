@@ -96,7 +96,7 @@ Allows you to listen to your playlist when alone in a turntable.fm room. Useful 
 # To use:
 Drag the following link to your bookmarks bar
 
-[ttTools]("javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.js');})();" 'ttTools')
+    <a href="javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.js');})();">ttTools</a>
 
 After entering a turntable.fm room, click the ttTools bookmark.
 
