@@ -98,6 +98,8 @@ Create a bookmark named ttTools, for the location enter:
 
 `javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.js');})();`
 
+After entering a turntable.fm room, click the ttTools bookmark.
+
 # Who to blame:
 > Steve Regester  
 > egeste@egeste.net  
