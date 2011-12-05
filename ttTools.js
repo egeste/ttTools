@@ -1,26 +1,3 @@
-/**
- * egeste@egeste.net
- * http://www.egeste.net/
- * http://www.linkedin.com/in/egeste
- *
- * FEATURES:
- * [x] Disable idle timer
- * [x] Auto DJ w/ switch & adjustable delay
- * [x] Auto Awesome w/ switch & adjustable delay
- *
- * [x] Playlist song tagging
- * [x] Playlist filter on tags
- * [x] Playlist invert, shuffle
- *
- * [x] Download songs
- * [x] Disable DMCA Mute when DJing solo
- *
- * [ ] Persistent between rooms (maybe time for a chrome extension?)
- *
- * BOOKMARKLET:
- * javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.js');})();
- */
-
 Array.prototype.shuffle = function() {
   var len = this.length;
   var i = len;
