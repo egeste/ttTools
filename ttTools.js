@@ -123,10 +123,8 @@ ttTools = {
       if (userId != this.selfId && !this.isDj() && ttTools.autoDJ) {
         setTimeout(function() {
           room.becomeDj();
-          if (room.isDj()) {
-            ttTools.autoDJ = false;
-            $('#autoDJ').prop('checked', false).button('refresh');
-          }
+          ttTools.autoDJ = false;
+          $('#autoDJ').prop('checked', false).button('refresh');
         }, ttTools.autoDJDelay);
       }
       this.removeDjFunc(userId);
