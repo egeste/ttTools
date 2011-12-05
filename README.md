@@ -7,7 +7,7 @@ ttTools provides the tools you need to use turntable.fm in the way you want to u
 ## Disable Idle Timer
 The idle timer is a local timer written in javascript and is used to do things like idle-kick a user from a room or a DJ spot. Because this is implement client-side, we can nueter it.
 
-## Auto DJ w/ switch, variable delay and auto-off
+## Auto DJ w/ switch, variable delay & auto-off
 The "holy grail" of turntable.fm features, everyone wants autoDJ to combat all the private autoDJ scripts that already exist. In the early days this wasn't necessary due to the fact that turntable.fm was not well known. As time has progressed, several rooms have had to implement their own third-party bots to enforce their third-party DJ queues and combat autoDJ scripts, but it's high time for a real DJ queue.
 
 ### Notes:
