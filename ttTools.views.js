@@ -339,9 +339,7 @@ ttTools.views = {
         if (upvoter) { row.addClass('upvoter'); }
         if (downvoter) { row.addClass('downvoter'); }
         row.append(
-          $('<td/>').html(
-            room.users[user].name
-          )
+          $('<td/>').html(user.name)
         ).appendTo($('#usersList tbody'));
       }
     },
