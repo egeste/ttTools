@@ -67,7 +67,7 @@ I've personally always wanted this feature. Sometimes you just want to mix it up
 	<li>Click the "Flip Playlist" or "Shuffle playlist" button above the playlist.</li>
 </ul>
 
-## Playlist Import/Export
+## Playlist Import & Export
 Save your playlist to a file so it's portable and you can share it/swap it out with other playlists.
 
 ### Notes:
