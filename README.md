@@ -86,7 +86,7 @@ Save your playlist to a file so it's portable and you can share it/swap it out w
 </ul>
 
 ## Users List w/ Vote Indicators
-Allows you to view the list of users in the room as well as see at a glance who upvotes, downvoted, or has not voted on the current song. Inspired by TT+
+Allows you to view the list of users in the room as well as see at a glance who upvoted, downvoted, or has not voted on the current song. Inspired by TT+
 
 ### Notes:
 <ul>
