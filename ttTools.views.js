@@ -322,8 +322,7 @@ ttTools.views = {
       for (user in room.users) {
         var row = $('<tr/>');
         row.append($('<td/>').html(user.name));
-        console.dir(row);
-        //row.appendTo($('#usersList tbody'));
+        $('#usersList tbody').append(row);
       }
     },
 
