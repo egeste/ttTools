@@ -294,7 +294,7 @@ ttTools.views = {
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           var reader = new FileReader();
           reader.onload = function () {
-            console.dir(this.result);
+            turntable.playlist.updatePlaylist(JSON.parse(this.result), false);
           }
           reader.readAsText(e.dataTransfer.files[i], 'utf-8');
         }
