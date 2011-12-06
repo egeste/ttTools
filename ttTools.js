@@ -142,8 +142,10 @@ ttTools = {
   },
 
   importPlaylist : function (playlist) {
-    console.dir(playlist);
-    turntable.playlist.updatePlaylist(playlist, false);
+    for (var song in playlist) {
+      turntable.playlist.addSong(song);
+    }
+    turntable.playlist.updatePlaylist();
   },
 
   exportPlaylist : function () {
