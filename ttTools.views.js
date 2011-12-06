@@ -126,7 +126,7 @@ ttTools.views = {
           turntable.showAlert("Sorry, can't sort queue while DJing.");
           return false;
         }
-        turntable.playlist.updatePlaylist(ttTools.shuffle(turntable.playlist.files, false);
+        turntable.playlist.updatePlaylist(ttTools.shuffle(turntable.playlist.files), false);
         turntable.playlist.updateTopSongClass();
       });
 
