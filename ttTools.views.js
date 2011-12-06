@@ -362,7 +362,7 @@ ttTools.views = {
         if (upvoter) { row.addClass('upvoter'); }
         if (downvoter) { row.addClass('downvoter'); }
         row.append(
-          $('<td/>'{
+          $('<td/>', {
             id : user.userid
           }).html(user.name)
         ).appendTo($('#usersList tbody'));
