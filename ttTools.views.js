@@ -57,26 +57,6 @@ ttTools.views = {
         $('form.playlistSearch')
       );
 
-      $('#importQueue').button({
-        text  : false,
-        icons : {
-          primary : 'ui-icon-arrowthick-1-n'
-        }
-      }).click(function(e) {
-        util.hideOverlay();
-        ttTools.views.import.render();
-      });
-
-      $('#exportQueue').button({
-        text  : false,
-        icons : {
-          primary : 'ui-icon-arrowthick-1-s'
-        }
-      }).click(function(e) {
-        util.hideOverlay();
-        ttTools.exportPlaylist();
-      });
-
       $('#userList').button({
         text  : false,
         icons : {
@@ -154,12 +134,30 @@ ttTools.views = {
         turntable.playlist.files.shuffle();
         turntable.playlist.updatePlaylist();
       });
+
+      $('#importQueue').button({
+        text  : false,
+        icons : {
+          primary : 'ui-icon-arrowthick-1-n'
+        }
+      }).click(function(e) {
+        util.hideOverlay();
+        ttTools.views.import.render();
+      });
+
+      $('#exportQueue').button({
+        text  : false,
+        icons : {
+          primary : 'ui-icon-arrowthick-1-s'
+        }
+      }).click(function(e) {
+        util.hideOverlay();
+        ttTools.exportPlaylist();
+      });
     },
 
     tree : function() {
       return ['div#playlistTools', {},
-        ['button#importQueue', { title : 'Import Queue' }],
-        ['button#exportQueue', { title : 'Export Queue' }],
         ['button#userList', { title: 'User List' }],
         ['button#showTheLove', { title: 'Show The Love' }],
         ['div#switches', {},
@@ -169,7 +167,9 @@ ttTools.views = {
           ['label', { 'for' : 'autoAwesome' }, 'Up-Vote'],
         ],
         ['button#playlistInvert', { title : 'Flip Playlist' }],
-        ['button#playlistRandomize', { title : 'Shuffle Playlist' }]
+        ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
+        ['button#importQueue', { title : 'Import Queue' }],
+        ['button#exportQueue', { title : 'Export Queue' }]
       ];
     }
   },
