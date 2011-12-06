@@ -19,7 +19,9 @@ ttTools.views = {
         return a;
       }
 
-      ttTools.views.addStyle("\
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
         div.resultsLabel {\
           height:20px !important;\
           padding-top:7px !important;\
@@ -44,7 +46,7 @@ ttTools.views = {
         #playlistTools button { width:16px; }\
         #playlistTools button .ui-button-text { padding:11px; }\
         #playlistTools #switches ui-button-text { padding:.4em; }\
-      ");
+      "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
         $('form.playlistSearch')
@@ -170,7 +172,10 @@ ttTools.views = {
   download_button : {
     render : function () {
       $('div.btn.rdio').remove();
-      ttTools.views.addStyle("\
+
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
         #download_song {\
           float:left;\
           margin:7px;\
@@ -183,13 +188,14 @@ ttTools.views = {
         #download_song:hover {\
           text-decoration:none;\
         }\
-      ");
+      "}).appendTo(document.head);
+
       $('<a/>', {
         id     : 'download_song',
-        href   : ttTools.views.getDownloadUrl(),
+        href   : ttTools.getDownloadUrl(),
         target : '_blank'
       }).click(function() {
-        $(this).attr('href', ttTools.views.getDownloadUrl());
+        $(this).attr('href', ttTools.getDownloadUrl());
       }).appendTo($('#songboard_add'));
     }
   },
@@ -197,7 +203,10 @@ ttTools.views = {
   settings : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
-      ttTools.views.addStyle("\
+
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
         div.field.settings {\
           padding:10px 20px;\
         }\
@@ -210,7 +219,7 @@ ttTools.views = {
           height:0.9em;\
         }\
         #autoDJDisplay, #autoAwesomeDisplay { text-align:center; }\
-      ");
+      "}).appendTo($('div.settingsOverlay.modal'));
 
       $('#autoDJDelay').slider({
         max   : 5000,
@@ -241,7 +250,7 @@ ttTools.views = {
             click : util.hideOverlay
           }
         }],
-        ['h1', 'egeste@egeste.net'],
+        ['h1', 'ttTools Settings'],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},
@@ -258,32 +267,23 @@ ttTools.views = {
     }
   },
 
-  addStyle : function (style) {
-    $('<style/>', {
-      type : 'text/css',
-      text : style
-    }).appendTo(document.head);
-  },
-
-  getDownloadUrl : function () {
-    var room = ttTools.getRoom();
-    if (!room) { return false; }
-    if (room.currentSong == null) { return 'javascript:void(0);'; }
-    return window.location.protocol + "//" + MEDIA_HOST +
-        "/getfile/?roomid=" + room.roomId +
-        "&rand=" + Math.random() +
-        "&fileid=" + room.currentSong._id +
-        "&downloadKey=" + $.sha1(room.roomId + room.currentSong._id) +
-        "&userid=" + turntable.user.id +
-        "&client=web";
-  },
-
   import : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
-      $('#importDropZone').bind('dragover', function (e) {
-        e.stopPropagation();
-        e.preventDefault();
+
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+        #importDropZone {\
+          height:100px;\
+          border:2px dashed #fff;\
+        }\
+      "}).appendTo($('div.settingsOverlay.modal'));
+
+      $('#importDropZone').bind('dragenter', function (e) {
+        $(this).css('background-color', '#999');
+      }).bind('dragleave', function (e) {
+        $(this).css('background-color', '');
       }).bind('drop', function (e) {
         e.stopPropagation();
         e.preventDefault();
@@ -300,9 +300,10 @@ ttTools.views = {
             click : util.hideOverlay
           }
         }],
-        ['div#importDropZone', {}, 'Drag drag playlist file here to import']
+        ['br'],
+        ['div#importDropZone', {}, 'Drag drag playlist file here to import'],
+        ['div']
       ];
     }
   }
-
 }
