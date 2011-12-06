@@ -4,7 +4,7 @@ ttTools.views = {
     render : function () {
       $('div.menuItem').click(function (e) {
         ttTools.views.settings.render();
-      }).insertBefore('div#menuh:last-child');
+      }).insertBefore($('div#menuh').children(':last-child'));
     }
   },
 
