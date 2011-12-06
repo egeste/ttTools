@@ -105,6 +105,7 @@ ttTools = {
   updateVotesOverride : function () {
     var room = this.getRoom();
     if (!room) { return false; }
+    if (!this.downvoters) { this.downvoters = []; }
     room.updateVotesFunc = room.updateVotes;
     room.updateVotes = function (votes, g) {
       this.updateVotesFunc(votes, g);
