@@ -120,6 +120,7 @@ ttTools = {
           this.downvoters.push(log[0]);
         }
       }
+      ttTools.views.users.update();
     }
   },
 

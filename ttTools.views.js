@@ -85,7 +85,6 @@ ttTools.views = {
           userDialog.dialog('close');
         } else {
           userDialog.dialog('open');
-          ttTools.views.users.update();
         }
       });
 
