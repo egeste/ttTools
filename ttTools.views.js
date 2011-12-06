@@ -313,7 +313,7 @@ ttTools.views = {
           }
         }],
         ['br'],
-        ['div#importDropZone', {}, 'Drag drag playlist file here to import']
+        ['div#importDropZone', {}, 'Drag ttTools playlist file here to import']
       ];
     }
   },
