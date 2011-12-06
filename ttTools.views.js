@@ -30,8 +30,7 @@ ttTools.views = {
           top:95px !important;\
         }\
         #playlistTools {\
-          left:5px;\
-          right:2px;\
+          left:10px;\
           top:65px;\
           height:2em;\
           padding:2px 0;\
@@ -51,11 +50,36 @@ ttTools.views = {
         #playlistTools button .ui-button-text {\
           padding:11px;\
         }\
+        #switches ui-button-text {\
+          padding: .4em
+        }\
       ");
 
       $(util.buildTree(this.tree())).insertAfter(
         $('form.playlistSearch')
       );
+
+      $('#switches').buttonset();
+
+      $('#autoDJ').click(function(e) {
+        var room = ttTools.getRoom();
+        if (!room) { return false; }
+        ttTools.autoDJ = !ttTools.autoDJ;
+        if(ttTools.autoDJ && !room.isDj() && room.djIds.length < room.maxDjs) {
+          room.becomeDj();
+        }
+      }).prop('checked', ttTools.autoDJ).button('refresh');
+
+      $('#autoAwesome').click(function(e) {
+        var room = ttTools.getRoom();
+        if (!room) { return false; }
+        ttTools.autoAwesome = !ttTools.autoAwesome;
+        if(ttTools.autoAwesome) {
+          turntable.whenSocketConnected(function() {
+            room.connectRoomSocket('up');
+          });
+        }
+      }).prop('checked', ttTools.autoAwesome).button('refresh');
 
       $('#userList').button({
         text  : false,
@@ -80,28 +104,6 @@ ttTools.views = {
           core.show_heart(user);
         }
       });
-
-      $('#switches').buttonset();
-
-      $('#autoDJ').click(function(e) {
-        var room = ttTools.getRoom();
-        if (!room) { return false; }
-        ttTools.autoDJ = !ttTools.autoDJ;
-        if(ttTools.autoDJ && !room.isDj() && room.djIds.length < room.maxDjs) {
-          room.becomeDj();
-        }
-      }).prop('checked', ttTools.autoDJ).button('refresh');
-
-      $('#autoAwesome').click(function(e) {
-        var room = ttTools.getRoom();
-        if (!room) { return false; }
-        ttTools.autoAwesome = !ttTools.autoAwesome;
-        if(ttTools.autoAwesome) {
-          turntable.whenSocketConnected(function() {
-            room.connectRoomSocket('up');
-          });
-        }
-      }).prop('checked', ttTools.autoAwesome).button('refresh');
 
       $('#playlistInvert').button({
         text  : false,
@@ -158,14 +160,14 @@ ttTools.views = {
 
     tree : function() {
       return ['div#playlistTools', {},
-        ['button#userList', { title: 'User List' }],
-        ['button#showTheLove', { title: 'Show The Love' }],
         ['div#switches', {},
           ['input#autoDJ.ui-icon.ui-icon-person', { type : 'checkbox', title: 'Auto DJ' }],
           ['label', { 'for' : 'autoDJ' }, 'DJ Next'],
           ['input#autoAwesome', { type : 'checkbox', title: 'Auto Awesome' }],
           ['label', { 'for' : 'autoAwesome' }, 'Up-Vote'],
         ],
+        ['button#userList', { title: 'User List' }],
+        ['button#showTheLove', { title: 'Show The Love' }],
         ['button#playlistInvert', { title : 'Flip Playlist' }],
         ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
         ['button#importQueue', { title : 'Import Queue' }],
