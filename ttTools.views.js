@@ -80,7 +80,12 @@ ttTools.views = {
           primary : 'ui-icon-person'
         }
       }).click(function (e) {
-        ttTools.views.users.render();
+        if ($(this)prop('checked')) {
+          ttTools.views.users.update();
+          $('#usersDialog').dialog('open');
+        } else {
+          $('#usersDialog').dialog('close');
+        }
       });
 
       $('#showTheLove').button({
@@ -159,7 +164,7 @@ ttTools.views = {
           ['input#autoAwesome', { type : 'checkbox', title: 'Auto Awesome' }],
           ['label', { 'for' : 'autoAwesome' }, 'Up-Vote'],
         ],
-        ['button#userList', { title: 'User List' }],
+        ['input#userList', { type : 'checkbox', title: 'User List' }],
         ['button#showTheLove', { title: 'Show The Love' }],
         ['button#playlistInvert', { title : 'Flip Playlist' }],
         ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
@@ -313,15 +318,12 @@ ttTools.views = {
   },
 
   users : {
-    visible : false,
-
     render : function () {
-      var room = ttTools.getRoom();
-      if (!room) { return; }
-
       $(util.buildTree(this.tree())).appendTo(document.body);
 
-      $('div.#usersDialog').dialog();
+      $('#usersDialog').dialog({
+        autoOpen : false
+      });
       
       $('<style/>', {
         type : 'text/css',
@@ -334,7 +336,24 @@ ttTools.views = {
         #usersList .upvoter { background-color:#aea; }\
         #usersList .downvoter { background-color:#eaa; }\
       "}).appendTo($('div.#usersDialog'));
+    },
 
+    tree : function () {
+      return ['div#usersDialog', {}
+        ['table#usersList.ui-widget.ui-widget-content', {}]
+      ];
+    },
+
+    update : function () {
+      var room = ttTools.getRoom();
+      if (!room) { return; }
+      $('<tbody/>').append(
+        $('<tr/>').append(
+          $('<th/>', {
+            'class' : 'ui-widget-header'
+          }).html('Name')
+        )
+      ).appendTo($('#usersList tbody'));
       for (var uid in room.users) {
         var user = room.users[uid];
         var upvoter = $.inArray(uid, room.upvoters) > -1;
@@ -343,23 +362,11 @@ ttTools.views = {
         if (upvoter) { row.addClass('upvoter'); }
         if (downvoter) { row.addClass('downvoter'); }
         row.append(
-          $('<td/>').html(user.name)
+          $('<td/>'{
+            id : user.userid
+          }).html(user.name)
         ).appendTo($('#usersList tbody'));
       }
-    },
-
-    tree : function () {
-      return ['div#usersDialog', {},
-        ['h1', 'Users'],
-        ['br'],
-        ['table#usersList.ui-widget.ui-widget-content', {},
-          ['tbody',
-            ['tr.ui-widget-header',
-              ['th', 'Name']
-            ]
-          ]
-        ]
-      ];
     }
   }
 }

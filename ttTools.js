@@ -16,6 +16,7 @@ ttTools = {
         });
       }
       ttTools.views.menu.render();
+      ttTools.views.users.render();
       ttTools.views.toolbar.render();
       ttTools.views.download_button.render();
     });
