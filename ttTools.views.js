@@ -309,15 +309,21 @@ ttTools.views = {
           }
         }],
         ['br'],
-        ['div#importDropZone', {}, 'Drag drag playlist file here to import'],
-        ['div']
+        ['div#importDropZone', {}, 'Drag drag playlist file here to import']
       ];
     }
   },
 
   users : {
     render : function () {
+      var room = ttTools.getRoom();
+      if (!room) { return; }
       util.showOverlay(util.buildTree(this.tree()));
+      for (user in room.users) {
+        $('<tr/>').append(
+          $('<td/>').html(user.name)
+        ).appendTo($('#usersList'));
+      }
     },
 
     tree : function () {
