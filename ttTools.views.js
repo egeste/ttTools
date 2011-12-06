@@ -285,8 +285,8 @@ ttTools.views = {
       }).bind('dragleave', function(e) {
         $(this).css('background-color', '');
       }).bind('drop', function(e) {
-        // e.stopPropagation();
-        // e.preventDefault();
+        e.stopPropagation();
+        e.preventDefault();
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           console.dir(e.dataTransfer.files[i]);
         }
