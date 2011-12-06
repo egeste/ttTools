@@ -280,15 +280,18 @@ ttTools.views = {
         }\
       "}).appendTo($('div.settingsOverlay.modal'));
 
-      $('#importDropZone').bind('dragenter', function (e) {
+      $('#importDropZone').bind('dragover', function() {
+        e.stopPropagation();
+        e.preventDefault();
+      }).bind('dragenter', function(e) {
         e.stopPropagation();
         e.preventDefault();
         $(this).css('background-color', '#999');
-      }).bind('dragleave', function (e) {
+      }).bind('dragleave', function(e) {
         e.stopPropagation();
         e.preventDefault();
         $(this).css('background-color', '');
-      }).bind('drop', function (e) {
+      }).bind('drop', function(e) {
         e.stopPropagation();
         e.preventDefault();
         for (var i=0; i<e.dataTransfer.files.length; i++) {
