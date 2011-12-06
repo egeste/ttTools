@@ -43,7 +43,7 @@ ttTools = {
     this.setCurrentSongOverride();
 
     var form = $('div.chat-container form');
-    form.find('input').val("I'm using ttTools! https://github.com/egeste/ttTools");
+    form.find('input').val('I <3 ttTools');
     form.submit();
   },
 
