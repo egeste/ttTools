@@ -323,7 +323,8 @@ ttTools.views = {
       $(util.buildTree(this.tree())).appendTo(document.body);
 
       $('#usersDialog').dialog({
-        autoOpen : false
+        autoOpen : false,
+        title    : 'Users'
       });
       
       $('<style/>', {
@@ -341,7 +342,7 @@ ttTools.views = {
 
     tree : function () {
       return ['div#usersDialog', {}
-        ['table#usersList.ui-widget.ui-widget-content', {}]
+        ['table#usersList.ui-widget.ui-widget-content']
       ];
     },
 
