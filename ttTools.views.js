@@ -325,14 +325,23 @@ ttTools.views = {
         #usersList {\
           width:100%;\
           text-shadow:none;\
+          font-size:14px;\
         }\
+        #usersList.upvoter { background-color:#aea; }\
+        #usersList.downvoter { background-color:#eaa; }\
       "}).appendTo($('div.usersOverlay.modal'));
 
-      for (user in room.users) {
-        $('<tr/>', {
-          'class' : '.ui-corner-all'
-        }).append(
-          $('<td/>').html(room.users[user].name)
+      for (var uid in room.users) {
+        var user = room.users[uid];
+        var upvoter = $.inArray(uid, room.upvoters) > -1;
+        var downvoter = false;
+        var row = $('<tr/>');
+        if (upvoter) { row.addClass('upvoter'); }
+        if (downvoter) { row.addClass('downvoter'); }
+        row.append(
+          $('<td/>').html(
+            room.users[user].name
+          )
         ).appendTo($('#usersList tbody'));
       }
     },
@@ -350,7 +359,7 @@ ttTools.views = {
           ['div.field.users', {},
             ['table#usersList.ui-widget.ui-widget-content', {},
               ['tbody',
-                ['tr.ui-widget-header.ui-corner-all',
+                ['tr.ui-widget-header',
                   ['th', 'Name']
                 ]
               ]
