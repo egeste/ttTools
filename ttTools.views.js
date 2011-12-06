@@ -30,7 +30,7 @@ ttTools.views = {
           top:95px !important;\
         }\
         #playlistTools {\
-          left:6px;\
+          left:5px;\
           top:65px;\
           height:2em;\
           padding:2px 0;\
@@ -43,7 +43,6 @@ ttTools.views = {
         #playlistTools div, #playlistTools button { float:left; }\
         #playlistTools button { width:16px; }\
         #playlistTools button .ui-button-text { padding:11px; }\
-        #playlistTools #switches { margin:0; }\
         #playlistTools #switches ui-button-text { padding:.4em; }\
       ");
 
