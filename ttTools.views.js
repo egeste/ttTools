@@ -280,17 +280,17 @@ ttTools.views = {
         }\
       "}).appendTo($('div.settingsOverlay.modal'));
 
-      $('#importDropZone').bind('dragenter', function(e) {
+      $('#importDropZone').addEventListener('dragenter', function(e) {
         $(this).css('background-color', '#999');
-      }).bind('dragleave', function(e) {
+      }).addEventListener('dragleave', function(e) {
         $(this).css('background-color', '');
-      }).bind('drop', function(e) {
+      }).addEventListener('drop', function(e) {
         e.stopPropagation();
         e.preventDefault();
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           console.dir(e.dataTransfer.files[i]);
         }
-      }, false);
+      });
     },
 
     tree : function () {
