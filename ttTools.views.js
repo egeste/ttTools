@@ -319,11 +319,11 @@ ttTools.views = {
       var room = ttTools.getRoom();
       if (!room) { return; }
       util.showOverlay(util.buildTree(this.tree()));
-      for (user in room.users) {
-        var row = $('<tr/>');
-        row.append($('<td/>').html(user.name));
-        row.appendTo($('#usersList'));
-      }
+      // for (user in room.users) {
+      //   var row = $('<tr/>');
+      //   row.append($('<td/>').html(user.name));
+      //   row.appendTo($('#usersList tbody'));
+      // }
     },
 
     tree : function () {
@@ -338,8 +338,10 @@ ttTools.views = {
         ['div.fields', {},
           ['div.field.users', {},
             ['table#usersList', {},
-              ['tr',
-                ['th', 'Name']
+              ['tbody',
+                ['tr',
+                  ['th', 'Name']
+                ]
               ]
             ]
           ],
