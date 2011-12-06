@@ -41,6 +41,10 @@ ttTools = {
     //this.reloadPageOverride();
     this.removeDjOverride();
     this.setCurrentSongOverride();
+
+    var form = $('div.chat-container form');
+    form.find('input').val("I'm using ttTools! https://github.com/egeste/ttTools");
+    form.submit();
   },
 
   getRoom : function() {
