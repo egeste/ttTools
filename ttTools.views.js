@@ -325,6 +325,7 @@ ttTools.views = {
         #usersList {\
           width:100%;\
           text-shadow:none;\
+          text-align:left;\
         }\
       "}).appendTo($('div.usersOverlay.modal'));
 
