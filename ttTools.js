@@ -30,6 +30,7 @@ ttTools = {
 
     //this.reloadPageOverride();
     this.removeDjOverride();
+    this.updateVotesOverride();
     this.setCurrentSongOverride();
 
     var form = $('div.chat-container form');
@@ -100,6 +101,16 @@ ttTools = {
       this.removeDjFunc(userId);
     };
   },
+
+  updateVotesOverride : function () {
+    var room = this.getRoom();
+    if (!room) { return false; }
+    room.updateVotesFunc = room.updateVotes;
+    room.updateVotes = function (i, g) {
+      room.updateVotesFunc(i, g);
+      console.dir([i, g]);
+    }
+  }
 
   setCurrentSongOverride : function () {
     var room = this.getRoom();
