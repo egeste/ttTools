@@ -56,10 +56,10 @@ This feature was inpired by [Turntable Extended](https://github.com/MarkReeder/T
 ## Playlist Invert & Shuffle
 I've personally always wanted this feature. Sometimes you just want to mix it up.
 
-### Notes
+### Notes:
 <ul>
-	<li>Adds "Flip Playlist" jquery UI button above the playlist.</li>
-	<li>Adds "Shuffle Playlist" jquery UI button above the playlist.</li>
+	<li>Adds "Flip Playlist" button above the playlist.</li>
+	<li>Adds "Shuffle Playlist" button above the playlist.</li>
 </ul>
 
 ### To use:
@@ -67,10 +67,43 @@ I've personally always wanted this feature. Sometimes you just want to mix it up
 	<li>Click the "Flip Playlist" or "Shuffle playlist" button above the playlist.</li>
 </ul>
 
+## Playlist Import/Export
+Save your playlist to a file so it's portable and you can share it/swap it out with other playlists.
+
+### Notes:
+<ul>
+	<li>Adds the "Import Playlist" button above the playlist.</li>
+	<li>Adds the "Export Playlist" button above the playlist.</li>
+	<li>Import uses HTML5 Drag & Drop, as well as HTML5 FileReader object to parse a ttTools generated file</li>
+	<li>Export generates a json encoded file representing the turntable.playlist.files array</li>
+	<li>The generated export file is downloaded using the data: UIR scheme</li>
+</ul>
+
+### To use:
+<ul>
+	<li>To import, click the "Import Playlist" button above the playlist. Drag a ttTools generated playlist file into the labeled area</li>
+	<li>To export, click the "Export Playlist" button above the playlist.</li>
+</ul>
+
+## Users List w/ Vote Indicators
+Allows you to view the list of users in the room as well as see at a glance who upvotes, downvoted, or has not voted on the current song. Inspired by TT+
+
+### Notes:
+<ul>
+	<li>Adds the "User List" button above the playlist.</li>
+	<li>The user list dialog updates automatically when a new vote is registered</li>
+	<li>The user list dialog it moveable, resizeable and can be hidden.</li>
+</ul>
+
+### To use:
+<ul>
+	<li>Click the "User List" button above the playlist.</li>
+</ul>
+
 ## Download Songs
 Self explanatory.
 
-### Notes
+### Notes:
 <ul>
 	<li>Adds "Download" icon, replacing the rdio icon when you hover over the LED billboard thing.</li>
 </ul>
