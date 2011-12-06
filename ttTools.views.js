@@ -43,7 +43,7 @@ ttTools.views = {
         #playlistTools div, #playlistTools button { float:left; }\
         #playlistTools button { width:16px; }\
         #playlistTools button .ui-button-text { padding:11px; }\
-        #playlistTools #switches ui-buttonset { margin:0; }\
+        #playlistTools #switches { margin:0; }\
         #playlistTools #switches ui-button-text { padding:.4em; }\
       ");
 
