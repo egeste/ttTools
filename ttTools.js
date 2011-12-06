@@ -141,16 +141,12 @@ ttTools = {
         "&client=web";
   },
 
-  importPlaylist : function () {
-    // TODO
+  importPlaylist : function (playlist) {
+    turntable.playlist.updatePlaylist(playlist, false);
   },
 
   exportPlaylist : function () {
-    var fids = [];
-    for (var i=0; i<turntable.playlist.files.length; i++) {
-      fids.push(turntable.playlist.files[i].fileId);
-    }
-    window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(fids);
+    window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files);
   }
 };
 ttTools.init();
