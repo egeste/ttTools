@@ -318,8 +318,10 @@ ttTools.views = {
     render : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
-      
-      util.showOverlay(util.buildTree(this.tree()));
+
+      $(util.buildTree(this.tree())).appendTo(document.body);
+
+      $('div.#usersDialog').dialog();
       
       $('<style/>', {
         type : 'text/css',
@@ -331,7 +333,7 @@ ttTools.views = {
         }\
         #usersList .upvoter { background-color:#aea; }\
         #usersList .downvoter { background-color:#eaa; }\
-      "}).appendTo($('div.usersOverlay.modal'));
+      "}).appendTo($('div.#usersDialog'));
 
       for (var uid in room.users) {
         var user = room.users[uid];
@@ -347,24 +349,15 @@ ttTools.views = {
     },
 
     tree : function () {
-      return ['div.usersOverlay.modal', {},
-        ['div.close-x', {
-          event : {
-            click : util.hideOverlay
-          }
-        }],
+      return ['div#usersDialog', {},
         ['h1', 'Users'],
         ['br'],
-        ['div.fields', {},
-          ['div.field.users', {},
-            ['table#usersList.ui-widget.ui-widget-content', {},
-              ['tbody',
-                ['tr.ui-widget-header',
-                  ['th', 'Name']
-                ]
-              ]
+        ['table#usersList.ui-widget.ui-widget-content', {},
+          ['tbody',
+            ['tr.ui-widget-header',
+              ['th', 'Name']
             ]
-          ],
+          ]
         ]
       ];
     }
