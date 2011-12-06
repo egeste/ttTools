@@ -76,7 +76,7 @@ Save your playlist to a file so it's portable and you can share it/swap it out w
 	<li>Adds the "Export Playlist" button above the playlist.</li>
 	<li>Import uses HTML5 Drag & Drop, as well as HTML5 FileReader object to parse a ttTools generated file</li>
 	<li>Export generates a json encoded file representing the turntable.playlist.files array</li>
-	<li>The generated export file is downloaded using the data: UIR scheme</li>
+	<li>The generated export file is downloaded using the data: URI scheme</li>
 </ul>
 
 ### To use:
