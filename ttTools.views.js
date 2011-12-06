@@ -217,6 +217,24 @@ ttTools.views = {
           $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
         }
       });
+
+      $('#importQueue').button({
+        icons : {
+          primary : 'ui-ion-arrowthickstop-1-n'
+        }
+      }).click(function(e) {
+        util.hideOverlay();
+        ttTools.views.import.render();
+      });
+
+      $('#exportQueue').button({
+        icons : {
+          primary : 'ui-ion-arrowthickstop-1-s'
+        }
+      }).click(function(e) {
+        util.hideOverlay();
+        ttTools.exportPlaylist();
+      });
     },
 
     tree : function () {
@@ -236,7 +254,11 @@ ttTools.views = {
             ['br'],
             ['div', {}, 'Auto Awesome Delay'],
             ['div#autoAwesomeDelay', {}],
-            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s']
+            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s'],
+            ['br'],
+            ['div', {}, 'Queue Import/Export'],
+            ['button#importQueue', 'Import Queue'],
+            ['button#exportQueue', 'Export Queue'],
           ],
         ]
       ];
