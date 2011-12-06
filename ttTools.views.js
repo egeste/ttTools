@@ -104,12 +104,6 @@ ttTools.views = {
           primary: 'ui-icon-transfer-e-w'
         }
       }).click(function (e) {
-        var room = ttTools.getRoom();
-        if (!room) { return false; }
-        if (room.currentDj == room.selfId) {
-          turntable.showAlert("Sorry, can't sort queue while DJing.");
-          return false;
-        }
         turntable.playlist.updatePlaylist(turntable.playlist.files.reverse());
         turntable.playlist.updateTopSongClass();
       });
@@ -120,12 +114,6 @@ ttTools.views = {
           primary: 'ui-icon-shuffle'
         }
       }).click(function (e) {
-        var room = ttTools.getRoom();
-        if (!room) { return false; }
-        if (room.currentDj == room.selfId) {
-          turntable.showAlert("Sorry, can't sort queue while DJing.");
-          return false;
-        }
         turntable.playlist.updatePlaylist(ttTools.shuffle(turntable.playlist.files), false);
         turntable.playlist.updateTopSongClass();
       });
