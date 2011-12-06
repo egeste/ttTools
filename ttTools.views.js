@@ -149,6 +149,18 @@ ttTools.views = {
         ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
         ['button#hackSettings', { title : 'Hack Settings' }],
       ];
+    },
+
+    importPlaylist : function () {
+      // TODO
+    },
+
+    exportPlaylist : function () {
+      var fids = [];
+      for (var i=0; i<turntable.playlist.files.length; i++) {
+        fids.push(file.fildId);
+      }
+      window.location.href = 'data:text/json;charset=utf-8,fids='+JSON.strinify(fids);
     }
   },
 
