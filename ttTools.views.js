@@ -293,8 +293,10 @@ ttTools.views = {
       dropZone.addEventListener('drop', function (e) {
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           var reader = new FileReader();
+          reader.onload = function () {
+            console.dir(this.result);
+          }
           reader.readAsText(e.dataTransfer.files[i], 'utf-8');
-          console.dir(reader);
         }
       });
     },
