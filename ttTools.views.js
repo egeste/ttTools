@@ -84,8 +84,8 @@ ttTools.views = {
         if (userDialog.dialog('isOpen')) {
           userDialog.dialog('close');
         } else {
-          ttTools.views.users.update();
           userDialog.dialog('open');
+          ttTools.views.users.update();
         }
       });
 
@@ -354,7 +354,7 @@ ttTools.views = {
             'class' : 'ui-widget-header'
           }).html('Name')
         )
-      ).appendTo($('#usersList tbody'));
+      ).appendTo($('#usersList'));
       for (var uid in room.users) {
         var user = room.users[uid];
         var upvoter = $.inArray(uid, room.upvoters) > -1;
