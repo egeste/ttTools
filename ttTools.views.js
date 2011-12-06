@@ -337,7 +337,11 @@ ttTools.views = {
         ['br'],
         ['div.fields', {},
           ['div.field.users', {},
-            ['table#usersList', {}]
+            ['table#usersList', {},
+              ['tr',
+                ['th', 'Name']
+              ]
+            ]
           ],
         ]
       ];
