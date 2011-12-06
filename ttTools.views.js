@@ -281,8 +281,12 @@ ttTools.views = {
       "}).appendTo($('div.settingsOverlay.modal'));
 
       $('#importDropZone').bind('dragenter', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
         $(this).css('background-color', '#999');
       }).bind('dragleave', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
         $(this).css('background-color', '');
       }).bind('drop', function (e) {
         e.stopPropagation();
