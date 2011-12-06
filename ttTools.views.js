@@ -163,8 +163,8 @@ ttTools.views = {
         ['button#showTheLove', { title: 'Show The Love' }],
         ['button#playlistInvert', { title : 'Flip Playlist' }],
         ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
-        ['button#importQueue', { title : 'Import Queue' }],
-        ['button#exportQueue', { title : 'Export Queue' }]
+        ['button#importQueue', { title : 'Import Playlist' }],
+        ['button#exportQueue', { title : 'Export Playlist' }]
       ];
     }
   },
