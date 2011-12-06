@@ -79,11 +79,12 @@ ttTools.views = {
           primary : 'ui-icon-person'
         }
       }).click(function (e) {
-        if ($(this).prop('checked')) {
-          ttTools.views.users.update();
-          $('#usersDialog').dialog('open');
+        var userDialog = $('#usersDialog');
+        if (dialog.dialog('isOpen')) {
+          userDialog.dialog('close');
         } else {
-          $('#usersDialog').dialog('close');
+          ttTools.views.users.update();
+          userDialog.dialog('open');
         }
       });
 
@@ -163,7 +164,7 @@ ttTools.views = {
           ['input#autoAwesome', { type : 'checkbox', title: 'Auto Awesome' }],
           ['label', { 'for' : 'autoAwesome' }, 'Up-Vote'],
         ],
-        ['input#userList', { type : 'checkbox', title: 'User List' }],
+        ['button#userList', { title: 'User List' }],
         ['button#showTheLove', { title: 'Show The Love' }],
         ['button#playlistInvert', { title : 'Flip Playlist' }],
         ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
