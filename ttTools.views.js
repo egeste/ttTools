@@ -262,7 +262,7 @@ ttTools.views = {
         "&client=web";
   },
 
-  import : function () {
+  import : {
     render : function () {
       util.showOverlay(util.buildTree(ttTools.views.settings.tree()));
       $('#importDropZone').bind('dragover', function (e) {
