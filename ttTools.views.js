@@ -53,7 +53,7 @@ ttTools.views = {
         }\
       ");
 
-      $(util.buildTree(ttTools.views.toolbar.tree())).insertAfter(
+      $(util.buildTree(this.tree())).insertAfter(
         $('form.playlistSearch')
       );
 
@@ -181,7 +181,7 @@ ttTools.views = {
 
   settings : {
     render : function () {
-      util.showOverlay(util.buildTree(ttTools.views.settings.tree()));
+      util.showOverlay(util.buildTree(this.tree()));
       ttTools.views.addStyle("\
         div.field.settings {\
           padding:10px 20px;\
@@ -287,7 +287,7 @@ ttTools.views = {
 
   import : {
     render : function () {
-      util.showOverlay(util.buildTree(ttTools.views.settings.tree()));
+      util.showOverlay(util.buildTree(this.tree()));
       $('#importDropZone').bind('dragover', function (e) {
         e.stopPropagation();
         e.preventDefault();
