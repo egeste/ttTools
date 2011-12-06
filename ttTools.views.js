@@ -207,7 +207,6 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.settingsOverlay.modal * { text-shadow:none; }\
         div.field.settings { padding:10px 20px; }\
         div.field.settings .ui-slider {\
           height:0.5em;\
@@ -273,7 +272,6 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.importOverlay.modal * { text-shadow:none; }\
         #importDropZone {\
           height:100px;\
           border:2px dashed #fff;\
@@ -324,9 +322,9 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.usersOverlay.modal * { text-shadow:none; }\
         #usersList {\
           width:100%;\
+          text-shadow:none;\
         }\
       "}).appendTo($('div.usersOverlay.modal'));
 
