@@ -320,7 +320,14 @@ ttTools.views = {
 
   users : {
     render : function () {
-      $(util.buildTree(this.tree())).appendTo(document.body);
+      $('<div/>', {
+        id : 'usersDialog'
+      }).append(
+        $('<table/>', {
+          id      : 'usersList',
+          'class' : 'ui-widget ui-widget-content'
+        })
+      ).appendTo(document.body);
 
       $('#usersDialog').dialog({
         autoOpen : false,
@@ -340,22 +347,18 @@ ttTools.views = {
       "}).appendTo($('div.#usersDialog'));
     },
 
-    tree : function () {
-      return ['div#usersDialog', {}
-        ['table#usersList.ui-widget.ui-widget-content']
-      ];
-    },
-
     update : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
-      $('<tbody/>').append(
-        $('<tr/>').append(
-          $('<th/>', {
-            'class' : 'ui-widget-header'
-          }).html('Name')
+      $('#usersList').html(
+        $('<tbody/>').append(
+          $('<tr/>').append(
+            $('<th/>', {
+              'class' : 'ui-widget-header'
+            }).html('Name')
+          )
         )
-      ).appendTo($('#usersList'));
+      )
       for (var uid in room.users) {
         var user = room.users[uid];
         var upvoter = $.inArray(uid, room.upvoters) > -1;
