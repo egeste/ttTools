@@ -2,9 +2,7 @@ ttTools.views = {
 
   menu : {
     render : function () {
-      $('<div/>', {
-        'class' : 'menuItem'
-      }).click(function (e) {
+      $('<div class="menuItem">ttTools Settings</div>').click(function (e) {
         ttTools.views.settings.render();
       }).insertBefore($('div#menuh').children().last());
     }
