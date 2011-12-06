@@ -80,7 +80,7 @@ ttTools.views = {
           primary : 'ui-icon-person'
         }
       }).click(function (e) {
-        if ($(this)prop('checked')) {
+        if ($(this).prop('checked')) {
           ttTools.views.users.update();
           $('#usersDialog').dialog('open');
         } else {
