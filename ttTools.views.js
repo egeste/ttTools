@@ -30,29 +30,21 @@ ttTools.views = {
           top:95px !important;\
         }\
         #playlistTools {\
-          left:10px;\
+          left:6px;\
           top:65px;\
           height:2em;\
           padding:2px 0;\
           position:absolute;\
         }\
-        #playlistTools div, #playlistTools button {\
-          float:left;\
-        }\
         #playlistTools label {\
           font-size:10px;\
           text-shadow:none;\
         }\
-        #playlistTools button {\
-          width:16px;\
-          margin:0 3px 0 0;\
-        }\
-        #playlistTools button .ui-button-text {\
-          padding:11px;\
-        }\
-        #switches ui-button-text {\
-          padding: .4em;\
-        }\
+        #playlistTools div, #playlistTools button { float:left; }\
+        #playlistTools button { width:16px; }\
+        #playlistTools button .ui-button-text { padding:11px; }\
+        #playlistTools #switches ui-buttonset { margin:0; }\
+        #playlistTools #switches ui-button-text { padding:.4em; }\
       ");
 
       $(util.buildTree(this.tree())).insertAfter(
