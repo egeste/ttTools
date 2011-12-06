@@ -346,16 +346,12 @@ ttTools.views = {
         }],
         ['h1', 'Users'],
         ['br'],
-        ['div.fields', {},
-          ['div.field.users', {},
-            ['table#usersList.ui-widget.ui-widget-content', {},
-              ['tbody',
-                ['tr.ui-widget-header.ui-corner-all',
-                  ['th', 'Name']
-                ]
-              ]
+        ['table#usersList.ui-widget.ui-widget-content', {},
+          ['tbody',
+            ['tr.ui-widget-header.ui-corner-all',
+              ['th', 'Name']
             ]
-          ],
+          ]
         ]
       ];
     }
