@@ -320,8 +320,9 @@ ttTools.views = {
       if (!room) { return; }
       util.showOverlay(util.buildTree(this.tree()));
       for (user in room.users) {
-        $('<td/>').html(user.name).appendTo($('<tr/>'));
-        $('#usersList tbody').append(row);
+        $('<tr/>').append(
+          $('<td/>').html(user.name)
+        ).appendTo($('#usersList tbody'));
       }
     },
 
