@@ -291,10 +291,8 @@ ttTools.views = {
         e.preventDefault();
       });
       dropZone.addEventListener('drop', function (e) {
-        // e.stopPropagation();
-        // e.preventDefault();
         for (var i=0; i<e.dataTransfer.files.length; i++) {
-          console.dir(e.dataTransfer.files[i]);
+          console.dir(e.dataTransfer);
         }
       });
     },
