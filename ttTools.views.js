@@ -327,7 +327,7 @@ ttTools.views = {
         #usersList {\
           width:100%;\
         }\
-      "}).appendTo($('div.importOverlay.modal'));
+      "}).appendTo($('div.usersOverlay.modal'));
 
       for (user in room.users) {
         $('<tr/>').append(
