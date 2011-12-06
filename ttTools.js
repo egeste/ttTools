@@ -110,7 +110,7 @@ ttTools = {
       room.updateVotesFunc(i, g);
       console.dir([i, g]);
     }
-  }
+  },
 
   setCurrentSongOverride : function () {
     var room = this.getRoom();
