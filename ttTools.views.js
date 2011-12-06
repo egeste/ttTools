@@ -287,13 +287,16 @@ ttTools.views = {
       dropZone.addEventListener('dragleave', function (e) {
         $(this).css('background-color', '');
       });
-      dropZone.addEventListener('drop', function (e) {
-        e.stopPropagation();
+      dropZone.addEventListener('dragover', function (e) {
         e.preventDefault();
+      });
+      dropZone.addEventListener('drop', function (e) {
+        // e.stopPropagation();
+        // e.preventDefault();
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           console.dir(e.dataTransfer.files[i]);
         }
-      }, false);
+      });
     },
 
     tree : function () {
