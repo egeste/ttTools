@@ -80,7 +80,7 @@ ttTools.views = {
           primary : 'ui-icon-person'
         }
       }).click(function (e) {
-        // TODO
+        ttTools.views.users.render();
       });
 
       $('#showTheLove').button({
@@ -278,7 +278,7 @@ ttTools.views = {
           height:100px;\
           border:2px dashed #fff;\
         }\
-      "}).appendTo($('div.settingsOverlay.modal'));
+      "}).appendTo($('div.importOverlay.modal'));
 
       var dropZone = $('#importDropZone').get(0);
       dropZone.addEventListener('dragenter', function (e) {
@@ -302,7 +302,7 @@ ttTools.views = {
     },
 
     tree : function () {
-      return ['div.settingsOverlay.modal', {},
+      return ['div.importOverlay.modal', {},
         ['div.close-x', {
           event : {
             click : util.hideOverlay
@@ -311,6 +311,29 @@ ttTools.views = {
         ['br'],
         ['div#importDropZone', {}, 'Drag drag playlist file here to import'],
         ['div']
+      ];
+    }
+  },
+
+  users : function () {
+    render : function () {
+      util.showOverlay(util.buildTree(this.tree()));
+    },
+
+    tree : function () {
+      return ['div.usersOverlay.modal', {},
+        ['div.close-x', {
+          event : {
+            click : util.hideOverlay
+          }
+        }],
+        ['h1', 'Users'],
+        ['br'],
+        ['div.fields', {},
+          ['div.field.users', {},
+            ['table#usersList', {}]
+          ],
+        ]
       ];
     }
   }
