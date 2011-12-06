@@ -315,7 +315,7 @@ ttTools.views = {
     }
   },
 
-  users : function () {
+  users : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
     },
