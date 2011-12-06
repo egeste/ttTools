@@ -144,7 +144,6 @@ ttTools = {
 
   importPlaylist : function (playlist) {
     for (var i=0; i<playlist.length; i++) {
-      console.dir(playlist[i]);
       turntable.playlist.addSong(playlist[i]);
     }
   },
