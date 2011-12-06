@@ -313,6 +313,8 @@ ttTools.views = {
   },
 
   users : {
+    visible : false,
+
     render : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
