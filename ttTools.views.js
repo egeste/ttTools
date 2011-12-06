@@ -51,7 +51,7 @@ ttTools.views = {
           padding:11px;\
         }\
         #switches ui-button-text {\
-          padding: .4em
+          padding: .4em;\
         }\
       ");
 
