@@ -84,15 +84,6 @@ ttTools.views = {
         if (!core) { return false; }
         for (user in room.users) {
           core.show_heart(user);
-          // room.sendSnag(
-          //   room.selfId,
-          //   room.roomId,
-          //   true,
-          //   room.currentSong._id,
-          //   'queue',
-          //   'board',
-          //   'false'
-          // );
         }
       });
 
@@ -158,7 +149,7 @@ ttTools.views = {
     exportPlaylist : function () {
       var fids = [];
       for (var i=0; i<turntable.playlist.files.length; i++) {
-        fids.push(file.fildId);
+        fids.push(turntable.playlist.files[i].fileId);
       }
       window.location.href = 'data:text/json;charset=utf-8,fids='+JSON.strinify(fids);
     }
