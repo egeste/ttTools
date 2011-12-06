@@ -296,6 +296,7 @@ ttTools.views = {
           reader.onload = function () {
             //turntable.playlist.updatePlaylist([], false);
             $(JSON.parse(this.result)).each(function (index, value) {
+              console.dir(value);
               turntable.playlist.addSong(value, 0);
             });
           }
