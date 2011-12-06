@@ -9,7 +9,7 @@ ttTools.views = {
   },
 
   toolbar : {
-    render : function() {
+    render : function () {
       turntable.playlist.setPlaylistHeightFunc = turntable.playlist.setPlaylistHeight;
       turntable.playlist.setPlaylistHeight = function (a) {
         a = this.setPlaylistHeightFunc(a);
@@ -54,7 +54,7 @@ ttTools.views = {
 
       $('#switches').buttonset();
 
-      $('#autoDJ').click(function(e) {
+      $('#autoDJ').click(function (e) {
         var room = ttTools.getRoom();
         if (!room) { return false; }
         ttTools.autoDJ = !ttTools.autoDJ;
@@ -63,12 +63,12 @@ ttTools.views = {
         }
       }).prop('checked', ttTools.autoDJ).button('refresh');
 
-      $('#autoAwesome').click(function(e) {
+      $('#autoAwesome').click(function (e) {
         var room = ttTools.getRoom();
         if (!room) { return false; }
         ttTools.autoAwesome = !ttTools.autoAwesome;
         if(ttTools.autoAwesome) {
-          turntable.whenSocketConnected(function() {
+          turntable.whenSocketConnected(function () {
             room.connectRoomSocket('up');
           });
         }
@@ -79,7 +79,7 @@ ttTools.views = {
         icons : {
           primary : 'ui-icon-person'
         }
-      }).click(function(e) {
+      }).click(function (e) {
         // TODO
       });
 
@@ -88,7 +88,7 @@ ttTools.views = {
         icons : {
           primary: 'ui-icon-heart'
         }
-      }).click(function(e){
+      }).click(function (e){
         var room = ttTools.getRoom();
         if (!room) { return false; }
         var core = ttTools.getCore(room);
@@ -103,7 +103,7 @@ ttTools.views = {
         icons : {
           primary: 'ui-icon-transfer-e-w'
         }
-      }).click(function(e) {
+      }).click(function (e) {
         var room = ttTools.getRoom();
         if (!room) { return false; }
         if (room.currentDj == room.selfId) {
@@ -119,7 +119,7 @@ ttTools.views = {
         icons : {
           primary: 'ui-icon-shuffle'
         }
-      }).click(function(e) {
+      }).click(function (e) {
         var room = ttTools.getRoom();
         if (!room) { return false; }
         if (room.currentDj == room.selfId) {
@@ -135,7 +135,7 @@ ttTools.views = {
         icons : {
           primary : 'ui-icon-arrowthick-1-n'
         }
-      }).click(function(e) {
+      }).click(function (e) {
         util.hideOverlay();
         ttTools.views.import.render();
       });
@@ -145,13 +145,13 @@ ttTools.views = {
         icons : {
           primary : 'ui-icon-arrowthick-1-s'
         }
-      }).click(function(e) {
+      }).click(function (e) {
         util.hideOverlay();
         ttTools.exportPlaylist();
       });
     },
 
-    tree : function() {
+    tree : function () {
       return ['div#playlistTools', {},
         ['div#switches', {},
           ['input#autoDJ.ui-icon.ui-icon-person', { type : 'checkbox', title: 'Auto DJ' }],
@@ -194,7 +194,7 @@ ttTools.views = {
         id     : 'download_song',
         href   : ttTools.getDownloadUrl(),
         target : '_blank'
-      }).click(function() {
+      }).click(function () {
         $(this).attr('href', ttTools.getDownloadUrl());
       }).appendTo($('#songboard_add'));
     }
@@ -226,7 +226,7 @@ ttTools.views = {
         min   : 0,
         step  : 100,
         value : ttTools.autoDJDelay,
-        slide : function(event, ui) {
+        slide : function (event, ui) {
           ttTools.autoDJDelay = ui.value;
           $('#autoDJDisplay').text(ui.value/1000 + ' s');
         }
@@ -236,7 +236,7 @@ ttTools.views = {
         min   : 0,
         step  : 1000,
         value : ttTools.autoAwesomeDelay,
-        slide : function(event, ui) {
+        slide : function (event, ui) {
           ttTools.autoAwesomeDelay = ui.value;
           $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
         }
@@ -281,14 +281,13 @@ ttTools.views = {
       "}).appendTo($('div.settingsOverlay.modal'));
 
       var dropZone = $('#importDropZone').get(0);
-
-      dropZone.addEventListener('dragenter', function(e) {
+      dropZone.addEventListener('dragenter', function (e) {
         $(this).css('background-color', '#999');
       });
-      dropZone.addEventListener('dragleave', function(e) {
+      dropZone.addEventListener('dragleave', function (e) {
         $(this).css('background-color', '');
       });
-      dropZone.addEventListener('drop', function(e) {
+      dropZone.addEventListener('drop', function (e) {
         e.stopPropagation();
         e.preventDefault();
         for (var i=0; i<e.dataTransfer.files.length; i++) {
