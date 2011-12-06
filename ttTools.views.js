@@ -35,10 +35,9 @@ ttTools.views = {
           top:65px;\
           height:2em;\
           padding:2px 0;\
-          text-align:right;\
           position:absolute;\
         }\
-        #playlistTools #switches {\
+        #playlistTools div, #playlistTools button {\
           float:left;\
         }\
         #playlistTools label {\
@@ -58,9 +57,33 @@ ttTools.views = {
         $('form.playlistSearch')
       );
 
+      $('#userList').button({
+        text  : false,
+        icons : {
+          primary : 'ui-icon-person'
+        }
+      }).click(function(e) {
+        // TODO
+      });
+
+      $('#showTheLove').button({
+        text  : false,
+        icons : {
+          primary: 'ui-icon-heart'
+        }
+      }).click(function(e){
+        var room = ttTools.getRoom();
+        if (!room) { return false; }
+        var core = ttTools.getCore(room);
+        if (!core) { return false; }
+        for (user in room.users) {
+          core.show_heart(user);
+        }
+      });
+
       $('#switches').buttonset();
 
-      $('#autoDJ').click(function() {
+      $('#autoDJ').click(function(e) {
         var room = ttTools.getRoom();
         if (!room) { return false; }
         ttTools.autoDJ = !ttTools.autoDJ;
@@ -69,7 +92,7 @@ ttTools.views = {
         }
       }).prop('checked', ttTools.autoDJ).button('refresh');
 
-      $('#autoAwesome').click(function() {
+      $('#autoAwesome').click(function(e) {
         var room = ttTools.getRoom();
         if (!room) { return false; }
         ttTools.autoAwesome = !ttTools.autoAwesome;
@@ -80,24 +103,9 @@ ttTools.views = {
         }
       }).prop('checked', ttTools.autoAwesome).button('refresh');
 
-      $('#showTheLove').button({
-        text : false,
-        icons: {
-          primary: 'ui-icon-heart'
-        }
-      }).click(function(){
-        var room = ttTools.getRoom();
-        if (!room) { return false; }
-        var core = ttTools.getCore(room);
-        if (!core) { return false; }
-        for (user in room.users) {
-          core.show_heart(user);
-        }
-      });
-
       $('#playlistInvert').button({
-        text : false,
-        icons: {
+        text  : false,
+        icons : {
           primary: 'ui-icon-transfer-e-w'
         }
       }).click(function(e) {
@@ -112,8 +120,8 @@ ttTools.views = {
       });
 
       $('#playlistRandomize').button({
-        text : false,
-        icons: {
+        text  : false,
+        icons : {
           primary: 'ui-icon-shuffle'
         }
       }).click(function(e) {
@@ -126,27 +134,20 @@ ttTools.views = {
         turntable.playlist.files.shuffle();
         turntable.playlist.updatePlaylist();
       });
-
-      $('#hackSettings').button({
-        text : false,
-        icons: {
-          primary: 'ui-icon-wrench'
-        }
-      }).click(ttTools.views.settings.render);
     },
 
     tree : function() {
       return ['div#playlistTools', {},
+        ['button#userList', { title: 'User List' }],
+        ['button#showTheLove', { title: 'Show The Love' }],
         ['div#switches', {},
           ['input#autoDJ.ui-icon.ui-icon-person', { type : 'checkbox', title: 'Auto DJ' }],
           ['label', { 'for' : 'autoDJ' }, 'DJ Next'],
           ['input#autoAwesome', { type : 'checkbox', title: 'Auto Awesome' }],
           ['label', { 'for' : 'autoAwesome' }, 'Up-Vote'],
         ],
-        ['button#showTheLove', { title: 'Show The Love' }],
         ['button#playlistInvert', { title : 'Flip Playlist' }],
-        ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
-        ['button#hackSettings', { title : 'Hack Settings' }],
+        ['button#playlistRandomize', { title : 'Shuffle Playlist' }]
       ];
     }
   },
