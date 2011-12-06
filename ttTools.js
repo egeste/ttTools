@@ -1,14 +1,3 @@
-Array.prototype.shuffle = function() {
-  var len = this.length;
-  var i = len;
-   while (i--) {
-    var p = parseInt(Math.random()*len);
-    var t = this[i];
-    this[i] = this[p];
-    this[p] = t;
-  }
-};
-
 ttTools = {
   autoDJ      : false,
   autoDJDelay : 2000,
@@ -141,12 +130,22 @@ ttTools = {
         "&client=web";
   },
 
+  shuffle : function (array) {
+    var len = array.length;
+    var i = len;
+     while (i--) {
+      var p = parseInt(Math.random()*len);
+      var t = array[i];
+      array[i] = array[p];
+      array[p] = t;
+    }
+    return array;
+  },
+
   importPlaylist : function (playlist) {
     for (var song in playlist) {
-      console.dir(song);
-      //turntable.playlist.addSong(song);
+      turntable.playlist.addSong(song);
     }
-    //turntable.playlist.updatePlaylist();
   },
 
   exportPlaylist : function () {

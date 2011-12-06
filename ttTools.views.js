@@ -126,8 +126,7 @@ ttTools.views = {
           turntable.showAlert("Sorry, can't sort queue while DJing.");
           return false;
         }
-        turntable.playlist.files.shuffle();
-        turntable.playlist.updatePlaylist();
+        turntable.playlist.updatePlaylist(ttTools.shuffle(turntable.playlist.files), false);
       });
 
       $('#importQueue').button({
