@@ -319,11 +319,11 @@ ttTools.views = {
       var room = ttTools.getRoom();
       if (!room) { return; }
       util.showOverlay(util.buildTree(this.tree()));
-      // for (user in room.users) {
-      //   var row = $('<tr/>');
-      //   row.append($('<td/>').html(user.name));
-      //   row.appendTo($('#usersList tbody'));
-      // }
+      for (user in room.users) {
+        var row = $('<tr/>');
+        $('<td/>').html(user.name).appendTo(row);
+        row.appendTo($('#usersList tbody'));
+      }
     },
 
     tree : function () {
