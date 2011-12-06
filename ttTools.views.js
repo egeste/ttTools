@@ -75,12 +75,13 @@ ttTools.views = {
       }).prop('checked', ttTools.autoAwesome).button('refresh');
 
       $('#userList').button({
+        text  : false,
         icons : {
           primary : 'ui-icon-person'
         }
       }).click(function (e) {
         var userDialog = $('#usersDialog');
-        if (dialog.dialog('isOpen')) {
+        if (userDialog.dialog('isOpen')) {
           userDialog.dialog('close');
         } else {
           ttTools.views.users.update();
