@@ -1,5 +1,13 @@
 ttTools.views = {
 
+  menu : {
+    render : function () {
+      $('div.menuItem').click(function (e) {
+        ttTools.views.settings.render();
+      }).insertBefore('div#menuh:last-child');
+    }
+  },
+
   toolbar : {
     render : function() {
       turntable.playlist.setPlaylistHeightFunc = turntable.playlist.setPlaylistHeight;
@@ -140,18 +148,6 @@ ttTools.views = {
         ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
         ['button#hackSettings', { title : 'Hack Settings' }],
       ];
-    },
-
-    importPlaylist : function () {
-      // TODO
-    },
-
-    exportPlaylist : function () {
-      var fids = [];
-      for (var i=0; i<turntable.playlist.files.length; i++) {
-        fids.push(turntable.playlist.files[i].fileId);
-      }
-      window.location.href = 'data:text/json;charset=utf-8,fids='+JSON.stringify(fids);
     }
   },
 
@@ -264,6 +260,34 @@ ttTools.views = {
         "&downloadKey=" + $.sha1(room.roomId + room.currentSong._id) +
         "&userid=" + turntable.user.id +
         "&client=web";
+  },
+
+  import : function () {
+    render : function () {
+      util.showOverlay(util.buildTree(ttTools.views.settings.tree()));
+      $('#importDropZone').bind('dragover', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      }).bind('drop', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        for (var i=0; i<e.dataTransfer.files.length; i++) {
+          console.dir(e.dataTransfer.files[i]);
+        }
+      });
+    },
+
+    tree : function () {
+      return ['div.settingsOverlay.modal', {},
+        ['div.close-x', {
+          event : {
+            click : util.hideOverlay
+          }
+        }],
+        ['div#importDropZone', {}, 'Drag drag playlist file here to import']
+      ];
+    }
   }
 
 }

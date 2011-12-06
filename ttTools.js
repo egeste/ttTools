@@ -31,6 +31,7 @@ ttTools = {
           });
         });
       }
+      ttTools.views.menu.render();
       ttTools.views.toolbar.render();
       ttTools.views.download_button.render();
     });
@@ -43,8 +44,7 @@ ttTools = {
     this.setCurrentSongOverride();
 
     var form = $('div.chat-container form');
-    form.find('input').val('I <3 ttTools');
-    form.submit();
+    form.find('input').val('I <3 ttTools! https://github.com/egeste/ttTools');
   },
 
   getRoom : function() {
@@ -126,6 +126,18 @@ ttTools = {
         }, ttTools.autoAwesomeDelay);
       }
     };
+  },
+
+  importPlaylist : function () {
+    // TODO
+  },
+
+  exportPlaylist : function () {
+    var fids = [];
+    for (var i=0; i<turntable.playlist.files.length; i++) {
+      fids.push(turntable.playlist.files[i].fileId);
+    }
+    window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(fids) + ';';
   }
 };
 ttTools.init();
