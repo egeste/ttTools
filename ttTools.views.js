@@ -45,7 +45,7 @@ ttTools.views = {
           text-shadow:none;\
         }\
         #playlistTools button {\
-          width:22px;\
+          width:16px;\
           margin:0 3px 0 0;\
         }\
         #playlistTools button .ui-button-text {\
@@ -56,6 +56,26 @@ ttTools.views = {
       $(util.buildTree(this.tree())).insertAfter(
         $('form.playlistSearch')
       );
+
+      $('#importQueue').button({
+        text  : false,
+        icons : {
+          primary : 'ui-icon-arrowthick-1-n'
+        }
+      }).click(function(e) {
+        util.hideOverlay();
+        ttTools.views.import.render();
+      });
+
+      $('#exportQueue').button({
+        text  : false,
+        icons : {
+          primary : 'ui-icon-arrowthick-1-s'
+        }
+      }).click(function(e) {
+        util.hideOverlay();
+        ttTools.exportPlaylist();
+      });
 
       $('#userList').button({
         text  : false,
@@ -138,6 +158,8 @@ ttTools.views = {
 
     tree : function() {
       return ['div#playlistTools', {},
+        ['button#importQueue', { title : 'Import Queue' }],
+        ['button#exportQueue', { title : 'Export Queue' }],
         ['button#userList', { title: 'User List' }],
         ['button#showTheLove', { title: 'Show The Love' }],
         ['div#switches', {},
@@ -217,24 +239,6 @@ ttTools.views = {
           $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
         }
       });
-
-      $('#importQueue').button({
-        icons : {
-          primary : 'ui-ion-arrowthickstop-1-n'
-        }
-      }).click(function(e) {
-        util.hideOverlay();
-        ttTools.views.import.render();
-      });
-
-      $('#exportQueue').button({
-        icons : {
-          primary : 'ui-ion-arrowthickstop-1-s'
-        }
-      }).click(function(e) {
-        util.hideOverlay();
-        ttTools.exportPlaylist();
-      });
     },
 
     tree : function () {
@@ -254,11 +258,7 @@ ttTools.views = {
             ['br'],
             ['div', {}, 'Auto Awesome Delay'],
             ['div#autoAwesomeDelay', {}],
-            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s'],
-            ['br'],
-            ['div', {}, 'Queue Import/Export'],
-            ['button#importQueue', 'Import Queue'],
-            ['button#exportQueue', 'Export Queue'],
+            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s']
           ],
         ]
       ];
@@ -291,7 +291,6 @@ ttTools.views = {
       $('#importDropZone').bind('dragover', function (e) {
         e.stopPropagation();
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
       }).bind('drop', function (e) {
         e.stopPropagation();
         e.preventDefault();
