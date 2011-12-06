@@ -151,7 +151,7 @@ ttTools.views = {
       for (var i=0; i<turntable.playlist.files.length; i++) {
         fids.push(turntable.playlist.files[i].fileId);
       }
-      window.location.href = 'data:text/json;charset=utf-8,fids='+JSON.strinify(fids);
+      window.location.href = 'data:text/json;charset=utf-8,fids='+JSON.stringify(fids);
     }
   },
 
