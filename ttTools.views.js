@@ -318,7 +318,17 @@ ttTools.views = {
     render : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
+      
       util.showOverlay(util.buildTree(this.tree()));
+      
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+        #usersList {\
+          width:100%;\
+        }\
+      "}).appendTo($('div.importOverlay.modal'));
+
       for (user in room.users) {
         $('<tr/>').append(
           $('<td/>').html(room.users[user].name)
