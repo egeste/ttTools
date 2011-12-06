@@ -327,8 +327,8 @@ ttTools.views = {
           text-shadow:none;\
           font-size:14px;\
         }\
-        #usersList.upvoter { background-color:#aea; }\
-        #usersList.downvoter { background-color:#eaa; }\
+        #usersList .upvoter { background-color:#aea; }\
+        #usersList .downvoter { background-color:#eaa; }\
       "}).appendTo($('div.usersOverlay.modal'));
 
       for (var uid in room.users) {
