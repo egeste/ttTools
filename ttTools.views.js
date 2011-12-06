@@ -330,7 +330,9 @@ ttTools.views = {
       "}).appendTo($('div.usersOverlay.modal'));
 
       for (user in room.users) {
-        $('<tr/>').append(
+        $('<tr/>', {
+          'class' : '.ui-corner-all'
+        }).append(
           $('<td/>').html(room.users[user].name)
         ).appendTo($('#usersList tbody'));
       }
@@ -347,9 +349,9 @@ ttTools.views = {
         ['br'],
         ['div.fields', {},
           ['div.field.users', {},
-            ['table#usersList.ui-widget.ui-widget-content.ui-corner-all', {},
+            ['table#usersList.ui-widget.ui-widget-content', {},
               ['tbody',
-                ['tr.ui-widget-header',
+                ['tr.ui-widget-header.ui-corner-all',
                   ['th', 'Name']
                 ]
               ]
