@@ -6,9 +6,9 @@ ttTools.tags = {
       $('<link/>', {
         type : 'text/css',
         rel  : 'stylesheet',
-        href : 'http://dl.dropbox.com/u/40584302/Source/jQuery-Tags-Input/jquery.tagsinput.css'
+        href : 'https://raw.github.com/xoxco/jQuery-Tags-Input/master/jquery.tagsinput.css'
       }).appendTo(document.head);
-      $.getScript('http://dl.dropbox.com/u/40584302/Source/jQuery-Tags-Input/jquery.tagsinput.js', function() {
+      $.getScript('https://raw.github.com/xoxco/jQuery-Tags-Input/73c60604f83f7a713d3e79cfb3bd43de95553d23/jquery.tagsinput.min.js', function() {
         ttTools.tags.createTable();
         ttTools.tags.addClickEvent();
         ttTools.tags.addSongOverride();
