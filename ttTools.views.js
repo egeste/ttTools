@@ -325,7 +325,6 @@ ttTools.views = {
         #usersList {\
           width:100%;\
           text-shadow:none;\
-          text-align:left;\
         }\
       "}).appendTo($('div.usersOverlay.modal'));
 
@@ -347,12 +346,16 @@ ttTools.views = {
         }],
         ['h1', 'Users'],
         ['br'],
-        ['table#usersList.ui-widget.ui-widget-content', {},
-          ['tbody',
-            ['tr.ui-widget-header.ui-corner-all',
-              ['th', 'Name']
+        ['div.fields', {},
+          ['div.field.users', {},
+            ['table#usersList.ui-widget.ui-widget-content', {},
+              ['tbody',
+                ['tr.ui-widget-header.ui-corner-all',
+                  ['th', 'Name']
+                ]
+              ]
             ]
-          ]
+          ],
         ]
       ];
     }
