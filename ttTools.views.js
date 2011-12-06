@@ -75,7 +75,6 @@ ttTools.views = {
       }).prop('checked', ttTools.autoAwesome).button('refresh');
 
       $('#userList').button({
-        text  : false,
         icons : {
           primary : 'ui-icon-person'
         }
