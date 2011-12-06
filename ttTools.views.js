@@ -350,15 +350,7 @@ ttTools.views = {
     update : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
-      $('#usersList').html(
-        $('<tbody/>').append(
-          $('<tr/>').append(
-            $('<th/>', {
-              'class' : 'ui-widget-header'
-            }).html('Name')
-          )
-        )
-      )
+      $('#usersList').html($('<tbody/>'));
       for (var uid in room.users) {
         var user = room.users[uid];
         var upvoter = $.inArray(uid, room.upvoters) > -1;
