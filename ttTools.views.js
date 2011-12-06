@@ -292,7 +292,7 @@ ttTools.views = {
       });
       dropZone.addEventListener('drop', function (e) {
         for (var i=0; i<e.dataTransfer.files.length; i++) {
-          console.dir(e.dataTransfer);
+          console.dir(e.dataTransfer.files.item(i));
         }
       });
     },
