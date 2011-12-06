@@ -337,9 +337,9 @@ ttTools.views = {
         ['br'],
         ['div.fields', {},
           ['div.field.users', {},
-            ['table#usersList', {},
+            ['table#usersList.ui-widget.ui-widget-content', {},
               ['tbody',
-                ['tr',
+                ['tr.ui-widget-header',
                   ['th', 'Name']
                 ]
               ]
