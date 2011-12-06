@@ -294,7 +294,10 @@ ttTools.views = {
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           var reader = new FileReader();
           reader.onload = function () {
-            turntable.playlist.updatePlaylist(JSON.parse(this.result), false);
+            //turntable.playlist.updatePlaylist([], false);
+            $(JSON.parse(this.result)).each(function (index, value) {
+              turntable.playlist.addSong(value, 0);
+            });
           }
           reader.readAsText(e.dataTransfer.files[i], 'utf-8');
         }
