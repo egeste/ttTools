@@ -293,7 +293,7 @@ ttTools.views = {
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           console.dir(e.dataTransfer.files[i]);
         }
-      });
+      }, false);
     },
 
     tree : function () {
