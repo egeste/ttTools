@@ -110,7 +110,7 @@ ttTools.views = {
           turntable.showAlert("Sorry, can't sort queue while DJing.");
           return false;
         }
-        turntable.playlist.files.reverse();
+        turntable.playlist.updatePlaylist(turntable.playlist.files.reverse());
         turntable.playlist.updateTopSongClass();
       });
 
