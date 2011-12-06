@@ -362,7 +362,7 @@ ttTools.views = {
       for (var uid in room.users) {
         var user = room.users[uid];
         var upvoter = $.inArray(uid, room.upvoters) > -1;
-        var downvoter = false;
+        var downvoter = $.inArray(uid, room.downvoters) > -1;
         var row = $('<tr/>');
         if (upvoter) { row.addClass('upvoter'); }
         if (downvoter) { row.addClass('downvoter'); }
