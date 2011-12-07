@@ -21,7 +21,7 @@ ttTools = {
       ttTools.views.download_button.render();
     });
 
-    this.idleTimeOverride();
+    //this.idleTimeOverride();
     //this.fuckTheDMCA();
 
     //this.reloadPageOverride();
