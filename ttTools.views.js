@@ -333,12 +333,9 @@ ttTools.views = {
         autoOpen : false,
         title    : 'Users',
         width    : '225',
-        height   : '475'
-      }).parent().css(
-        'top', '220px'
-      ).css(
-        'left', '660px'
-      );
+        height   : '475',
+        position : [220, 660]
+      });
       
       $('<style/>', {
         type : 'text/css',

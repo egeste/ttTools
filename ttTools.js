@@ -151,7 +151,7 @@ ttTools = {
 
   importPlaylist : function (playlist) {
     for (var i=0; i<playlist.length; i++) {
-      if ($.inArray(playlist[i], turntable.playlist.files) < 0) { // Not in array
+      if ($.inArray(playlist[i], turntable.playlist.files) == -1) {
         turntable.playlist.addSong(playlist[i]);
       }
     }
