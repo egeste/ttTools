@@ -15,13 +15,8 @@ ttTools.tags.views = {
         }
       });
 
-      ttTools.database.execute(
-        'SELECT DISTINCT ' +
-        'tag ' +
-        'FROM ' +
-        ttTools.tags.dbTable + ' ' +
-        'WHERE ' +
-        'fid = "' + this.file.fileId + '";',
+      ttTools.tags.getTagsForFid(
+        this.file.fileId,
         function (tx, result) {
           for (var i=0; i<result.rows.length; i++) {
             $('#tags').addTag(result.rows.item(i).tag);

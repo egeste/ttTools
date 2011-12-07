@@ -1,3 +1,165 @@
+ttTools = {
+
+  init : function() {
+    $('<link/>', {
+      type : 'text/css',
+      rel  : 'stylesheet',
+      href : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/sunny/jquery-ui.css'
+    }).appendTo(document.head);
+    
+    ttTools.views.menu.render();
+    ttTools.views.users.render();
+    ttTools.views.toolbar.render();
+    ttTools.views.download_button.render();
+
+    this.idleTimeOverride();
+    this.removeDjOverride();
+    this.updateVotesOverride();
+    this.setCurrentSongOverride();
+
+    if (window.openDatabase) {
+      ttTools.tags.init();
+    }
+
+    var form = $('div.chat-container form');
+    form.find('input').val('I <3 ttTools! https://github.com/egeste/ttTools');
+  },
+
+  getRoom : function() {
+    for (var memberName in turntable) {
+      var member = turntable[memberName];
+      if (member == null) { continue; }
+      if (typeof member != 'object') { continue; }
+      if (member.hasOwnProperty('setupRoom')) {
+        return member;
+      }
+      return false;
+    }
+  },
+
+  getCore : function(room) {
+    for (var memberName in room) {
+      var member = room[memberName];
+      if (member == null) { continue; }
+      if (typeof member != 'object') { continue; }
+      if (member.hasOwnProperty('blackswan')) {
+        return member;
+      }
+    }
+    return false;
+  },
+
+  idleTimeOverride : function () {
+    turntable.idleTime = function () {
+      return 0;
+    };
+  },
+
+  autoDJ      : false,
+  autoDJDelay : 2000,
+  removeDjOverride : function () {
+    var room = this.getRoom();
+    if (!room) { return false; }
+    room.removeDjFunc = room.removeDj;
+    room.removeDj = function (userId) {
+      if (userId != this.selfId && !this.isDj() && ttTools.autoDJ) {
+        setTimeout(function() {
+          room.becomeDj();
+          ttTools.autoDJ = false;
+          $('#autoDJ').prop('checked', false).button('refresh');
+        }, ttTools.autoDJDelay);
+      }
+      this.removeDjFunc(userId);
+    };
+  },
+
+  upvotes : 0,
+  downvotes : 0,
+  updateVotesOverride : function () {
+    var room = this.getRoom();
+    if (!room) { return false; }
+    if (!room.downvoters) { room.downvoters = []; }
+    room.updateVotesFunc = room.updateVotes;
+    room.updateVotes = function (votes, g) {
+      this.updateVotesFunc(votes, g);
+      if (!this.downvoters) { this.downvoters = []; }
+      ttTools.upvotes = votes.upvotes;
+      ttTools.downvotes = votes.downvotes;
+      for (var i=0; i<votes.votelog.length; i++) {
+        var log = votes.votelog[i];
+        if (log[1] == 'up') {
+          var downIndex = $.inArray(log[0], this.downvoters);
+          if (downIndex > -1) { this.downvoters.splice(downIndex, 1); }
+        } else {
+          this.downvoters.push(log[0]);
+        }
+      }
+      ttTools.views.users.update();
+    }
+  },
+
+  autoAwesome      : false,
+  autoAwesomeDelay : 30000,
+  setCurrentSongOverride : function () {
+    var room = this.getRoom();
+    if (!room) { return false; }
+    room.setCurrentSongFunc = room.setCurrentSong;
+    room.setCurrentSong = function (roomState) {
+      this.setCurrentSongFunc(roomState);
+      for (var timerName in room.timers) {
+        console.dir(room[timerName]);
+        if (room.hasOwnProperty(timerName)) {
+          clearTimeout(room.timers[timerName]);
+          room.timers[timerName] = null;
+          room[timerName] = function () { /* your move */ }
+          break;
+        }
+      }
+      if (ttTools.autoAwesome) {
+        setTimeout(function() {
+          turntable.whenSocketConnected(function() {
+            room.connectRoomSocket('up');
+          });
+        }, ttTools.autoAwesomeDelay);
+      }
+    };
+  },
+
+  getDownloadUrl : function () {
+    var room = ttTools.getRoom();
+    if (!room) { return false; }
+    if (room.currentSong == null) { return 'javascript:void(0);'; }
+    return window.location.protocol + "//" + MEDIA_HOST +
+        "/getfile/?roomid=" + room.roomId +
+        "&rand=" + Math.random() +
+        "&fileid=" + room.currentSong._id +
+        "&downloadKey=" + $.sha1(room.roomId + room.currentSong._id) +
+        "&userid=" + turntable.user.id +
+        "&client=web";
+  },
+
+  shuffle : function (array) {
+    var len = array.length;
+    var i = len;
+     while (i--) {
+      var p = parseInt(Math.random()*len);
+      var t = array[i];
+      array[i] = array[p];
+      array[p] = t;
+    }
+    return array;
+  },
+
+  importPlaylist : function (playlist) {
+    for (var i=0; i<playlist.length; i++) {
+      turntable.playlist.addSong(playlist[i]);
+    }
+  },
+
+  exportPlaylist : function () {
+    window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files);
+  }
+};
 ttTools.views = {
 
   menu : {
@@ -367,3 +529,190 @@ ttTools.views = {
     }
   }
 }
+ttTools.database = {
+	dbName        : 'ttTools.database',
+	dbDisplayName : 'ttTools Database',
+	dbVersion     : '1.0',
+	dbMaxSize     : 10000000,
+	dbHandle      : false,
+
+	getDatabase : function () {
+		if (this.dbHandle) { return this.dbHandle; }
+		this.dbHandle = openDatabase(this.dbName, this.dbVersion, this.dbDisplayName, this.dbMaxSize);
+		return this.dbHandle;
+	},
+
+  execute : function (query, success, failure) {
+    console.log(query);
+    this.getDatabase().transaction(  
+      function (transaction) {
+        transaction.executeSql(query, [], success, failure);
+      }
+    );
+  }
+}
+ttTools.tags = {
+  dbTable : 'tags',
+
+  init : function () {
+    $('<style/>', {
+      type : 'text/css',
+      text : "\
+      div.tagsinput { border:1px solid #CCC; background: #FFF; padding:5px; width:300px; height:100px; overflow-y: auto;}\
+      div.tagsinput span.tag { border: 1px solid #a5d24a; -moz-border-radius:2px; -webkit-border-radius:2px; display: block; float: left; padding: 5px; text-decoration:none; background: #cde69c; color: #638421; margin-right: 5px; margin-bottom:5px;font-family: helvetica;  font-size:13px;}\
+      div.tagsinput span.tag a { font-weight: bold; color: #82ad2b; text-decoration:none; font-size: 11px;  }\
+      div.tagsinput input { width:80px; margin:0px; font-family: helvetica; font-size: 13px; border:1px solid transparent; padding:5px; background: transparent; color: #000; outline:0px;  margin-right:5px; margin-bottom:5px; }\
+      div.tagsinput div { display:block; float: left; }\
+      .tags_clear { clear: both; width: 100%; height: 0px; }\
+      .not_valid {background: #FBD8DB !important; color: #90111A !important;}\
+    "}).appendTo(document.head);
+    $.getScript('https://raw.github.com/xoxco/jQuery-Tags-Input/73c60604f83f7a713d3e79cfb3bd43de95553d23/jquery.tagsinput.min.js', function() {
+      ttTools.tags.createTable();
+      ttTools.tags.addClickEvent();
+      ttTools.tags.addSongOverride();
+      ttTools.tags.filterQueueOverride();
+    });
+  },
+
+  createTable : function () {
+    ttTools.database.execute(
+      'CREATE TABLE IF NOT EXISTS ' +
+      this.dbTable + '(' +
+      'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,' +
+      'fid TEXT NOT NULL,' +
+      'tag TEXT NOT NULL' +
+      ');'
+    );
+  },
+
+  addClickEvent : function () {
+    $('div.song').unbind(
+      'click'
+    ).click(function(e) {
+      ttTools.tags.views.add.file = $(this).closest('.song').data('songData');
+      ttTools.tags.views.add.render();
+    });
+  },
+
+  addSongOverride : function () {
+    turntable.playlist.addSongFunc = turntable.playlist.addSong;
+    turntable.playlist.addSong = function (b, a) {
+      turntable.playlist.addSongFunc(b, a);
+      ttTools.tags.addClickEvent();
+    }
+  },
+
+  filterQueueOverride : function () {
+    turntable.playlist.filterQueueFunc = turntable.playlist.filterQueue;
+    turntable.playlist.filterQueue = function (filter) {
+      turntable.playlist.filterQueueFunc(filter);
+      if (filter.length > 0) {
+        ttTools.tags.getFidsForTagLike(
+          filter,
+          function (tx, result) {
+            var fids = [];
+            for (var i=0; i<result.rows.length; i++) {
+              fids.push(result.rows.item(i).fid);
+            }
+            $('div.queue div.song:hidden').each(function(index, value) {
+              var element = $(value);
+              var fid = element.data('songData').fileId;
+              if ($.inArray(fid, fids) > -1) {
+                element.closest('.song').show().addClass('filtered');
+              }
+            });
+          }
+        );
+      }
+    }
+  },
+
+  resetData : function () {
+    ttTools.database.execute('DROP TABLE IF EXISTS ' + this.dbTable + ';');
+    this.createTable();
+    this.addTag('4dd6c222e8a6c404330002c5', 'trololo');
+  },
+
+  getTagsForFid : function (fid, success, failure) {
+    return ttTools.database.execute(
+      'SELECT DISTINCT tag FROM ' + this.dbTable + ' WHERE fid="' + fid + '";',
+      success,
+      failure
+    );
+  },
+
+  getFidsForTagLike : function (tag, success, failure) {
+    return ttTools.database.execute(
+      'SELECT DISTINCT fid FROM ' + this.dbTable + ' WHERE tag LIKE "%' + tag + '%";',
+      success,
+      failure
+    );
+  },
+
+  addTag : function (fid, tag, success, failure) {
+    return ttTools.database.execute(
+      'INSERT OR ABORT INTO ' + this.dbTable + ' (fid,tag) VALUES("' + fid + '", "' + tag + '");',
+      success,
+      failure
+    );
+  },
+
+  removeTag : function (fid, tag, success, failure) {
+    return ttTools.database.execute(
+      'DELETE FROM ' + this.dbTable + ' WHERE fid="' + fid + '" AND tag="' + tag + '";',
+      success,
+      failure
+    );
+  }
+}
+ttTools.tags.views = {
+  add : {
+    file : null,
+
+    render : function () {
+      util.showOverlay(util.buildTree(this.tree()));
+      var file = this.file;
+      $('#tags').tagsInput({
+        width       : '100%',
+        onAddTag    : function (tag) {
+          ttTools.tags.addTag(file.fileId, tag);
+        },
+        onRemoveTag : function (tag) {
+          ttTools.tags.removeTag(file.fileId, tag);
+        }
+      });
+
+      ttTools.tags.getTagsForFid(
+        this.file.fileId,
+        function (tx, result) {
+          for (var i=0; i<result.rows.length; i++) {
+            $('#tags').addTag(result.rows.item(i).tag);
+          }
+        }
+      );
+
+      $('#resetTags').click(function() {
+        if (!confirm('Are you sure? This will delete your entire tags database.')) { return false; }
+        ttTools.tags.resetData();
+      });
+    },
+
+    tree : function () {
+      return ['div.settingsOverlay.modal', {},
+        ['div.close-x', {
+          event : {
+            click : util.hideOverlay
+          }
+        }],
+        ['br'],
+        ['h1', this.file.metadata.song],
+        ['div', {}, this.file.metadata.artist],
+        ['br'],
+        ['input#tags', { type : 'text' }],
+        ['br'],
+        ['a#resetTags', { href : 'javascript:void(0);' }, 'Reset Tags Database']
+      ];
+    }
+  }
+}
+ttTools.init();
