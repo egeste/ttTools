@@ -175,37 +175,6 @@ ttTools.views = {
     }
   },
 
-  download_button : {
-    render : function () {
-      $('div.btn.rdio').remove();
-
-      $('<style/>', {
-        type : 'text/css',
-        text : "\
-        #download_song {\
-          float:left;\
-          margin:7px;\
-          width:48px;\
-          height:48px;\
-          cursor:pointer;\
-          background-position:left top;\
-          background-image:url(http://iconlet.com/download_48x48_/crystalsvg/48x48/download_manager.png);\
-        }\
-        #download_song:hover {\
-          text-decoration:none;\
-        }\
-      "}).appendTo(document.head);
-
-      $('<a/>', {
-        id     : 'download_song',
-        href   : ttTools.getDownloadUrl(),
-        target : '_blank'
-      }).click(function () {
-        $(this).attr('href', ttTools.getDownloadUrl());
-      }).appendTo($('#songboard_add'));
-    }
-  },
-
   settings : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));

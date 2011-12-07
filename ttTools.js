@@ -10,9 +10,7 @@ ttTools = {
     ttTools.views.menu.render();
     ttTools.views.users.render();
     ttTools.views.toolbar.render();
-    ttTools.views.download_button.render();
 
-    this.fuckTheDMCA();
     this.idleTimeOverride();
     this.removeDjOverride();
     this.updateVotesOverride();
@@ -48,19 +46,6 @@ ttTools = {
       }
     }
     return false;
-  },
-
-  fuckTheDMCA : function () {
-    var room = this.getRoom();
-    if (!room) { return false; }
-    for (var timerName in room.timers) {
-      if (room.hasOwnProperty(timerName)) {
-        clearTimeout(room.timers[timerName]);
-        room.timers[timerName] = null;
-        room[timerName] = function () { /* your move */ }
-        break;
-      }
-    }
   },
 
   idleTimeOverride : function () {
@@ -118,7 +103,6 @@ ttTools = {
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
-      ttTools.fuckTheDMCA();
       if (ttTools.autoAwesome) {
         setTimeout(function() {
           turntable.whenSocketConnected(function() {
@@ -127,19 +111,6 @@ ttTools = {
         }, ttTools.autoAwesomeDelay);
       }
     };
-  },
-
-  getDownloadUrl : function () {
-    var room = ttTools.getRoom();
-    if (!room) { return false; }
-    if (room.currentSong == null) { return 'javascript:void(0);'; }
-    return window.location.protocol + "//" + MEDIA_HOST +
-        "/getfile/?roomid=" + room.roomId +
-        "&rand=" + Math.random() +
-        "&fileid=" + room.currentSong._id +
-        "&downloadKey=" + $.sha1(room.roomId + room.currentSong._id) +
-        "&userid=" + turntable.user.id +
-        "&client=web";
   },
 
   shuffle : function (array) {

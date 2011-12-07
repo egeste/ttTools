@@ -10,7 +10,6 @@ ttTools = {
     ttTools.views.menu.render();
     ttTools.views.users.render();
     ttTools.views.toolbar.render();
-    ttTools.views.download_button.render();
 
     this.idleTimeOverride();
     this.removeDjOverride();
@@ -73,8 +72,6 @@ ttTools = {
     };
   },
 
-  upvotes : 0,
-  downvotes : 0,
   updateVotesOverride : function () {
     var room = this.getRoom();
     if (!room) { return false; }
@@ -83,15 +80,15 @@ ttTools = {
     room.updateVotes = function (votes, g) {
       this.updateVotesFunc(votes, g);
       if (!this.downvoters) { this.downvoters = []; }
-      ttTools.upvotes = votes.upvotes;
-      ttTools.downvotes = votes.downvotes;
       for (var i=0; i<votes.votelog.length; i++) {
         var log = votes.votelog[i];
         if (log[1] == 'up') {
           var downIndex = $.inArray(log[0], this.downvoters);
           if (downIndex > -1) { this.downvoters.splice(downIndex, 1); }
         } else {
-          this.downvoters.push(log[0]);
+          if (log[0] != '') {
+            this.downvoters.push(log[0]);
+          }
         }
       }
       ttTools.views.users.update();
@@ -106,15 +103,6 @@ ttTools = {
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
-      for (var timerName in room.timers) {
-        console.dir(room[timerName]);
-        if (room.hasOwnProperty(timerName)) {
-          clearTimeout(room.timers[timerName]);
-          room.timers[timerName] = null;
-          room[timerName] = function () { /* your move */ }
-          break;
-        }
-      }
       if (ttTools.autoAwesome) {
         setTimeout(function() {
           turntable.whenSocketConnected(function() {
@@ -123,19 +111,6 @@ ttTools = {
         }, ttTools.autoAwesomeDelay);
       }
     };
-  },
-
-  getDownloadUrl : function () {
-    var room = ttTools.getRoom();
-    if (!room) { return false; }
-    if (room.currentSong == null) { return 'javascript:void(0);'; }
-    return window.location.protocol + "//" + MEDIA_HOST +
-        "/getfile/?roomid=" + room.roomId +
-        "&rand=" + Math.random() +
-        "&fileid=" + room.currentSong._id +
-        "&downloadKey=" + $.sha1(room.roomId + room.currentSong._id) +
-        "&userid=" + turntable.user.id +
-        "&client=web";
   },
 
   shuffle : function (array) {
@@ -151,13 +126,31 @@ ttTools = {
   },
 
   importPlaylist : function (playlist) {
-    for (var i=0; i<playlist.length; i++) {
-      turntable.playlist.addSong(playlist[i]);
+    util.hideOverlay();
+    var fids = [];
+    $(turntable.playlist.files).each(function (fi, file) {
+      fids.push(file.fileId);
+    });
+    var imported = false;
+    $(playlist).each(function (si, song) {
+      if ($.inArray(song.fileId, fids) == -1) {
+        imported = true;
+        turntable.playlist.addSong(song);
+      }
+    });
+    if (imported) {
+      if(window.openDatabase) {
+        ttTools.tags.addClickEvent();
+      }
+      var room = this.getRoom();
+      if (!room) { return; }
+      room.showRoomTip('It may take some time for your queue to update on the server. Please stay on this page for a while to allow time for your playlist to propagate.');
     }
   },
 
   exportPlaylist : function () {
-    window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files);
+    var data = JSON.stringify(turntable.playlist.files);
+    window.open('data:text/json;charset=utf-8,' + data);
   }
 };
 ttTools.views = {
@@ -246,8 +239,8 @@ ttTools.views = {
         if (userDialog.dialog('isOpen')) {
           userDialog.dialog('close');
         } else {
-          userDialog.dialog('open');
           ttTools.views.users.update();
+          userDialog.dialog('open');
         }
       });
 
@@ -337,37 +330,6 @@ ttTools.views = {
     }
   },
 
-  download_button : {
-    render : function () {
-      $('div.btn.rdio').remove();
-
-      $('<style/>', {
-        type : 'text/css',
-        text : "\
-        #download_song {\
-          float:left;\
-          margin:7px;\
-          width:48px;\
-          height:48px;\
-          cursor:pointer;\
-          background-position:left top;\
-          background-image:url(http://iconlet.com/download_48x48_/crystalsvg/48x48/download_manager.png);\
-        }\
-        #download_song:hover {\
-          text-decoration:none;\
-        }\
-      "}).appendTo(document.head);
-
-      $('<a/>', {
-        id     : 'download_song',
-        href   : ttTools.getDownloadUrl(),
-        target : '_blank'
-      }).click(function () {
-        $(this).attr('href', ttTools.getDownloadUrl());
-      }).appendTo($('#songboard_add'));
-    }
-  },
-
   settings : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
@@ -417,6 +379,7 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools Settings'],
+        ['div', {}, ttTools.version],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},
@@ -493,7 +456,9 @@ ttTools.views = {
 
       $('#usersDialog').dialog({
         autoOpen : false,
-        title    : 'Users'
+        title    : 'Users',
+        width    : '500',
+        height   : '300'
       });
       
       $('<style/>', {
@@ -512,19 +477,33 @@ ttTools.views = {
     update : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
+      $('#usersDialog').dialog(
+        'option',
+        'title',
+        room.upvoters.length + ' up, ' + room.downvoters.length + ' down'
+      );
       $('#usersList').html($('<tbody/>'));
-      for (var uid in room.users) {
-        var user = room.users[uid];
-        var upvoter = $.inArray(uid, room.upvoters) > -1;
-        var downvoter = $.inArray(uid, room.downvoters) > -1;
-        var row = $('<tr/>');
-        if (upvoter) { row.addClass('upvoter'); }
-        if (downvoter) { row.addClass('downvoter'); }
-        row.append(
-          $('<td/>', {
-            id : user.userid
-          }).html(user.name)
+      $(room.upvoters).each(function (index, uid) {
+        $('<tr/>').addClass('upvoter').append(
+          $('<td/>').html(room.users[uid].name)
         ).appendTo($('#usersList tbody'));
+      });
+      $(room.downvoters).each(function (index, uid) {
+        $('<tr/>').addClass('downvoter').append(
+          $('<td/>').html(room.users[uid].name)
+        ).appendTo($('#usersList tbody'));
+      });
+      for (var user in room.users) {
+        user = room.users[user];
+        var upvoter = $.inArray(user.userid, room.upvoters) > -1;
+        var downvoter = $.inArray(user.userid, room.downvoters) > -1;
+        if (!upvoter && !downvoter) {
+          $('<tr/>').append(
+            $('<td/>', {
+              id : user.userid
+            }).html(user.name)
+          ).appendTo($('#usersList tbody'));
+        }
       }
     }
   }
@@ -716,3 +695,4 @@ ttTools.tags.views = {
   }
 }
 ttTools.init();
+ttTools.version = 1323291218;
