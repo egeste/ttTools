@@ -255,6 +255,7 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools Settings'],
+        ['div', {}, ttTools.version],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},

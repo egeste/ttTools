@@ -12,6 +12,7 @@ elif [ $1 == 'release' ]; then
   mkdir releases/$epoch
   cat ttTools.js ttTools.views.js ttTools.database.js ttTools.tags.js ttTools.tags.views.js > releases/$epoch/ttTools.js
   echo 'ttTools.init();' >> releases/$epoch/ttTools.js
+  echo "ttTools.version = $epoch;" >> releases/$epoch/ttTools.js
   $jsmin < releases/$epoch/ttTools.js > releases/$epoch/ttTools.min.js
   cp releases/$epoch/ttTools.min.js releases/$epoch/ttTools.js releases/latest/
 else
