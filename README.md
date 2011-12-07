@@ -4,8 +4,18 @@
 ttTools provides the tools you need to use turntable.fm in the way you want to use it. It removes some restrictions and adds several new features. The idea behind this project was to highlight failures in turntable.fm and provide both incentive as well as relevant code snippets to encourage implementing a proper solution while allowing us, the users, to enjoy a less restricted service in the interim.
 
 # Features
-## Disable Idle Timer (Temporarily disabled, cat & mouse)
+## Disable Idle Timer
 The idle timer is a local timer written in javascript and is used to do things like idle-kick a user from a room or a DJ spot. Because this is implement client-side, we can nueter it.
+
+### Notes
+<ul>
+	<li>Is activated automatically when you load the plugin.</li>
+</ul>
+
+### To use:
+<ul>
+	<li>Enter an empty room, load the script, start DJing.</li>
+</ul>
 
 ## Auto DJ w/ switch, variable delay & auto-off
 The "holy grail" of turntable.fm features, everyone wants autoDJ to combat all the private autoDJ scripts that already exist. In the early days this wasn't necessary due to the fact that turntable.fm was not well known. As time has progressed, several rooms have had to implement their own third-party bots to enforce their third-party DJ queues and combat autoDJ scripts, but it's high time for a real DJ queue.
@@ -113,7 +123,7 @@ Self explanatory.
 	<li>When a song is playing, hover overthe LED billboard thing, right click the "Download" icon, click Save-As.</li>
 </ul>
 
-## Disable DMCA Mute (Temporarily disabled, cat & mouse)
+## Disable DMCA Mute
 Allows you to listen to your playlist when alone in a turntable.fm room. Useful when tagging or managing your queue.
 
 ### Notes
@@ -123,13 +133,13 @@ Allows you to listen to your playlist when alone in a turntable.fm room. Useful 
 
 ### To use:
 <ul>
-	<li>Enter an empty room, load teh script, start DJing.</li>
+	<li>Enter an empty room, load the script, start DJing.</li>
 </ul>
 
 # To use:
 Create a bookmark in your bookmarks bar named ttTools, for the location, enter:
 
-`javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/ttTools.js');})();`
+`javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/releases/1323239025/ttTools.min.js');})();`
 
 After entering a turntable.fm room, click the ttTools bookmark.
 
