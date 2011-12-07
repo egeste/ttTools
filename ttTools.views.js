@@ -331,8 +331,14 @@ ttTools.views = {
 
       $('#usersDialog').dialog({
         autoOpen : false,
-        title    : 'Users'
-      });
+        title    : 'Users',
+        width    : '225',
+        height   : '475'
+      }).parent().css(
+        'top', '220px'
+      ).css(
+        'left', '660px'
+      );
       
       $('<style/>', {
         type : 'text/css',
