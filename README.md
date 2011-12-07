@@ -113,7 +113,7 @@ Self explanatory.
 	<li>When a song is playing, hover overthe LED billboard thing, right click the "Download" icon, click Save-As.</li>
 </ul>
 
-## Disable DMCA Mute
+## Disable DMCA Mute (Temporarily disabled)
 Allows you to listen to your playlist when alone in a turntable.fm room. Useful when tagging or managing your queue.
 
 ### Notes
