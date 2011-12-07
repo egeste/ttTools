@@ -334,7 +334,8 @@ ttTools.views = {
         title    : 'Users',
         width    : '225',
         height   : '475',
-        position : [220, 660]
+        //position : [220, 660]
+        position : [1000, 500]
       });
       
       $('<style/>', {
