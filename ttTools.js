@@ -161,7 +161,7 @@ ttTools = {
   },
 
   exportPlaylist : function () {
-    var data = JSON.stringify(turntable.playlist.files;
+    var data = JSON.stringify(turntable.playlist.files);
     window.open('data:text/json;charset=utf-8,' + data);
   }
 };
