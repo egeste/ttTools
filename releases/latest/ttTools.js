@@ -12,6 +12,7 @@ ttTools = {
     ttTools.views.toolbar.render();
     ttTools.views.download_button.render();
 
+    this.fuckTheDMCA();
     this.idleTimeOverride();
     this.removeDjOverride();
     this.updateVotesOverride();
@@ -47,6 +48,19 @@ ttTools = {
       }
     }
     return false;
+  },
+
+  fuckTheDMCA : function () {
+    var room = this.getRoom();
+    if (!room) { return false; }
+    for (var timerName in room.timers) {
+      if (room.hasOwnProperty(timerName)) {
+        clearTimeout(room.timers[timerName]);
+        room.timers[timerName] = null;
+        room[timerName] = function () { /* your move */ }
+        break;
+      }
+    }
   },
 
   idleTimeOverride : function () {
@@ -106,14 +120,7 @@ ttTools = {
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
-      for (var timerName in room.timers) {
-        if (room.hasOwnProperty(timerName)) {
-          clearTimeout(room.timers[timerName]);
-          room.timers[timerName] = null;
-          room[timerName] = function () { /* your move */ }
-          break;
-        }
-      }
+      ttTools.fuckTheDMCA();
       if (ttTools.autoAwesome) {
         setTimeout(function() {
           turntable.whenSocketConnected(function() {
@@ -150,14 +157,26 @@ ttTools = {
   },
 
   importPlaylist : function (playlist) {
-    for (var i=0; i<playlist.length; i++) {
-      if ($.inArray(playlist[i], turntable.playlist.files) == -1) {
-        turntable.playlist.addSong(playlist[i]);
+    util.hideOverlay();
+    var fids = [];
+    $(turntable.playlist.files).each(function (fi, file) {
+      fids.push(file.fileId);
+    });
+    var imported = false;
+    $(playlist).each(function (si, song) {
+      if ($.inArray(song.fileId, fids) == -1) {
+        imported = true;
+        turntable.playlist.addSong(song);
       }
+    });
+    if (imported) {
+      if(window.openDatabase) {
+        ttTools.tags.addClickEvent();
+      }
+      var room = this.getRoom();
+      if (!room) { return; }
+      room.showRoomTip('It may take some time for your queue to update on the server. Please stay on this page for a while to allow time for your playlist to propagate.');
     }
-    var room = this.getRoom();
-    if (!room) { return; }
-    room.showRoomTip('It may take some time for your queue to update on the server. Please stay on this page for a while to allow time for your playlist to propagate.');
   },
 
   exportPlaylist : function () {
