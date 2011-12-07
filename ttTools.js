@@ -155,7 +155,7 @@ ttTools = {
         turntable.playlist.addSong(playlist[i]);
       }
     }
-    var room = ttTools.getRoom();
+    var room = this.getRoom();
     if (!room) { return; }
     room.showRoomTip('It may take some time for your queue to update on the server. Please stay on this page for a while to allow time for your playlist to propagate.');
   },
