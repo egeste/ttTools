@@ -151,8 +151,13 @@ ttTools = {
 
   importPlaylist : function (playlist) {
     for (var i=0; i<playlist.length; i++) {
-      turntable.playlist.addSong(playlist[i]);
+      if ($.inArray(playlist[i], turntable.playlist.files) < 0) { // Not in array
+        turntable.playlist.addSong(playlist[i]);
+      }
     }
+    var room = ttTools.getRoom();
+    if (!room) { return; }
+    room.showRoomTip('It may take some time for your queue to update on the server. Please stay on this page for a while to allow time for your playlist to propagate.');
   },
 
   exportPlaylist : function () {
