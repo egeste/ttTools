@@ -332,10 +332,8 @@ ttTools.views = {
       $('#usersDialog').dialog({
         autoOpen : false,
         title    : 'Users',
-        width    : '225',
-        height   : '475',
-        //position : [220, 660]
-        position : [1000, 500]
+        width    : '500',
+        height   : '300'
       });
       
       $('<style/>', {
@@ -354,15 +352,24 @@ ttTools.views = {
     update : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
+      $('#usersDialog').dialog('option', 'title', ttTools.upvotes + 'up, ' + ttTools.downvotes + 'down');
       $('#usersList').html($('<tbody/>'));
+      $(room.upvoters).each(function (index, uid) {
+        $('<tr/>').addClass('upvoter').append(
+          $('<td/>').html(room.users[uid].name)
+        ).appendTo($('#usersList tbody'));
+      });
+      $(room.downvoters).each(function (index, uid) {
+        $('<tr/>').addClass('downvoter').append(
+          $('<td/>').html(room.users[uid].name)
+        ).appendTo($('#usersList tbody'));
+      });
       for (var uid in room.users) {
         var user = room.users[uid];
         var upvoter = $.inArray(uid, room.upvoters) > -1;
         var downvoter = $.inArray(uid, room.downvoters) > -1;
-        var row = $('<tr/>');
-        if (upvoter) { row.addClass('upvoter'); }
-        if (downvoter) { row.addClass('downvoter'); }
-        row.append(
+        if (upvoter || downvoter) { continue; }
+        $('<tr/>').append(
           $('<td/>', {
             id : user.userid
           }).html(user.name)
