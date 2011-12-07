@@ -352,7 +352,7 @@ ttTools.views = {
     update : function () {
       var room = ttTools.getRoom();
       if (!room) { return; }
-      $('#usersDialog').dialog('option', 'title', ttTools.upvotes + 'up, ' + ttTools.downvotes + 'down');
+      $('#usersDialog').dialog('option', 'title', ttTools.upvotes + ' up, ' + ttTools.downvotes + ' down');
       $('#usersList').html($('<tbody/>'));
       $(room.upvoters).each(function (index, uid) {
         $('<tr/>').addClass('upvoter').append(
