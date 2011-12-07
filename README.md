@@ -3,6 +3,17 @@
 
 ttTools provides the tools you need to use turntable.fm in the way you want to use it. It removes some restrictions and adds several new features. The idea behind this project was to highlight failures in turntable.fm and provide both incentive as well as relevant code snippets to encourage implementing a proper solution while allowing us, the users, to enjoy a less restricted service in the interim.
 
+# Features
+<ul>
+  <li>Disable Idle Timer</li>
+	<li>Auto DJ w/ Switch, Variable Delay & Auto-Off</li>
+	<li>Auto Awesome w/ Switch & Variable Delay</li>
+	<li>Playlist Song Tagging & Filtering</li>
+	<li>Playlist Invert & Shuffle (Needs work)</li>
+	<li>Playlist Import & Export</li>
+	<li>Users List w/ Vote Indicators</li>
+</ul>
+
 # To use:
 Create a bookmark in your bookmarks bar named ttTools, for the location, enter:
 
