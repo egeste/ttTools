@@ -77,7 +77,7 @@ I've personally always wanted this feature. Sometimes you just want to mix it up
 	<li>Click the "Flip Playlist" or "Shuffle playlist" button above the playlist.</li>
 </ul>
 
-## Playlist Import & Export (INCOMPLETE, USE AT YOUR OWN RISK)
+## Playlist Import & Export
 Save your playlist to a file so it's portable and you can share it/swap it out with other playlists.
 
 ### Notes:
@@ -87,6 +87,7 @@ Save your playlist to a file so it's portable and you can share it/swap it out w
 	<li>Import uses HTML5 Drag & Drop, as well as HTML5 FileReader object to parse a ttTools generated file</li>
 	<li>Export generates a json encoded file representing the turntable.playlist.files array</li>
 	<li>The generated export file is downloaded using the data: URI scheme</li>
+	<li>Due to the nature of how turntable.fm adds songs to your playlist server-side, import may take several attempts to fully popagate.</li>
 </ul>
 
 ### To use:
