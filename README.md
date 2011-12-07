@@ -139,7 +139,7 @@ Allows you to listen to your playlist when alone in a turntable.fm room. Useful 
 # To use:
 Create a bookmark in your bookmarks bar named ttTools, for the location, enter:
 
-`javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/releases/1323239025/ttTools.min.js');})();`
+`javascript:(function(){$.getScript('https://raw.github.com/egeste/ttTools/master/releases/latest/ttTools.min.js');})();`
 
 After entering a turntable.fm room, click the ttTools bookmark.
 
