@@ -22,7 +22,7 @@ ttTools = {
     });
 
     this.idleTimeOverride();
-    this.fuckTheDMCA();
+    //this.fuckTheDMCA();
 
     //this.reloadPageOverride();
     this.removeDjOverride();
