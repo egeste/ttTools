@@ -87,8 +87,6 @@ ttTools = {
     };
   },
 
-  upvotes : 0,
-  downvotes : 0,
   updateVotesOverride : function () {
     var room = this.getRoom();
     if (!room) { return false; }
@@ -97,15 +95,15 @@ ttTools = {
     room.updateVotes = function (votes, g) {
       this.updateVotesFunc(votes, g);
       if (!this.downvoters) { this.downvoters = []; }
-      ttTools.upvotes = votes.upvotes;
-      ttTools.downvotes = votes.downvotes;
       for (var i=0; i<votes.votelog.length; i++) {
         var log = votes.votelog[i];
         if (log[1] == 'up') {
           var downIndex = $.inArray(log[0], this.downvoters);
           if (downIndex > -1) { this.downvoters.splice(downIndex, 1); }
         } else {
-          this.downvoters.push(log[0]);
+          if (log[0] != '') {
+            this.downvoters.push(log[0]);
+          }
         }
       }
       ttTools.views.users.update();
