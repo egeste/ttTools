@@ -9,6 +9,7 @@ ttTools = {
     
     ttTools.views.menu.render();
     ttTools.views.users.render();
+    ttTools.views.import.render();
     ttTools.views.toolbar.render();
 
     this.idleTimeOverride();
@@ -118,18 +119,6 @@ ttTools = {
     };
   },
 
-  shuffle : function (array) {
-    var len = array.length;
-    var i = len;
-     while (i--) {
-      var p = parseInt(Math.random()*len);
-      var t = array[i];
-      array[i] = array[p];
-      array[p] = t;
-    }
-    return array;
-  },
-
   importPlaylist : function (playlist) {
     util.hideOverlay();
     var fids = [];
@@ -156,5 +145,17 @@ ttTools = {
   exportPlaylist : function () {
     var data = JSON.stringify(turntable.playlist.files);
     window.open('data:text/json;charset=utf-8,' + data);
+  },
+
+  shuffle : function (array) {
+    var len = array.length;
+    var i = len;
+     while (i--) {
+      var p = parseInt(Math.random()*len);
+      var t = array[i];
+      array[i] = array[p];
+      array[p] = t;
+    }
+    return array;
   }
 };

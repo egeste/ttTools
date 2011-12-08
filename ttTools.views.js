@@ -12,12 +12,13 @@ ttTools.views = {
     render : function () {
       turntable.playlist.setPlaylistHeightFunc = turntable.playlist.setPlaylistHeight;
       turntable.playlist.setPlaylistHeight = function (a) {
-        a = this.setPlaylistHeightFunc(a);
+        var a = this.setPlaylistHeightFunc(a);
         $(turntable.playlist.nodes.root).find(".queueView .songlist").css({
             height: Math.max(a - 120, 55)
         });
         return a;
       }
+      turntable.playlist.setPlaylistHeight($('div.chat-container').css('top').replace('px', ''));
 
       $('<style/>', {
         type : 'text/css',
@@ -32,7 +33,7 @@ ttTools.views = {
           top:95px !important;\
         }\
         #playlistTools {\
-          left:5px;\
+          left:4px;\
           top:65px;\
           height:2em;\
           padding:2px 0;\
@@ -43,7 +44,7 @@ ttTools.views = {
           text-shadow:none;\
         }\
         #playlistTools div, #playlistTools button { float:left; }\
-        #playlistTools button { width:16px; }\
+        #playlistTools button { width:20px; }\
         #playlistTools button .ui-button-text { padding:11px; }\
         #playlistTools #switches ui-button-text { padding:.4em; }\
       "}).appendTo(document.head);
@@ -135,16 +136,6 @@ ttTools.views = {
         turntable.playlist.updateTopSongClass();
       });
 
-      $('#importQueue').button({
-        text  : false,
-        icons : {
-          primary : 'ui-icon-arrowthick-1-n'
-        }
-      }).click(function (e) {
-        util.hideOverlay();
-        ttTools.views.import.render();
-      });
-
       $('#exportQueue').button({
         text  : false,
         icons : {
@@ -168,7 +159,6 @@ ttTools.views = {
         ['button#showTheLove', { title: 'Show The Love' }],
         ['button#playlistInvert', { title : 'Flip Playlist' }],
         ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
-        ['button#importQueue', { title : 'Import Playlist' }],
         ['button#exportQueue', { title : 'Export Playlist' }]
       ];
     }
@@ -242,28 +232,39 @@ ttTools.views = {
 
   import : {
     render : function () {
-      util.showOverlay(util.buildTree(this.tree()));
-
       $('<style/>', {
         type : 'text/css',
         text : "\
         #importDropZone {\
-          height:100px;\
+          display:none;\
+          text-align:center;\
+          vertical-align:middle;\
           border:2px dashed #fff;\
         }\
-      "}).appendTo($('div.importOverlay.modal'));
+      "}).appendTo($(document.body));
 
-      var dropZone = $('#importDropZone').get(0);
-      dropZone.addEventListener('dragenter', function (e) {
-        $(this).css('background-color', '#999');
+      var playlist = $('#playlist');
+
+      var dropZone = $('<div/>', {
+        id      : 'importDropZone',
+        'class' : 'mainPane'
+      }).html(
+        'Drop ttTools playlist file here to import.'
+      ).appendTo(playlist);
+
+      playlist.get(0).addEventListener('dragenter', function (e) {
+        $('.queueView').hide();
+        dropZone.show();
       });
-      dropZone.addEventListener('dragleave', function (e) {
-        $(this).css('background-color', '');
+
+      dropZone.get(0).addEventListener('dragleave', function (e) {
+        $('.queueView').show();
+        dropZone.hide();
       });
-      dropZone.addEventListener('dragover', function (e) {
+      dropZone.get(0).addEventListener('dragover', function (e) {
         e.preventDefault();
       });
-      dropZone.addEventListener('drop', function (e) {
+      dropZone.get(0).addEventListener('drop', function (e) {
         for (var i=0; i<e.dataTransfer.files.length; i++) {
           var reader = new FileReader();
           reader.onload = function () {
@@ -272,18 +273,6 @@ ttTools.views = {
           reader.readAsText(e.dataTransfer.files[i], 'utf-8');
         }
       });
-    },
-
-    tree : function () {
-      return ['div.importOverlay.modal', {},
-        ['div.close-x', {
-          event : {
-            click : util.hideOverlay
-          }
-        }],
-        ['br'],
-        ['div#importDropZone', {}, 'Drag ttTools playlist file here to import']
-      ];
     }
   },
 
