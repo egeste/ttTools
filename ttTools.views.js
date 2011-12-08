@@ -236,10 +236,16 @@ ttTools.views = {
         type : 'text/css',
         text : "\
         #importDropZone {\
+          right:0;\
+          width:auto;\
+          color:#fff;\
           display:none;\
           text-align:center;\
-          vertical-align:middle;\
+          padding: 30px 10px;\
+          background-color:#000;\
           border:2px dashed #fff;\
+          opacity:0.8;\
+          filter:Alpha(Opacity=80);\
         }\
       "}).appendTo($(document.body));
 
@@ -253,12 +259,10 @@ ttTools.views = {
       ).appendTo(playlist);
 
       playlist.get(0).addEventListener('dragenter', function (e) {
-        $('.queueView').hide();
         dropZone.show();
       });
 
       dropZone.get(0).addEventListener('dragleave', function (e) {
-        $('.queueView').show();
         dropZone.hide();
       });
       dropZone.get(0).addEventListener('dragover', function (e) {
