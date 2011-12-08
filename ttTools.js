@@ -72,6 +72,8 @@ ttTools = {
     };
   },
 
+  upvotes   : 0,
+  downvotes : 0,
   updateVotesOverride : function () {
     var room = this.getRoom();
     if (!room) { return false; }
@@ -81,6 +83,8 @@ ttTools = {
       this.updateVotesFunc(votes, g);
       if (!this.downvoters) { this.downvoters = []; }
       for (var i=0; i<votes.votelog.length; i++) {
+        ttTools.upvotes   = votes.upvotes;
+        ttTools.downvotes = votes.downvotes;
         var log = votes.votelog[i];
         if (log[1] == 'up') {
           var downIndex = $.inArray(log[0], this.downvoters);
@@ -103,6 +107,7 @@ ttTools = {
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
+      ttTools.views.users.update();
       if (ttTools.autoAwesome) {
         setTimeout(function() {
           turntable.whenSocketConnected(function() {

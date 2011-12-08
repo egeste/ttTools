@@ -115,7 +115,7 @@ ttTools.tags = {
 
   getFids : function (success, failure) {
     return ttTools.database.execute(
-      'SELECT DISTINCT fid FROM ' + this.dbTable,
+      'SELECT DISTINCT fid FROM ' + this.dbTable + ';',
       success,
       failure
     );

@@ -84,7 +84,6 @@ ttTools.views = {
         if (userDialog.dialog('isOpen')) {
           userDialog.dialog('close');
         } else {
-          ttTools.views.users.update();
           userDialog.dialog('open');
         }
       });
@@ -300,10 +299,13 @@ ttTools.views = {
       ).appendTo(document.body);
 
       $('#usersDialog').dialog({
-        autoOpen : false,
-        title    : 'Users',
-        width    : '500',
-        height   : '300'
+        autoOpen      : false,
+        closeOnEscape : true,
+        title         : 'Users',
+        width         : '500',
+        height        : '300',
+        open          : ttTools.views.users.update,
+        show          : 'slide'
       });
       
       $('<style/>', {
@@ -316,6 +318,11 @@ ttTools.views = {
         }\
         #usersList .upvoter { background-color:#aea; }\
         #usersList .downvoter { background-color:#eaa; }\
+        #ui-dialog-title-usersDialog { width:100%; text-align:right; }\
+        #ui-dialog-title-usersDialog .ui-icon { display:inline-block; }\
+        #ui-dialog-title-usersDialog .vote { float:left; }\
+        #ui-dialog-title-usersDialog .vote.up { color:#aea; padding-right:10px; }\
+        #ui-dialog-title-usersDialog .vote.down { color:#eaa; }\
       "}).appendTo($('div.#usersDialog'));
     },
 
@@ -325,8 +332,14 @@ ttTools.views = {
       $('#usersDialog').dialog(
         'option',
         'title',
-        room.upvoters.length + ' up, ' + room.downvoters.length + ' down'
+        "<span class='usercount'>" + Object.keys(room.users).length + "</span>\
+        <span class='usercount ui-icon ui-icon-person'></span>\
+        <span class='vote ui-icon ui-icon-triangle-1-n'></span>\
+        <span class='vote up'>" + ttTools.upvotes + "</span>\
+        <span class='vote ui-icon ui-icon-triangle-1-s'></span>\
+        <span class='vote down'>" + ttTools.downvotes + "</span>"
       );
+      $('#ui-dialog-title-usersDialog').parent().css('padding', '5px 30px 0 10px');
       $('#usersList').html($('<tbody/>'));
       $(room.upvoters).each(function (index, uid) {
         $('<tr/>').addClass('upvoter').append(
