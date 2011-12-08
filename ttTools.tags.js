@@ -12,32 +12,46 @@ ttTools.tags = {
       div.tagsinput div { display:block; float: left; }\
       .tags_clear { clear: both; width: 100%; height: 0px; }\
       .not_valid {background: #FBD8DB !important; color: #90111A !important;}\
+      div.song div.ui-icon-tag {\
+        top: 24px;\
+        right: 5px;\
+        width: 16px;\
+        height: 16px;\
+        cursor: pointer;\
+        position: absolute;\
+      }\
     "}).appendTo(document.head);
     $.getScript('https://raw.github.com/xoxco/jQuery-Tags-Input/73c60604f83f7a713d3e79cfb3bd43de95553d23/jquery.tagsinput.min.js', function() {
       ttTools.tags.createTable();
-      ttTools.tags.addClickEvent();
+      ttTools.tags.updateQueue();
       ttTools.tags.addSongOverride();
       ttTools.tags.filterQueueOverride();
     });
   },
 
-  createTable : function () {
-    ttTools.database.execute(
-      'CREATE TABLE IF NOT EXISTS ' +
-      this.dbTable + '(' +
-      'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,' +
-      'fid TEXT NOT NULL,' +
-      'tag TEXT NOT NULL' +
-      ');'
-    );
-  },
-
-  addClickEvent : function () {
-    $('div.song').unbind(
+  updateQueue : function () {
+    var elements = $('div.song').unbind(
       'click'
     ).click(function(e) {
       ttTools.tags.views.add.file = $(this).closest('.song').data('songData');
       ttTools.tags.views.add.render();
+    });
+    $('div.song div.ui-icon-tag').remove();
+    this.getFids(function (tx, result) {
+      var fids = [];
+      for (var i=0; i<result.rows.length; i++) {
+        fids.push(result.rows.item(i).fid);
+      }
+      elements.each(function (index, element) {
+        element = $(element);
+        var fid = element.closest('.song').data('songData').fileId;
+        if ($.inArray(fid, fids) > -1) {
+          $('<div/>', {
+            'class' : 'ui-icon ui-icon-tag',
+            title   : 'This song is ttTagged'
+          }).appendTo(element);
+        }
+      });
     });
   },
 
@@ -45,7 +59,7 @@ ttTools.tags = {
     turntable.playlist.addSongFunc = turntable.playlist.addSong;
     turntable.playlist.addSong = function (b, a) {
       turntable.playlist.addSongFunc(b, a);
-      ttTools.tags.addClickEvent();
+      ttTools.tags.updateQueue();
     }
   },
 
@@ -74,6 +88,17 @@ ttTools.tags = {
     }
   },
 
+  createTable : function () {
+    ttTools.database.execute(
+      'CREATE TABLE IF NOT EXISTS ' +
+      this.dbTable + '(' +
+      'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,' +
+      'fid TEXT NOT NULL,' +
+      'tag TEXT NOT NULL' +
+      ');'
+    );
+  },
+
   resetData : function () {
     ttTools.database.execute('DROP TABLE IF EXISTS ' + this.dbTable + ';');
     this.createTable();
@@ -83,6 +108,14 @@ ttTools.tags = {
   getTagsForFid : function (fid, success, failure) {
     return ttTools.database.execute(
       'SELECT DISTINCT tag FROM ' + this.dbTable + ' WHERE fid="' + fid + '";',
+      success,
+      failure
+    );
+  },
+
+  getFids : function (success, failure) {
+    return ttTools.database.execute(
+      'SELECT DISTINCT fid FROM ' + this.dbTable,
       success,
       failure
     );
@@ -98,7 +131,7 @@ ttTools.tags = {
 
   addTag : function (fid, tag, success, failure) {
     return ttTools.database.execute(
-      'INSERT OR ABORT INTO ' + this.dbTable + ' (fid,tag) VALUES("' + fid + '", "' + tag + '");',
+      'INSERT INTO ' + this.dbTable + ' (fid,tag) VALUES("' + fid + '", "' + tag + '");',
       success,
       failure
     );

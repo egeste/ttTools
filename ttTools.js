@@ -140,7 +140,7 @@ ttTools = {
     });
     if (imported) {
       if(window.openDatabase) {
-        ttTools.tags.addClickEvent();
+        ttTools.tags.updateQueue();
       }
       var room = this.getRoom();
       if (!room) { return; }

@@ -19,7 +19,9 @@ ttTools.tags.views = {
         this.file.fileId,
         function (tx, result) {
           for (var i=0; i<result.rows.length; i++) {
-            $('#tags').addTag(result.rows.item(i).tag);
+            $('#tags').addTag(result.rows.item(i).tag, {
+              callback : false
+            });
           }
         }
       );
@@ -34,7 +36,10 @@ ttTools.tags.views = {
       return ['div.settingsOverlay.modal', {},
         ['div.close-x', {
           event : {
-            click : util.hideOverlay
+            click : function () {
+              util.hideOverlay();
+              ttTools.tags.updateQueue();
+            }
           }
         }],
         ['br'],
