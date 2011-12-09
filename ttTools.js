@@ -37,7 +37,9 @@ ttTools = {
     }
   },
 
-  getCore : function(room) {
+  getRoomManager : function(room) {
+    var room = room ? room : this.getRoom();
+    if (!room) { return false; }
     for (var memberName in room) {
       var member = room[memberName];
       if (member == null) { continue; }
@@ -79,6 +81,7 @@ ttTools = {
     var room = this.getRoom();
     if (!room) { return false; }
     if (!room.downvoters) { room.downvoters = []; }
+    this.upvotes = room.upvoters.length;
     room.updateVotesFunc = room.updateVotes;
     room.updateVotes = function (votes, g) {
       this.updateVotesFunc(votes, g);
@@ -108,6 +111,9 @@ ttTools = {
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
+      ttTools.upvotes = room.upvoters.length;
+      ttTools.downvotes = 0;
+      ttTools.downvoters = [];
       ttTools.views.users.update();
       if (ttTools.autoAwesome) {
         setTimeout(function() {
@@ -119,27 +125,67 @@ ttTools = {
     };
   },
 
+  importOperations : [],
+  importOperationsCompleted : 0,
+  importOperationsTimeout : null,
   importPlaylist : function (playlist) {
-    util.hideOverlay();
-    var fids = [];
-    $(turntable.playlist.files).each(function (fi, file) {
-      fids.push(file.fileId);
-    });
-    var imported = false;
-    $(playlist).each(function (si, song) {
-      if ($.inArray(song.fileId, fids) == -1) {
-        imported = true;
-        turntable.playlist.addSong(song);
+    if (playlist.length == 0) { return this.views.import.update(); }
+    LOG("I'm using ttTools to import a playlist, but it's really slow because your api only allows adding one song at a time and has rate limiting. Can we work together to solve this? https://github.com/egeste/ttTools");
+    if (window.openDatabase) { turntable.playlist.addSong = turntable.playlist.addSongFunc; }
+    ttTools.importOperations = [];
+    ttTools.importOperationsCompleted = 0;
+    $(playlist).each(function (index, song) {
+      if ($.inArray(song.fileId, Object.keys(turntable.playlist.songsByFid)) > -1) { return; }
+      var operation = function (count) {
+        count = (count == undefined) ? 1 : count;
+        if (count > 3) {
+          ttTools.importOperations.splice(ttTools.importOperationsCompleted, 1);
+          ttTools.views.import.update();
+        }
+        ttTools.importOperationsTimeout = setTimeout(operation, 5000, count++);
+        ttTools.importSong(song, function (response) {
+          clearTimeout(ttTools.importOperationsTimeout);
+          if (!response.success) { return operation(count++); }
+          ttTools.importOperationsCompleted++;
+          ttTools.views.import.update();
+          turntable.playlist.files.push(song);
+          turntable.playlist.songsByFid[song.fileId] = song;
+          turntable.playlist.updatePlaylist();
+          if (ttTools.importOperations[ttTools.importOperationsCompleted]) {
+            ttTools.importOperations[ttTools.importOperationsCompleted]();
+          }
+        });
       }
+      ttTools.importOperations.push(operation);
     });
-    if (imported) {
-      if(window.openDatabase) {
-        ttTools.tags.updateQueue();
-      }
-      var room = this.getRoom();
-      if (!room) { return; }
-      room.showRoomTip('It may take some time for your queue to update on the server. Please stay on this page for a while to allow time for your playlist to propagate.');
-    }
+    if (ttTools.importOperations.length == 0) { return this.views.import.update(); }
+    ttTools.importOperations[0]();
+  },
+
+  importSong : function (song, callback) {
+    var messageId = turntable.messageId;
+    turntable.messageId++;
+    turntable.whenSocketConnected(function() {
+      turntable.socket.send(JSON.stringify({
+        msgid         : messageId,
+        clientid      : turntable.clientId,
+        userid        : turntable.user.id,
+        userauth      : turntable.user.auth,
+        api           : 'playlist.add',
+        playlist_name : 'default',
+        index         : turntable.playlist.files.length+1,
+        song_dict     : {
+          fileid: song.fileId
+        }
+      }));
+      turntable.socketKeepAlive(true);
+      turntable.pendingCalls.push({
+        msgid    : messageId,
+        deferred : $.Deferred(), // Why?
+        time     : util.now(),
+        handler  : callback
+      });
+    });
   },
 
   exportPlaylist : function () {
