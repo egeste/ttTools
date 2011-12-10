@@ -1,28 +1,33 @@
 ttTools = {
 
   init : function() {
+    var form = $('div.chat-container form');
+    form.find('input').val('I <3 ttTools! https://github.com/egeste/ttTools');
+
     $('<link/>', {
       type : 'text/css',
       rel  : 'stylesheet',
       href : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/sunny/jquery-ui.css'
     }).appendTo(document.head);
     
-    ttTools.views.menu.render();
-    ttTools.views.users.render();
-    ttTools.views.import.render();
-    ttTools.views.toolbar.render();
-
     this.idleTimeOverride();
     this.removeDjOverride();
-    this.updateVotesOverride();
     this.setCurrentSongOverride();
 
-    if (window.openDatabase) {
-      ttTools.tags.init();
-    }
+    this.populateActivityLog();
+    this.showChatMessageOverride();
+    this.updateVotesOverride();
+    this.removeUserOverride();
+    this.addUserOverride();
 
-    var form = $('div.chat-container form');
-    form.find('input').val('I <3 ttTools! https://github.com/egeste/ttTools');
+    if (window.openDatabase) {
+      this.tags.init();
+    }
+    
+    this.views.menu.render();
+    this.views.users.render();
+    this.views.import.render();
+    this.views.toolbar.render();
   },
 
   getRoom : function() {
@@ -33,13 +38,11 @@ ttTools = {
       if (member.hasOwnProperty('setupRoom')) {
         return member;
       }
-      return false;
     }
   },
 
   getRoomManager : function(room) {
     var room = room ? room : this.getRoom();
-    if (!room) { return false; }
     for (var memberName in room) {
       var member = room[memberName];
       if (member == null) { continue; }
@@ -48,7 +51,6 @@ ttTools = {
         return member;
       }
     }
-    return false;
   },
 
   idleTimeOverride : function () {
@@ -61,7 +63,6 @@ ttTools = {
   autoDJDelay : 2000,
   removeDjOverride : function () {
     var room = this.getRoom();
-    if (!room) { return false; }
     room.removeDjFunc = room.removeDj;
     room.removeDj = function (userId) {
       if (userId != this.selfId && !this.isDj() && ttTools.autoDJ) {
@@ -75,46 +76,16 @@ ttTools = {
     };
   },
 
-  upvotes   : 0,
-  downvotes : 0,
-  updateVotesOverride : function () {
-    var room = this.getRoom();
-    if (!room) { return false; }
-    if (!room.downvoters) { room.downvoters = []; }
-    this.upvotes = room.upvoters.length;
-    room.updateVotesFunc = room.updateVotes;
-    room.updateVotes = function (votes, g) {
-      this.updateVotesFunc(votes, g);
-      if (!this.downvoters) { this.downvoters = []; }
-      for (var i=0; i<votes.votelog.length; i++) {
-        ttTools.upvotes   = votes.upvotes;
-        ttTools.downvotes = votes.downvotes;
-        var log = votes.votelog[i];
-        if (log[1] == 'up') {
-          var downIndex = $.inArray(log[0], this.downvoters);
-          if (downIndex > -1) { this.downvoters.splice(downIndex, 1); }
-        } else {
-          if (log[0] != '') {
-            this.downvoters.push(log[0]);
-          }
-        }
-      }
-      ttTools.views.users.update();
-    }
-  },
-
   autoAwesome      : false,
   autoAwesomeDelay : 30000,
   setCurrentSongOverride : function () {
     var room = this.getRoom();
-    if (!room) { return false; }
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
       ttTools.upvotes = room.upvoters.length;
       ttTools.downvotes = 0;
       ttTools.downvoters = [];
-      ttTools.views.users.update();
       if (ttTools.autoAwesome) {
         setTimeout(function() {
           turntable.whenSocketConnected(function() {
@@ -123,6 +94,73 @@ ttTools = {
         }, ttTools.autoAwesomeDelay);
       }
     };
+  },
+
+  userActivityLog : {},
+  populateActivityLog : function () {
+    var users = Object.keys(this.getRoom().users);
+    $(users).each(function (index, uid) {
+      ttTools.userActivityLog[uid] = {
+        message : util.now(),
+        vote    : util.now()
+      }
+    });
+  },
+
+  showChatMessageOverride : function () {
+    var room = this.getRoom();
+    room.showChatMessageFunc = room.showChatMessage;
+    room.showChatMessage = function (uid, name, msg) {
+      this.showChatMessageFunc(uid, name, msg);
+      ttTools.userActivityLog[uid].message = util.now();
+    }
+  },
+
+  upvotes : 0,
+  downvotes : 0,
+  updateVotesOverride : function () {
+    var room = this.getRoom();
+    if (!room.downvoters) { room.downvoters = []; }
+    this.upvotes = room.upvoters.length;
+    room.updateVotesFunc = room.updateVotes;
+    room.updateVotes = function (votes, g) {
+      this.updateVotesFunc(votes, g);
+      ttTools.upvotes   = votes.upvotes;
+      ttTools.downvotes = votes.downvotes;
+      if (!this.downvoters) { this.downvoters = []; }
+      $(votes.votelog).each(function (index, vote) {
+        if (vote[0] != '') {
+          ttTools.userActivityLog[vote[0]].vote = util.now();
+          if (vote[1] == 'up') {
+            var downIndex = $.inArray(vote[0], room.downvoters);
+            if (downIndex > -1) { room.downvoters.splice(downIndex, 1); }
+          } else {
+            room.downvoters.push(vote[0]);
+          }
+        }
+      });
+    }
+  },
+
+  removeUserOverride : function () {
+    var room = this.getRoom();
+    room.removeUserFunc = room.removeUser;
+    room.removeUser = function (uid) {
+      this.removeUserFunc(uid);
+      delete ttTools.userActivityLog[uid];
+    }
+  },
+
+  addUserOverride : function (user) {
+    var room = this.getRoom();
+    room.addUserFunc = room.addUser;
+    room.addUser = function (user) {
+      this.addUserFunc(user);
+      ttTools.userActivityLog[user.userid] = {
+        message : util.now(),
+        vote    : util.now()
+      }
+    }
   },
 
   importOperations : [],

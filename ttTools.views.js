@@ -33,7 +33,8 @@ ttTools.views = {
           top:95px !important;\
         }\
         #playlistTools {\
-          left:4px;\
+          left:0;\
+          right:0;\
           top:65px;\
           height:2em;\
           padding:2px 0;\
@@ -43,10 +44,11 @@ ttTools.views = {
           font-size:10px;\
           text-shadow:none;\
         }\
-        #playlistTools div, #playlistTools button { float:left; }\
         #playlistTools button { width:20px; }\
         #playlistTools button .ui-button-text { padding:11px; }\
-        #playlistTools #switches ui-button-text { padding:.4em; }\
+        #playlistTools div, #playlistTools button { float:left; }\
+        #switches { margin:0 5px; }\
+        #switches ui-button-text { padding:.4em; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
@@ -57,7 +59,6 @@ ttTools.views = {
 
       $('#autoDJ').click(function (e) {
         var room = ttTools.getRoom();
-        if (!room) { return false; }
         ttTools.autoDJ = !ttTools.autoDJ;
         if(ttTools.autoDJ && !room.isDj() && room.djIds.length < room.maxDjs) {
           room.becomeDj();
@@ -65,12 +66,10 @@ ttTools.views = {
       }).prop('checked', ttTools.autoDJ).button('refresh');
 
       $('#autoAwesome').click(function (e) {
-        var room = ttTools.getRoom();
-        if (!room) { return false; }
         ttTools.autoAwesome = !ttTools.autoAwesome;
         if(ttTools.autoAwesome) {
           turntable.whenSocketConnected(function () {
-            room.connectRoomSocket('up');
+            ttTools.getRoom().connectRoomSocket('up');
           });
         }
       }).prop('checked', ttTools.autoAwesome).button('refresh');
@@ -96,9 +95,7 @@ ttTools.views = {
         }
       }).click(function (e){
         var room = ttTools.getRoom();
-        if (!room) { return false; }
         var roomManager = ttTools.getRoomManager(room);
-        if (!roomManager) { return false; }
         var maxOffset = 200 * Object.keys(room.users).length;
         for (user in room.users) {
           setTimeout(function (user) {
@@ -114,7 +111,6 @@ ttTools.views = {
         }
       }).click(function (e) {
         var room = ttTools.getRoom();
-        if (!room) { return false; }
         if (room.currentDj == room.selfId) {
           turntable.showAlert("Sorry, can't sort queue while DJing.");
           return false;
@@ -130,7 +126,6 @@ ttTools.views = {
         }
       }).click(function (e) {
         var room = ttTools.getRoom();
-        if (!room) { return false; }
         if (room.currentDj == room.selfId) {
           turntable.showAlert("Sorry, can't sort queue while DJing.");
           return false;
@@ -355,8 +350,10 @@ ttTools.views = {
           text-shadow:none;\
           font-size:14px;\
         }\
+        #usersList .time { text-align: right; }\
         #usersList .upvoter { background-color:#aea; }\
         #usersList .downvoter { background-color:#eaa; }\
+        #usersList .user { font-weight: bold; cursor: pointer; }\
         #ui-dialog-title-usersDialog { width:100%; text-align:right; }\
         #ui-dialog-title-usersDialog .ui-icon { display:inline-block; }\
         #ui-dialog-title-usersDialog .vote { float:left; }\
@@ -368,9 +365,9 @@ ttTools.views = {
     update : function () {
       var usersDialog = $('#usersDialog');
       if (!usersDialog.dialog('isOpen')) { return; }
+      setTimeout(ttTools.views.users.update, 1000);
 
       var room = ttTools.getRoom();
-      if (!room) { return; }
 
       usersDialog.dialog(
         'option',
@@ -384,36 +381,75 @@ ttTools.views = {
       );
       $('#ui-dialog-title-usersDialog').parent().css('padding', '5px 30px 0 10px');
 
-      var usersList = $('#usersList').html($('<tbody/>'));
+      var usersList = $('#usersList').html(
+        '<tbody><tr>' +
+        '<th>Name</th>' +
+        '<th>Message</th>' +
+        '<th>Vote</th>' +
+        '</tr></tbody>'
+      );
 
+      var nameAlpha = function (a, b) {
+        if (!room.users[a]) { return 1; }
+        if (!room.users[b]) { return -1; }
+        a = room.users[a].name.toLowerCase();
+        b = room.users[b].name.toLowerCase();
+        if (a < b) { return -1; }
+        if (a > b) { return 1; }
+        return 0;
+      };
+
+      room.upvoters.sort(nameAlpha);
       $(room.upvoters).each(function (index, uid) {
-        $('<tr/>').addClass('upvoter').append(
-          $('<td/>').html(room.users[uid].name)
-        ).appendTo(usersList.find('tbody'));
+        if (room.users[uid]) {
+          usersList.find('tbody').append(
+            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid], 'upvoter')))
+          );
+        }
       });
 
+      room.downvoters.sort(nameAlpha);
       $(room.downvoters).each(function (index, uid) {
         if (room.users[uid]) {
-          $('<tr/>').addClass('downvoter').append(
-             $('<td/>').html(room.users[uid].name)
-          ).appendTo(usersList.find('tbody'));
-        } else {
-          console.dir('Could not find user ' + uid);
+          usersList.find('tbody').append(
+            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid], 'downvoter')))
+          );
         }
       });
 
-      for (var user in room.users) {
-        user = room.users[user];
-        var upvoter = $.inArray(user.userid, room.upvoters) > -1;
-        var downvoter = $.inArray(user.userid, room.downvoters) > -1;
+      var users = Object.keys(room.users).sort(nameAlpha);
+      $(users).each(function (index, uid) {
+        var upvoter = $.inArray(uid, room.upvoters) > -1;
+        var downvoter = $.inArray(uid, room.downvoters) > -1;
         if (!upvoter && !downvoter) {
-          $('<tr/>').append(
-            $('<td/>', {
-              id : user.userid
-            }).html(user.name)
-          ).appendTo(usersList.find('tbody'));
+          usersList.find('tbody').append(
+            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid])))
+          );
         }
-      }
+      });
+    },
+
+    rowForUser : function (user, cssClass) {
+      cssClass = cssClass ? cssClass : '';
+      return ['tr', { 'class' : cssClass },
+        ['td', {
+          'class' : 'user',
+          event : {
+            click : function (e) {
+              ttTools.getRoomManager().toggle_listener(user.userid)
+            }
+          }
+        }, user.name],
+        ['td', { 'class' : 'time' }, this.timestamp(ttTools.userActivityLog[user.userid].message)],
+        ['td', { 'class' : 'time' }, this.timestamp(ttTools.userActivityLog[user.userid].vote)]
+      ];
+    },
+
+    timestamp : function (time) {
+      var date = new Date(util.now() - time);
+      var mins = date.getUTCMinutes() < 10 ? '0' + date.getUTCMinutes() : date.getUTCMinutes();
+      var secs = date.getUTCSeconds() < 10 ? '0' + date.getUTCSeconds() : date.getUTCSeconds();
+      return date.getUTCHours() + ':' + mins + ':' + secs;
     }
   }
 }
