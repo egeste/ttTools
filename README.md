@@ -10,7 +10,7 @@ ttTools provides the tools you need to use turntable.fm in the way you want to u
 [Playlist Import & Export](https://github.com/egeste/ttTools/wiki/Playlist-Import-&-Export)  
 [Playlist Invert & Shuffle](https://github.com/egeste/ttTools/wiki/Playlist-Invert-&-Shuffle)  
 [Playlist Song Tagging & Filtering](https://github.com/egeste/ttTools/wiki/Playlist-Song-Tagging-&-Filtering)  
-[Users List w/ Vote Indicators](https://github.com/egeste/ttTools/wiki/Users-List-w--Vote-Indicators)  
+[Users List w/ Vote Indicators & Idle Timer](https://github.com/egeste/ttTools/wiki/Users-List-w--Vote-Indicators-&-Idle-Timer)  
 
 # To use:
 Create a bookmark in your bookmarks bar named ttTools, for the location, enter:
