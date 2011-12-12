@@ -20,14 +20,12 @@ ttTools = {
     this.removeUserOverride();
     this.addUserOverride();
 
-    if (window.openDatabase) {
-      this.tags.init();
-    }
-    
     this.views.menu.render();
     this.views.users.render();
-    this.views.import.render();
     this.views.toolbar.render();
+
+    if (this.database.isSupported()) { this.tags.init(); }
+    if (this.portability.isSupported()) { this.portability.init(); }
   },
 
   getRoom : function() {
@@ -83,9 +81,9 @@ ttTools = {
     room.setCurrentSongFunc = room.setCurrentSong;
     room.setCurrentSong = function (roomState) {
       this.setCurrentSongFunc(roomState);
+      room.downvoters = [];
       ttTools.upvotes = room.upvoters.length;
       ttTools.downvotes = 0;
-      ttTools.downvoters = [];
       if (ttTools.autoAwesome) {
         setTimeout(function() {
           turntable.whenSocketConnected(function() {
@@ -163,74 +161,6 @@ ttTools = {
     }
   },
 
-  importOperations : [],
-  importOperationsCompleted : 0,
-  importOperationsTimeout : null,
-  importPlaylist : function (playlist) {
-    if (playlist.length == 0) { return this.views.import.update(); }
-    LOG("I'm using ttTools to import a playlist, but it's really slow because your api only allows adding one song at a time and has rate limiting. Can we work together to solve this? https://github.com/egeste/ttTools");
-    if (window.openDatabase) { turntable.playlist.addSong = turntable.playlist.addSongFunc; }
-    ttTools.importOperations = [];
-    ttTools.importOperationsCompleted = 0;
-    $(playlist).each(function (index, song) {
-      if ($.inArray(song.fileId, Object.keys(turntable.playlist.songsByFid)) > -1) { return; }
-      var operation = function (count) {
-        count = (count == undefined) ? 1 : count;
-        if (count > 3) {
-          ttTools.importOperations.splice(ttTools.importOperationsCompleted, 1);
-          ttTools.views.import.update();
-        }
-        ttTools.importOperationsTimeout = setTimeout(operation, 5000, count++);
-        ttTools.importSong(song, function (response) {
-          clearTimeout(ttTools.importOperationsTimeout);
-          if (!response.success) { return operation(count++); }
-          ttTools.importOperationsCompleted++;
-          ttTools.views.import.update();
-          turntable.playlist.files.push(song);
-          turntable.playlist.songsByFid[song.fileId] = song;
-          turntable.playlist.updatePlaylist();
-          if (ttTools.importOperations[ttTools.importOperationsCompleted]) {
-            ttTools.importOperations[ttTools.importOperationsCompleted]();
-          }
-        });
-      }
-      ttTools.importOperations.push(operation);
-    });
-    if (ttTools.importOperations.length == 0) { return this.views.import.update(); }
-    ttTools.importOperations[0]();
-  },
-
-  importSong : function (song, callback) {
-    var messageId = turntable.messageId;
-    turntable.messageId++;
-    turntable.whenSocketConnected(function() {
-      turntable.socket.send(JSON.stringify({
-        msgid         : messageId,
-        clientid      : turntable.clientId,
-        userid        : turntable.user.id,
-        userauth      : turntable.user.auth,
-        api           : 'playlist.add',
-        playlist_name : 'default',
-        index         : turntable.playlist.files.length+1,
-        song_dict     : {
-          fileid: song.fileId
-        }
-      }));
-      turntable.socketKeepAlive(true);
-      turntable.pendingCalls.push({
-        msgid    : messageId,
-        deferred : $.Deferred(), // Why?
-        time     : util.now(),
-        handler  : callback
-      });
-    });
-  },
-
-  exportPlaylist : function () {
-    var data = JSON.stringify(turntable.playlist.files);
-    window.open('data:text/json;charset=utf-8,' + data);
-  },
-
   shuffle : function (array) {
     var len = array.length;
     var i = len;
@@ -242,4 +172,4 @@ ttTools = {
     }
     return array;
   }
-};
+}

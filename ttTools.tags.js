@@ -1,4 +1,5 @@
 ttTools.tags = {
+
   dbTable : 'tags',
 
   init : function () {
@@ -26,6 +27,7 @@ ttTools.tags = {
       ttTools.tags.updateQueue();
       ttTools.tags.addSongOverride();
       ttTools.tags.filterQueueOverride();
+      ttTools.tags.addSettingsRenderOverride();
     });
   },
 
@@ -88,6 +90,14 @@ ttTools.tags = {
     }
   },
 
+  addSettingsRenderOverride : function () {
+    ttTools.views.settings.tagsRender = ttTools.views.settings.render;
+    ttTools.views.settings.render = function () {
+      ttTools.views.settings.tagsRender();
+      ttTools.tags.views.settings.render();
+    }
+  },
+
   createTable : function () {
     ttTools.database.execute(
       'CREATE TABLE IF NOT EXISTS ' +
@@ -105,9 +115,9 @@ ttTools.tags = {
     this.addTag('4dd6c222e8a6c404330002c5', 'trololo');
   },
 
-  getTagsForFid : function (fid, success, failure) {
+  getAll : function (success, failure) {
     return ttTools.database.execute(
-      'SELECT DISTINCT tag FROM ' + this.dbTable + ' WHERE fid="' + fid + '";',
+      'SELECT DISTINCT fid, tag FROM ' + this.dbTable + ';',
       success,
       failure
     );
@@ -121,9 +131,25 @@ ttTools.tags = {
     );
   },
 
+  getFidsForTag : function (tag, success, failure) {
+    return ttTools.database.execute(
+      'SELECT DISTINCT fid FROM ' + this.dbTable + ' WHERE tag="' + tag + '";',
+      success,
+      failure
+    );
+  },
+
   getFidsForTagLike : function (tag, success, failure) {
     return ttTools.database.execute(
       'SELECT DISTINCT fid FROM ' + this.dbTable + ' WHERE tag LIKE "%' + tag + '%";',
+      success,
+      failure
+    );
+  },
+
+  getTagsForFid : function (fid, success, failure) {
+    return ttTools.database.execute(
+      'SELECT DISTINCT tag FROM ' + this.dbTable + ' WHERE fid="' + fid + '";',
       success,
       failure
     );

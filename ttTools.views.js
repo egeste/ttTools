@@ -24,6 +24,7 @@ ttTools.views = {
         type : 'text/css',
         text : "\
         div.resultsLabel {\
+          top:65px;\
           height:20px !important;\
           padding-top:7px !important;\
           background-color:#CCC !important;\
@@ -141,7 +142,7 @@ ttTools.views = {
         }
       }).click(function (e) {
         util.hideOverlay();
-        ttTools.exportPlaylist();
+        ttTools.portability.exportSongs();
       });
     },
 
@@ -210,7 +211,7 @@ ttTools.views = {
             click : util.hideOverlay
           }
         }],
-        ['h1', 'ttTools Settings'],
+        ['h1', 'ttTools'],
         ['div', {}, ttTools.version],
         ['br'],
         ['div.fields', {},
@@ -225,99 +226,6 @@ ttTools.views = {
           ],
         ]
       ];
-    }
-  },
-
-  import : {
-    render : function () {
-      $('<style/>', {
-        type : 'text/css',
-        text : "\
-        .mainPane.noBG { background-color:transparent; }\
-        .import {\
-          top:0;\
-          left:0;\
-          right:0;\
-          bottom:0;\
-          color:#fff;\
-          text-align:center;\
-          padding:30px 10px;\
-          position:absolute;\
-          background-color:#000;\
-          border:2px dashed #fff;\
-          opacity:0.8;\
-          filter:Alpha(Opacity=80);\
-        }\
-      "}).appendTo($(document.body));
-
-      var playlist = $('#playlist');
-      var dropZone = $('<div/>', {
-        id      : 'importDropZone',
-        'class' : 'import'
-      }).html(
-        'Drop ttTools playlist file here to import.'
-      );
-      var dropZoneContainer = $('<div/>', {
-        id      : 'dropZoneContainer',
-        'class' : 'mainPane noBG'
-      }).append(
-        dropZone
-      ).hide().appendTo(playlist);
-      var importProgressContainer = $('<div/>', {
-        id      : 'importProgressContainer',
-        'class' : 'mainPane noBG'
-      }).append(
-        $('<div/>', {
-          id      : 'importProgress',
-          'class' : 'import'
-        }).html(
-          "Processing..."
-        ).append(
-          $('<div/>', {
-            id : 'importProgressBar'
-          }).progressbar()
-        ).append(
-          '<span id="importCount">0</span> of <span id="importTotal">0</span>'
-        ).append(
-          '<br/><br/>Yep, it\'s super slow. Want to help make it faster? Click the ? feedback icon above your DJ queue and send the message:<br /><br/>"I <3 ttTools! Please add batch fid support for the playlist.add API method!"'
-        )
-      ).hide().appendTo(playlist);
-
-      playlist.get(0).addEventListener('dragenter', function (e) {
-        dropZoneContainer.show();
-      });
-      dropZone.get(0).addEventListener('dragleave', function (e) {
-        dropZoneContainer.hide();
-      });
-      dropZone.get(0).addEventListener('dragover', function (e) {
-        e.preventDefault();
-      });
-      dropZone.get(0).addEventListener('drop', function (e) {
-        dropZoneContainer.hide();
-        importProgressContainer.show();
-        for (var i=0; i<e.dataTransfer.files.length; i++) {
-          var reader = new FileReader();
-          reader.onload = function () {
-            ttTools.importPlaylist(JSON.parse(this.result));
-          }
-          reader.readAsText(e.dataTransfer.files[i], 'utf-8');
-        }
-      });
-    },
-
-    update : function () {
-      var total = ttTools.importOperations.length;
-      var completed = ttTools.importOperationsCompleted;
-      $('#importTotal').html(total);
-      $('#importCount').html(completed);
-      $('#importProgressBar').progressbar('option', 'value', (completed / total) * 100);
-      if (completed == total) {
-        if (window.openDatabase) {
-          ttTools.tags.updateQueue();
-          ttTools.tags.addSongOverride();
-        }
-        $('#importProgressContainer').hide();
-      }
     }
   },
 
@@ -354,6 +262,12 @@ ttTools.views = {
         #usersList .upvoter { background-color:#aea; }\
         #usersList .downvoter { background-color:#eaa; }\
         #usersList .user { font-weight: bold; cursor: pointer; }\
+        #usersList .user.ui-icon {\
+          text-indent:0;\
+          padding-left:16px;\
+          width:auto;\
+          height:auto;\
+        }\
         #ui-dialog-title-usersDialog { width:100%; text-align:right; }\
         #ui-dialog-title-usersDialog .ui-icon { display:inline-block; }\
         #ui-dialog-title-usersDialog .vote { float:left; }\
@@ -403,7 +317,7 @@ ttTools.views = {
       $(room.upvoters).each(function (index, uid) {
         if (room.users[uid]) {
           usersList.find('tbody').append(
-            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid], 'upvoter')))
+            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid])))
           );
         }
       });
@@ -412,7 +326,7 @@ ttTools.views = {
       $(room.downvoters).each(function (index, uid) {
         if (room.users[uid]) {
           usersList.find('tbody').append(
-            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid], 'downvoter')))
+            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid])))
           );
         }
       });
@@ -429,11 +343,14 @@ ttTools.views = {
       });
     },
 
-    rowForUser : function (user, cssClass) {
-      cssClass = cssClass ? cssClass : '';
-      return ['tr', { 'class' : cssClass },
+    rowForUser : function (user) {
+      var room = ttTools.getRoom();
+      var voter = $.inArray(user.userid, room.upvoters) > -1 ? 'upvoter' : '';
+      voter += $.inArray(user.userid, room.downvoters) > -1 ? 'downvoter' : '';
+      var dj = $.inArray(user.userid, room.djIds) > -1 ? ' ui-icon ui-icon-volume-on' : '';
+      return ['tr', { 'class' : voter },
         ['td', {
-          'class' : 'user',
+          'class' : 'user' + dj,
           event : {
             click : function (e) {
               ttTools.getRoomManager().toggle_listener(user.userid)
