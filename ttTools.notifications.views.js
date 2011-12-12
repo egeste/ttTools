@@ -1,0 +1,3 @@
+ttTools.notifications.views = {
+  
+}

@@ -202,6 +202,10 @@ ttTools.views = {
           $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
         }
       });
+
+      if (ttTools.database.isSupported()) {
+        ttTools.tags.views.settings.render();
+      }
     },
 
     tree : function () {
@@ -212,7 +216,7 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, ttTools.version],
+        ['div', {}, ttTools.release],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},

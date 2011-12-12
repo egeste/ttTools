@@ -1,5 +1,17 @@
 ttTools = {
 
+  loadRetry : 30,
+  load : function (retry) {
+    if (!turntable
+      || !ttTools.getRoom()
+    ) {
+      if (retry > ttTools.loadRetry) { return alert('Could not load ttTools.'); }
+      var callback = function () { ttTools.load(retry++); }
+      return setTimeout(callback, 1000);
+    }
+    ttTools.init();
+  },
+
   init : function() {
     var form = $('div.chat-container form');
     form.find('input').val('I <3 ttTools! https://github.com/egeste/ttTools');
@@ -24,7 +36,7 @@ ttTools = {
     this.views.users.render();
     this.views.toolbar.render();
 
-    if (this.database.isSupported()) { this.tags.init(); }
+    if (this.database.isSupported()) { this.tags.load(0); }
     if (this.portability.isSupported()) { this.portability.init(); }
   },
 
@@ -37,6 +49,7 @@ ttTools = {
         return member;
       }
     }
+    return false;
   },
 
   getRoomManager : function(room) {
@@ -49,6 +62,7 @@ ttTools = {
         return member;
       }
     }
+    return false;
   },
 
   idleTimeOverride : function () {

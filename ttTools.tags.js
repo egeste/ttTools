@@ -2,6 +2,18 @@ ttTools.tags = {
 
   dbTable : 'tags',
 
+  loadRetry : 30,
+  load : function (retry) {
+    if (!turntable.playlist
+      || turntable.playlist.files == 0
+    ) {
+      if (retry > ttTools.tags.loadRetry) { return alert('Could not load ttTools tagging.'); }
+      var callback = function () { ttTools.tags.load(retry++); }
+      return setTimeout(callback, 1000);
+    }
+    ttTools.tags.init();
+  },
+
   init : function () {
     $('<style/>', {
       type : 'text/css',
@@ -27,7 +39,6 @@ ttTools.tags = {
       ttTools.tags.updateQueue();
       ttTools.tags.addSongOverride();
       ttTools.tags.filterQueueOverride();
-      ttTools.tags.addSettingsRenderOverride();
     });
   },
 
@@ -87,14 +98,6 @@ ttTools.tags = {
           }
         );
       }
-    }
-  },
-
-  addSettingsRenderOverride : function () {
-    ttTools.views.settings.tagsRender = ttTools.views.settings.render;
-    ttTools.views.settings.render = function () {
-      ttTools.views.settings.tagsRender();
-      ttTools.tags.views.settings.render();
     }
   },
 
