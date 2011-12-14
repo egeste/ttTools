@@ -1,25 +1,17 @@
 {
-  // Required
   "name"    : "ttTools Loader",
   "version" : "1.0",
-
-  // Recommended
   "description"    : "All the stuff you wish turntable.fm already had.",
   "icons"          : {
+    "16"  : "icons/icon_16.png",
     "48"  : "icons/icon_48.png",
     "128" : "icons/icon_128.png"
   },
-  // "default_locale" : "en",
-
-  // Pick one (or none)
   "page_action" : {
     "default_icon"  : "icons/icon_16.png",
     "default_title" : "ttTools - All the stuff you wish turntable.fm already had."
   },
-
-  // Add any of these that you need
   "background_page": "html/background.html",
-  // "chrome_url_overrides": {...},
   "content_scripts": [
     {
       "matches" : [
@@ -41,20 +33,9 @@
       "run_at" : "document_idle"
     }
   ],
-  // "content_security_policy": "policyString",
-  // "file_browser_handlers": [...],
   "homepage_url": "https://github.com/egeste/ttTools",
-  // "incognito": "spanning" or "split",
-  // "key": "publicKey",
-  // "minimum_chrome_version": "versionString",
-  // "nacl_modules": [...],
-  // "offline_enabled": true,
-  // "omnibox": { "keyword": "aString" },
-  // "options_page": "aFile.html",
   "permissions": [
     "tabs",
     "http://turntable.fm/*"
-  ]//,
-  // "plugins": [...],
-  // "update_url": "http://path/to/updateInfo.xml"
+  ]
 }
