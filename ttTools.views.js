@@ -265,13 +265,9 @@ ttTools.views = {
         #usersList .time { text-align: right; }\
         #usersList .upvoter { background-color:#aea; }\
         #usersList .downvoter { background-color:#eaa; }\
+        #usersList .currentDj { background-color:#ccf; }\
         #usersList .user { font-weight: bold; cursor: pointer; }\
-        #usersList .user.ui-icon {\
-          text-indent:0;\
-          padding-left:16px;\
-          width:auto;\
-          height:auto;\
-        }\
+        #usersList .user .ui-icon { display:inline-block; }\
         #ui-dialog-title-usersDialog { width:100%; text-align:right; }\
         #ui-dialog-title-usersDialog .ui-icon { display:inline-block; }\
         #ui-dialog-title-usersDialog .vote { float:left; }\
@@ -317,6 +313,12 @@ ttTools.views = {
         return 0;
       };
 
+      if (room.currentDj) {
+        usersList.find('tbody').append(
+          $(util.buildTree(ttTools.views.users.rowForUser(room.users[room.currentDj])))
+        );
+      }
+
       room.upvoters.sort(nameAlpha);
       $(room.upvoters).each(function (index, uid) {
         if (room.users[uid]) {
@@ -337,9 +339,10 @@ ttTools.views = {
 
       var users = Object.keys(room.users).sort(nameAlpha);
       $(users).each(function (index, uid) {
+        var currentDj = uid == room.currentDj;
         var upvoter = $.inArray(uid, room.upvoters) > -1;
         var downvoter = $.inArray(uid, room.downvoters) > -1;
-        if (!upvoter && !downvoter) {
+        if (!currentDj && !upvoter && !downvoter) {
           usersList.find('tbody').append(
             $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid])))
           );
@@ -349,18 +352,20 @@ ttTools.views = {
 
     rowForUser : function (user) {
       var room = ttTools.getRoom();
-      var voter = $.inArray(user.userid, room.upvoters) > -1 ? 'upvoter' : '';
-      voter += $.inArray(user.userid, room.downvoters) > -1 ? 'downvoter' : '';
-      var dj = $.inArray(user.userid, room.djIds) > -1 ? ' ui-icon ui-icon-volume-on' : '';
-      return ['tr', { 'class' : voter },
+      var dj = $.inArray(user.userid, room.djIds) > -1 ? ['div', { 'class':'ui-icon ui-icon-volume-on' }] : null;
+      var mod = $.inArray(user.userid, room.moderators) > -1 ? ['div', { 'class':'ui-icon ui-icon-alert' }] : null;
+      var state = user.userid == room.currentDj ? 'currentDj' : '';
+      state += $.inArray(user.userid, room.upvoters) > -1 ? 'upvoter' : '';
+      state += $.inArray(user.userid, room.downvoters) > -1 ? 'downvoter' : '';
+      return ['tr', { 'class' : state },
         ['td', {
-          'class' : 'user' + dj,
+          'class' : 'user',
           event : {
             click : function (e) {
               ttTools.getRoomManager().toggle_listener(user.userid)
             }
           }
-        }, user.name],
+        }, mod, dj, user.name],
         ['td', { 'class' : 'time' }, this.timestamp(ttTools.userActivityLog[user.userid].message)],
         ['td', { 'class' : 'time' }, this.timestamp(ttTools.userActivityLog[user.userid].vote)]
       ];
