@@ -14,7 +14,7 @@ ttTools = {
 
   init : function() {
     var form = $('div.chat-container form');
-    form.find('input').val('I <3 ttTools! https://github.com/egeste/ttTools');
+    form.find('input').val('I <3 ttTools! http://tttools.egeste.net/');
 
     $('<link/>', {
       type : 'text/css',
@@ -33,8 +33,9 @@ ttTools = {
     this.addUserOverride();
 
     this.views.menu.render();
-    this.views.users.render();
     this.views.toolbar.render();
+    this.views.users.render();
+    this.views.chat.render();
 
     if (this.database.isSupported()) { this.tags.load(0); }
     if (this.portability.isSupported()) { this.portability.init(); }
@@ -124,6 +125,7 @@ ttTools = {
     room.showChatMessageFunc = room.showChatMessage;
     room.showChatMessage = function (uid, name, msg) {
       this.showChatMessageFunc(uid, name, msg);
+      ttTools.views.chat.update();
       ttTools.userActivityLog[uid].message = util.now();
     }
   },
@@ -175,15 +177,33 @@ ttTools = {
     }
   },
 
-  shuffle : function (array) {
-    var len = array.length;
-    var i = len;
-     while (i--) {
-      var p = parseInt(Math.random()*len);
-      var t = array[i];
-      array[i] = array[p];
-      array[p] = t;
+  showTheLove : function () {
+    var room = this.getRoom();
+    var roomManager = this.getRoomManager(room);
+    var maxOffset = 200 * Object.keys(room.users).length;
+    for (user in room.users) {
+      setTimeout(function (user) {
+        roomManager.show_heart(user);
+      }, Math.round(Math.random() * maxOffset), user);
     }
-    return array;
+  },
+
+  resetPlayer : function () {
+    var room = this.getRoom();
+    if (!room.currentSong) { return; }
+    turntablePlayer.playSong(
+      room.roomId,
+      room.currentSong._id,
+      room.currentSong.starttime + turntable.clientTimeDelta + 2
+    );
+  },
+
+  donateButton : function () {
+    return "<form action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>\
+      <input type='hidden' name='cmd' value='_s-xclick'>\
+      <input type='hidden' name='hosted_button_id' value='ZNTHAXPNKMKBN'>\
+      <input type='image' src='https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif' border='0' name='submit' alt='PayPal - The safer, easier way to pay online!'>\
+      <img alt='' border='0' src='https://www.paypalobjects.com/en_US/i/scr/pixel.gif' width='1' height='1'>\
+      </form>";
   }
 }

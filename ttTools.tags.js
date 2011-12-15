@@ -34,11 +34,12 @@ ttTools.tags = {
         position: absolute;\
       }\
     "}).appendTo(document.head);
-    $.getScript('https://raw.github.com/xoxco/jQuery-Tags-Input/73c60604f83f7a713d3e79cfb3bd43de95553d23/jquery.tagsinput.min.js', function() {
+    $.getScript('https://raw.github.com/xoxco/jQuery-Tags-Input/master/jquery.tagsinput.min.js', function() {
       ttTools.tags.createTable();
       ttTools.tags.updateQueue();
       ttTools.tags.addSongOverride();
       ttTools.tags.filterQueueOverride();
+      ttTools.tags.views.menu.render();
     });
   },
 
@@ -116,6 +117,7 @@ ttTools.tags = {
     ttTools.database.execute('DROP TABLE IF EXISTS ' + this.dbTable + ';');
     this.createTable();
     this.addTag('4dd6c222e8a6c404330002c5', 'trololo');
+    ttTools.tags.updateQueue();
   },
 
   getAll : function (success, failure) {

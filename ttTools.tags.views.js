@@ -36,11 +36,6 @@ ttTools.tags.views = {
           }
         }
       );
-
-      $('#resetTags').click(function() {
-        if (!confirm('Are you sure? This will delete your entire tags database.')) { return false; }
-        ttTools.tags.resetData();
-      });
     },
 
     tree : function () {
@@ -57,24 +52,27 @@ ttTools.tags.views = {
         ['h1', this.file.metadata.song],
         ['div', {}, this.file.metadata.artist],
         ['br'],
-        ['input#tags', { type : 'text' }],
-        ['br'],
-        ['a#resetTags', { href : 'javascript:void(0);' }, 'Reset Tags Database']
+        ['input#tags', { type : 'text' }]
       ];
+    }
+  },
+
+  menu : {
+    render : function () {
+      $('<div class="menuItem">Tagging & Export</div>').click(function (e) {
+        ttTools.tags.views.settings.render();
+      }).insertBefore($('div#menuh').children().last());
     }
   },
 
   settings : {
     render : function () {
+      util.showOverlay(util.buildTree(this.tree()));
+
       $('<style/>', {
         type : 'text/css',
-        text : "\
-        div.field.tagexport { padding:10px 20px; }\
-      "}).appendTo($('div.settingsOverlay.modal'));
-
-      $(util.buildTree(this.tree())).appendTo(
-        $('#overlay .settingsOverlay .fields')
-      );
+        text : "div.field.tagexport { padding-right:20px; }"
+      }).appendTo($('div.tagsOverlay.modal'));
       
       ttTools.tags.getAll(function (tx, result) {
         var tags = {};
@@ -93,13 +91,30 @@ ttTools.tags.views = {
         var tags = $('#tagExport').val().split(',');
         ttTools.portability.exportSongsWithTags(tags);
       });
+
+      $('#resetTags').click(function() {
+        if (!confirm('Are you sure? This will delete your entire tags database.')) { return false; }
+        ttTools.tags.resetData();
+      });
     },
 
     tree : function () {
-      return ['div.field.tagexport', {},
-        ['div', {}, 'Export songs with specific tags:'],
-        ['input#tagExport', { type : 'text' }],
-        ['button#tagExportButton', 'Export']
+      return ['div.tagsOverlay.modal', {},
+        ['div.close-x', {
+          event : {
+            click : util.hideOverlay
+          }
+        }],
+        ['h1', 'Tags & Export'],
+        ['br'],
+        ['div.fields', {},
+          ['div.field.tagexport', {},
+            ['div', {}, 'Export songs with specific tags:'],
+            ['input#tagExport', { type : 'text' }],
+            ['button#tagExportButton', 'Export']
+          ]
+        ],
+        ['a#resetTags', { href : 'javascript:void(0);' }, 'Reset Tags Database']
       ];
     }
   }

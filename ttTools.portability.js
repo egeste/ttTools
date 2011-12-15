@@ -100,7 +100,7 @@ ttTools.portability = {
 
   exportSongs : function () {
     if (!ttTools.database.isSupported()) {
-      return window.open('data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files));
+      return window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files);
     }
     ttTools.tags.getAll(function (tx, result) {
       var songsByFid = turntable.playlist.songsByFid;
@@ -114,10 +114,10 @@ ttTools.portability = {
       }
       var playlist = [];
       for (song in songsByFid) { playlist.push(songsByFid[song]); }
-      return window.open('data:text/json;charset=utf-8,' + JSON.stringify(playlist));
+      return window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(playlist);
     }, function (tx, result) {
       turntable.showAlert("Attempted to export your tags with your songs, but it failed. Sorry :/ Here's a regular export.");
-      return window.open('data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files));
+      return window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files);
     });
   },
 
@@ -125,7 +125,6 @@ ttTools.portability = {
     if (tags.length < 2 && tags[0] == '') {
       return turntable.showAlert('No tags specified', ttTools.views.settings.render);
     }
-    util.hideOverlay();
     ttTools.tags.getAll(function (tx, result) {
       var tagsByFid = {},
           matchFids = [];
@@ -149,7 +148,7 @@ ttTools.portability = {
       if (playlist.length < 1) {
         return turntable.showAlert("You have no music tagged with " + tags.join(', '));
       }
-      return window.open('data:text/json;charset=utf-8,' + JSON.stringify(playlist));
+      return window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(playlist);
     });
   }
 }

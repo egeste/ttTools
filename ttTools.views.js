@@ -2,9 +2,76 @@ ttTools.views = {
 
   menu : {
     render : function () {
-      $('<div class="menuItem">ttTools Settings</div>').click(function (e) {
+      $('<div class="menuItem">ttTools</div>').click(function (e) {
         ttTools.views.settings.render();
       }).insertBefore($('div#menuh').children().last());
+    }
+  },
+
+  settings : {
+    render : function () {
+      util.showOverlay(util.buildTree(this.tree()));
+      $('div.settingsOverlay.modal').append(ttTools.donateButton());
+
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+        div.field.settings { padding:10px 20px; }\
+        div.field.settings .ui-slider {\
+          height:0.5em;\
+          margin:10px 0 3px;\
+        }\
+        div.field.settings .ui-slider .ui-slider-handle {\
+          width:0.9em;\
+          height:0.9em;\
+        }\
+        #autoDJDisplay, #autoAwesomeDisplay { text-align:center; }\
+      "}).appendTo($('div.settingsOverlay.modal'));
+
+      $('#autoDJDelay').slider({
+        max   : 5000,
+        min   : 0,
+        step  : 100,
+        value : ttTools.autoDJDelay,
+        slide : function (event, ui) {
+          ttTools.autoDJDelay = ui.value;
+          $('#autoDJDisplay').text(ui.value/1000 + ' s');
+        }
+      });
+      $('#autoAwesomeDelay').slider({
+        max   : 60000,
+        min   : 0,
+        step  : 1000,
+        value : ttTools.autoAwesomeDelay,
+        slide : function (event, ui) {
+          ttTools.autoAwesomeDelay = ui.value;
+          $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
+        }
+      });
+    },
+
+    tree : function () {
+      return ['div.settingsOverlay.modal', {},
+        ['div.close-x', {
+          event : {
+            click : util.hideOverlay
+          }
+        }],
+        ['h1', 'ttTools'],
+        ['div', {}, ttTools.release],
+        ['br'],
+        ['div.fields', {},
+          ['div.field.settings', {},
+            ['div', {}, 'Auto DJ Delay'],
+            ['div#autoDJDelay', {}],
+            ['div#autoDJDisplay', {}, ttTools.autoDJDelay/1000 + ' s'],
+            ['br'],
+            ['div', {}, 'Auto Awesome Delay'],
+            ['div#autoAwesomeDelay', {}],
+            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s']
+          ],
+        ]
+      ];
     }
   },
 
@@ -24,7 +91,7 @@ ttTools.views = {
         type : 'text/css',
         text : "\
         div.resultsLabel {\
-          top:65px;\
+          top:65px !important;\
           height:20px !important;\
           padding-top:7px !important;\
           background-color:#CCC !important;\
@@ -94,51 +161,23 @@ ttTools.views = {
         icons : {
           primary: 'ui-icon-heart'
         }
-      }).click(function (e){
-        var room = ttTools.getRoom();
-        var roomManager = ttTools.getRoomManager(room);
-        var maxOffset = 200 * Object.keys(room.users).length;
-        for (user in room.users) {
-          setTimeout(function (user) {
-            roomManager.show_heart(user);
-          }, Math.round(Math.random() * maxOffset), user)
-        }
+      }).click(function (e) {
+        ttTools.showTheLove();
       });
 
-      $('#playlistInvert').button({
+      $('#resetPlayer').button({
         text  : false,
         icons : {
-          primary: 'ui-icon-transfer-e-w'
+          primary: 'ui-icon-refresh'
         }
       }).click(function (e) {
-        var room = ttTools.getRoom();
-        if (room.currentDj == room.selfId) {
-          turntable.showAlert("Sorry, can't sort queue while DJing.");
-          return false;
-        }
-        turntable.playlist.updatePlaylist(turntable.playlist.files.reverse());
-        turntable.playlist.updateTopSongClass();
-      });
-
-      $('#playlistRandomize').button({
-        text  : false,
-        icons : {
-          primary: 'ui-icon-shuffle'
-        }
-      }).click(function (e) {
-        var room = ttTools.getRoom();
-        if (room.currentDj == room.selfId) {
-          turntable.showAlert("Sorry, can't sort queue while DJing.");
-          return false;
-        }
-        turntable.playlist.updatePlaylist(ttTools.shuffle(turntable.playlist.files), false);
-        turntable.playlist.updateTopSongClass();
+        ttTools.resetPlayer();
       });
 
       $('#exportQueue').button({
         text  : false,
         icons : {
-          primary : 'ui-icon-arrowthick-1-s'
+          primary : 'ui-icon-disk'
         }
       }).click(function (e) {
         util.hideOverlay();
@@ -156,79 +195,8 @@ ttTools.views = {
         ],
         ['button#userList', { title: 'User List' }],
         ['button#showTheLove', { title: 'Show The Love' }],
-        ['button#playlistInvert', { title : 'Flip Playlist' }],
-        ['button#playlistRandomize', { title : 'Shuffle Playlist' }],
+        ['button#resetPlayer', { title: 'Reset Player' }],
         ['button#exportQueue', { title : 'Export Playlist' }]
-      ];
-    }
-  },
-
-  settings : {
-    render : function () {
-      util.showOverlay(util.buildTree(this.tree()));
-
-      $('<style/>', {
-        type : 'text/css',
-        text : "\
-        div.field.settings { padding:10px 20px; }\
-        div.field.settings .ui-slider {\
-          height:0.5em;\
-          margin:10px 0 3px;\
-        }\
-        div.field.settings .ui-slider .ui-slider-handle {\
-          width:0.9em;\
-          height:0.9em;\
-        }\
-        #autoDJDisplay, #autoAwesomeDisplay { text-align:center; }\
-      "}).appendTo($('div.settingsOverlay.modal'));
-
-      $('#autoDJDelay').slider({
-        max   : 5000,
-        min   : 0,
-        step  : 100,
-        value : ttTools.autoDJDelay,
-        slide : function (event, ui) {
-          ttTools.autoDJDelay = ui.value;
-          $('#autoDJDisplay').text(ui.value/1000 + ' s');
-        }
-      });
-      $('#autoAwesomeDelay').slider({
-        max   : 60000,
-        min   : 0,
-        step  : 1000,
-        value : ttTools.autoAwesomeDelay,
-        slide : function (event, ui) {
-          ttTools.autoAwesomeDelay = ui.value;
-          $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
-        }
-      });
-
-      if (ttTools.database.isSupported()) {
-        ttTools.tags.views.settings.render();
-      }
-    },
-
-    tree : function () {
-      return ['div.settingsOverlay.modal', {},
-        ['div.close-x', {
-          event : {
-            click : util.hideOverlay
-          }
-        }],
-        ['h1', 'ttTools'],
-        ['div', {}, ttTools.release],
-        ['br'],
-        ['div.fields', {},
-          ['div.field.settings', {},
-            ['div', {}, 'Auto DJ Delay'],
-            ['div#autoDJDelay', {}],
-            ['div#autoDJDisplay', {}, ttTools.autoDJDelay/1000 + ' s'],
-            ['br'],
-            ['div', {}, 'Auto Awesome Delay'],
-            ['div#autoAwesomeDelay', {}],
-            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s']
-          ],
-        ]
       ];
     }
   },
@@ -376,6 +344,27 @@ ttTools.views = {
       var mins = date.getUTCMinutes() < 10 ? '0' + date.getUTCMinutes() : date.getUTCMinutes();
       var secs = date.getUTCSeconds() < 10 ? '0' + date.getUTCSeconds() : date.getUTCSeconds();
       return date.getUTCHours() + ':' + mins + ':' + secs;
+    }
+  },
+
+  chat : {
+    render : function () {
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+        .message.marker {\
+          border-bottom:1px solid #00f;\
+          background-color:#D2E6FC !important;\
+        }\
+      "}).appendTo($(document.head));
+      this.update();
+    },
+
+    update : function () {
+      $('.messages .message').unbind('click').click(function (e) {
+        var element = $(this);
+        element.toggleClass('marker');
+      });
     }
   }
 }
