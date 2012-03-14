@@ -1,5 +1,6 @@
 ttTools.views = {
 
+  // Dialogs
   menu : {
     render : function () {
       $('<div class="menuItem">ttTools</div>').click(function (e) {
@@ -11,7 +12,7 @@ ttTools.views = {
   settings : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
-      $('div.settingsOverlay.modal').append(ttTools.donateButton());
+      $('div.settingsOverlay.modal').append(ttTools.constants.donateButton);
 
       $('<style/>', {
         type : 'text/css',
@@ -25,27 +26,39 @@ ttTools.views = {
           width:0.9em;\
           height:0.9em;\
         }\
-        #autoDJDisplay, #autoAwesomeDisplay { text-align:center; }\
+        div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:center; }\
       "}).appendTo($('div.settingsOverlay.modal'));
 
-      $('#autoDJDelay').slider({
-        max   : 5000,
-        min   : 0,
-        step  : 100,
-        value : ttTools.autoDJDelay,
+      $('div#idleIndicatorThreshold').slider({
+        min   : 10 * ttTools.constants.time.minutes,
+        max   : 60 * ttTools.constants.time.minutes,
+        step  : ttTools.constants.time.minutes,
+        value : ttTools.idleIndicator.threshold(),
         slide : function (event, ui) {
-          ttTools.autoDJDelay = ui.value;
-          $('#autoDJDisplay').text(ui.value/1000 + ' s');
+          ttTools.idleIndicator.setThreshold(ui.value);
+          $('div#idleIndicatorDisplay').text((ui.value / ttTools.constants.time.minutes) + 'm');
         }
       });
-      $('#autoAwesomeDelay').slider({
-        max   : 60000,
+
+      $('div#autoDJDelay').slider({
         min   : 0,
-        step  : 1000,
-        value : ttTools.autoAwesomeDelay,
+        max   : 5 * ttTools.constants.time.seconds,
+        step  : ttTools.constants.time.seconds / 10, // Tenths of a second
+        value : ttTools.autoDJ.delay(),
         slide : function (event, ui) {
-          ttTools.autoAwesomeDelay = ui.value;
-          $('#autoAwesomeDisplay').text(ui.value/1000 + ' s');
+          ttTools.autoDJ.setDelay(ui.value)
+          $('div#autoDJDisplay').text((ui.value / ttTools.constants.time.seconds) + 's');
+        }
+      });
+
+      $('div#autoVoteDelay').slider({
+        min   : 0,
+        max   : 60 * ttTools.constants.time.seconds,
+        step  : ttTools.constants.time.seconds,
+        value : ttTools.autoVote.delay(),
+        slide : function (event, ui) {
+          ttTools.autoVote.setDelay(ui.value);
+          $('div#autoVoteDisplay').text((ui.value / ttTools.constants.time.seconds) + 's');
         }
       });
     },
@@ -58,23 +71,45 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, ttTools.release],
+        ['div', {}, 'Released: ' + (new Date(ttTools.release)).toGMTString()],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},
+            ['div', {}, 'Idle Indicator Threshold'],
+            ['div#idleIndicatorThreshold', {}],
+            ['div#idleIndicatorDisplay', {}, (ttTools.idleIndicator.threshold() / ttTools.constants.time.minutes) + 'm'],
+            ['br'],
             ['div', {}, 'Auto DJ Delay'],
             ['div#autoDJDelay', {}],
-            ['div#autoDJDisplay', {}, ttTools.autoDJDelay/1000 + ' s'],
+            ['div#autoDJDisplay', {}, (ttTools.autoDJ.delay() / ttTools.constants.time.seconds) + 's'],
             ['br'],
-            ['div', {}, 'Auto Awesome Delay'],
-            ['div#autoAwesomeDelay', {}],
-            ['div#autoAwesomeDisplay', {}, ttTools.autoAwesomeDelay/1000 + ' s']
+            ['div', {}, 'Auto Vote Delay'],
+            ['div#autoVoteDelay', {}],
+            ['div#autoVoteDisplay', {}, (ttTools.autoVote.delay() / ttTools.constants.time.seconds) + 's']
           ],
         ]
       ];
     }
   },
 
+  info : {
+    render : function () {
+      turntable.showAlert();
+      $('<style/>', {
+        type : 'text/css',
+        text : "div.modal ul li {\
+          font-size:16px;\
+          text-align:left;\
+        }\
+      "}).appendTo($('div.modal'));
+      $('div.modal div:first')
+        .html('')
+        .append(ttTools.constants.whatsNew)
+        .append(ttTools.constants.donateButton);
+    }
+  },
+
+  // UI stuff
   toolbar : {
     render : function () {
       turntable.playlist.setPlaylistHeightFunc = turntable.playlist.setPlaylistHeight;
@@ -105,266 +140,211 @@ ttTools.views = {
           right:0;\
           top:65px;\
           height:2em;\
-          padding:2px 0;\
+          padding:2px 0 2px 50px;\
           position:absolute;\
         }\
-        #playlistTools label {\
-          font-size:10px;\
-          text-shadow:none;\
-        }\
-        #playlistTools button { width:20px; }\
-        #playlistTools button .ui-button-text { padding:11px; }\
+        #playlistTools label { font-size:5px; }\
+        #playlistTools button { width:auto; height:auto; }\
+        #playlistTools button .ui-button-text { padding:.6em; }\
         #playlistTools div, #playlistTools button { float:left; }\
-        #switches { margin:0 5px; }\
-        #switches ui-button-text { padding:.4em; }\
+        #switches { margin:0 3px; }\
+        #switches ui-button-text { padding:0.6em 1em; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
         $('form.playlistSearch')
       );
 
-      $('#switches').buttonset();
+      $('div#switches').buttonset();
 
-      $('#autoDJ').click(function (e) {
-        var room = ttTools.getRoom();
-        ttTools.autoDJ = !ttTools.autoDJ;
-        if(ttTools.autoDJ && !room.isDj() && room.djIds.length < room.maxDjs) {
-          room.becomeDj();
-        }
-      }).prop('checked', ttTools.autoDJ).button('refresh');
+      $('input#autoAwesome').click(function (e) {
+        if (ttTools.autoVote.enabled() !== 'up') ttTools.autoVote.setEnabled('up');
+        else ttTools.autoVote.setEnabled('false');
+        ttTools.views.toolbar.update();
+        ttTools.autoVote.execute();
+      }).prop('checked', ttTools.autoVote.enabled() === 'up').button('refresh');
 
-      $('#autoAwesome').click(function (e) {
-        ttTools.autoAwesome = !ttTools.autoAwesome;
-        if(ttTools.autoAwesome) {
-          turntable.whenSocketConnected(function () {
-            ttTools.getRoom().connectRoomSocket('up');
-          });
-        }
-      }).prop('checked', ttTools.autoAwesome).button('refresh');
+      $('input#autoLame').click(function (e) {
+        if (ttTools.autoVote.enabled() !== 'down') ttTools.autoVote.setEnabled('down');
+        else ttTools.autoVote.setEnabled('false');
+        ttTools.views.toolbar.update();
+        ttTools.autoVote.execute();
+      }).prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
 
-      $('#userList').button({
-        text  : false,
-        icons : {
-          primary : 'ui-icon-person'
-        }
-      }).click(function (e) {
-        var userDialog = $('#usersDialog');
-        if (userDialog.dialog('isOpen')) {
-          userDialog.dialog('close');
-        } else {
-          userDialog.dialog('open');
-        }
-      });
+      // $('input#autoRoll').click(function (e) {
+      //   ttTools.autoRoll.setEnabled(!ttTools.autoRoll.enabled());
+      // }).prop('checked', ttTools.autoRoll.enabled()).button('refresh');
 
-      $('#showTheLove').button({
+      $('input#autoDJ').click(function (e) {
+        ttTools.autoDJ.setEnabled(!ttTools.autoDJ.enabled());
+        ttTools.autoDJ.execute();
+      }).prop('checked', ttTools.autoDJ.enabled()).button('refresh');
+
+      $('input#animations').click(function (e) {
+        ttTools.animations.setEnabled(!ttTools.animations.enabled());
+      }).prop('checked', ttTools.animations.enabled()).button('refresh');      
+
+      $('button#showTheLove').button({
         text  : false,
         icons : {
           primary: 'ui-icon-heart'
         }
       }).click(function (e) {
-        ttTools.showTheLove();
-      });
-
-      $('#resetPlayer').button({
-        text  : false,
-        icons : {
-          primary: 'ui-icon-refresh'
+        var maxOffset = 200 * Object.keys(ttObjects.room.users).length;
+        for (user in ttObjects.room.users) {
+          setTimeout(function (user) {
+            ttObjects.manager.show_heart(user);
+          }, Math.round(Math.random() * maxOffset), user);
         }
-      }).click(function (e) {
-        ttTools.resetPlayer();
-      });
-
-      $('#exportQueue').button({
-        text  : false,
-        icons : {
-          primary : 'ui-icon-disk'
-        }
-      }).click(function (e) {
-        util.hideOverlay();
-        ttTools.portability.exportSongs();
       });
     },
 
     tree : function () {
       return ['div#playlistTools', {},
         ['div#switches', {},
-          ['input#autoDJ.ui-icon.ui-icon-person', { type : 'checkbox', title: 'Auto DJ' }],
-          ['label', { 'for' : 'autoDJ' }, 'DJ Next'],
-          ['input#autoAwesome', { type : 'checkbox', title: 'Auto Awesome' }],
-          ['label', { 'for' : 'autoAwesome' }, 'Up-Vote'],
+          ['input#autoAwesome', { type : 'checkbox' }],
+          ['label', { 'for' : 'autoAwesome' },
+            ['span.ui-icon.ui-icon-circle-arrow-n', { title: 'Automatically upvote songs' }],
+          ],
+          ['input#autoLame', { type : 'checkbox' }],
+          ['label', { 'for' : 'autoLame' },
+            ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically downvote songs' }],
+          ],
+          // ['input#autoRoll', { type : 'checkbox' }],
+          // ['label', { 'for' : 'autoRoll' },
+          //   ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically roll (casino mode)' }],
+          // ],
+          ['input#autoDJ', { type : 'checkbox' }],
+          ['label', { 'for' : 'autoDJ' },
+            ['span.ui-icon.ui-icon-person', { title: 'Attempt to get the next DJ spot' }],
+          ],
+          ['input#animations', { type : 'checkbox' }],
+          ['label', { 'for' : 'animations' },
+            ['span.ui-icon.ui-icon-video', { title: 'Toggle animations on/off' }]
+          ],
         ],
-        ['button#userList', { title: 'User List' }],
-        ['button#showTheLove', { title: 'Show The Love' }],
-        ['button#resetPlayer', { title: 'Reset Player' }],
-        ['button#exportQueue', { title : 'Export Playlist' }]
+        ['button#showTheLove', { title: 'Show The Love' }]
       ];
+    },
+
+    update : function () {
+      $('#autoDJ').prop('checked', ttTools.autoDJ.enabled()).button('refresh');
+      $('#autoAwesome').prop('checked', ttTools.autoVote.enabled() === 'up').button('refresh');
+      $('#autoLame').prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
     }
   },
 
   users : {
     render : function () {
-      $('<div/>', {
-        id : 'usersDialog'
-      }).append(
-        $('<table/>', {
-          id      : 'usersList',
-          'class' : 'ui-widget ui-widget-content'
-        })
-      ).appendTo(document.body);
-
-      $('#usersDialog').dialog({
-        autoOpen      : false,
-        closeOnEscape : true,
-        title         : 'Users',
-        width         : '500',
-        height        : '300',
-        open          : ttTools.views.users.update,
-        show          : 'slide'
-      });
-      
       $('<style/>', {
         type : 'text/css',
         text : "\
-        #usersList {\
-          width:100%;\
-          text-shadow:none;\
-          font-size:14px;\
+        div.guest.upvoter { background-color:#aea !important;}\
+        div.guest.upvoter:hover { background-color:#cec !important; }\
+        div.guest.downvoter { background-color:#eaa !important; }\
+        div.guest.downvoter:hover { background-color:#ecc !important; }\
+        div.guest.current_dj { background-color:#ccf !important; }\
+        div.guest.current_dj:hover { background-color:#ddf !important; }\
+        div.guestName .emoji {\
+          padding:3px 0;\
+          margin-left:3px;\
         }\
-        #usersList .time { text-align: right; }\
-        #usersList .upvoter { background-color:#aea; }\
-        #usersList .downvoter { background-color:#eaa; }\
-        #usersList .currentDj { background-color:#ccf; }\
-        #usersList .user { font-weight: bold; cursor: pointer; }\
-        #usersList .user .ui-icon { display:inline-block; }\
-        #ui-dialog-title-usersDialog { width:100%; text-align:right; }\
-        #ui-dialog-title-usersDialog .ui-icon { display:inline-block; }\
-        #ui-dialog-title-usersDialog .vote { float:left; }\
-        #ui-dialog-title-usersDialog .vote.up { color:#aea; padding-right:10px; }\
-        #ui-dialog-title-usersDialog .vote.down { color:#eaa; }\
-      "}).appendTo($('div.#usersDialog'));
-    },
-
-    update : function () {
-      var usersDialog = $('#usersDialog');
-      if (!usersDialog.dialog('isOpen')) { return; }
-      setTimeout(ttTools.views.users.update, 1000);
-
-      var room = ttTools.getRoom();
-
-      usersDialog.dialog(
-        'option',
-        'title',
-        "<span class='usercount'>" + Object.keys(room.users).length + "</span>\
-        <span class='usercount ui-icon ui-icon-person'></span>\
-        <span class='vote ui-icon ui-icon-triangle-1-n'></span>\
-        <span class='vote up'>" + ttTools.upvotes + "</span>\
-        <span class='vote ui-icon ui-icon-triangle-1-s'></span>\
-        <span class='vote down'>" + ttTools.downvotes + "</span>"
-      );
-      $('#ui-dialog-title-usersDialog').parent().css('padding', '5px 30px 0 10px');
-
-      var usersList = $('#usersList').html(
-        '<tbody><tr>' +
-        '<th>Name</th>' +
-        '<th>Message</th>' +
-        '<th>Vote</th>' +
-        '</tr></tbody>'
-      );
-
-      var nameAlpha = function (a, b) {
-        if (!room.users[a]) { return 1; }
-        if (!room.users[b]) { return -1; }
-        a = room.users[a].name.toLowerCase();
-        b = room.users[b].name.toLowerCase();
-        if (a < b) { return -1; }
-        if (a > b) { return 1; }
-        return 0;
-      };
-
-      if (room.currentDj) {
-        usersList.find('tbody').append(
-          $(util.buildTree(ttTools.views.users.rowForUser(room.users[room.currentDj])))
-        );
-      }
-
-      room.upvoters.sort(nameAlpha);
-      $(room.upvoters).each(function (index, uid) {
-        if (room.users[uid]) {
-          usersList.find('tbody').append(
-            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid])))
-          );
-        }
-      });
-
-      room.downvoters.sort(nameAlpha);
-      $(room.downvoters).each(function (index, uid) {
-        if (room.users[uid]) {
-          usersList.find('tbody').append(
-            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid])))
-          );
-        }
-      });
-
-      var users = Object.keys(room.users).sort(nameAlpha);
-      $(users).each(function (index, uid) {
-        var currentDj = uid == room.currentDj;
-        var upvoter = $.inArray(uid, room.upvoters) > -1;
-        var downvoter = $.inArray(uid, room.downvoters) > -1;
-        if (!currentDj && !upvoter && !downvoter) {
-          usersList.find('tbody').append(
-            $(util.buildTree(ttTools.views.users.rowForUser(room.users[uid])))
-          );
-        }
-      });
-    },
-
-    rowForUser : function (user) {
-      var room = ttTools.getRoom();
-      var dj = $.inArray(user.userid, room.djIds) > -1 ? ['div', { 'class':'ui-icon ui-icon-volume-on' }] : null;
-      var mod = $.inArray(user.userid, room.moderators) > -1 ? ['div', { 'class':'ui-icon ui-icon-alert' }] : null;
-      var state = user.userid == room.currentDj ? 'currentDj' : '';
-      state += $.inArray(user.userid, room.upvoters) > -1 ? 'upvoter' : '';
-      state += $.inArray(user.userid, room.downvoters) > -1 ? 'downvoter' : '';
-      return ['tr', { 'class' : state },
-        ['td', {
-          'class' : 'user',
-          event : {
-            click : function (e) {
-              ttTools.getRoomManager().toggle_listener(user.userid)
-            }
-          }
-        }, mod, dj, user.name],
-        ['td', { 'class' : 'time' }, this.timestamp(ttTools.userActivityLog[user.userid].message)],
-        ['td', { 'class' : 'time' }, this.timestamp(ttTools.userActivityLog[user.userid].vote)]
-      ];
-    },
-
-    timestamp : function (time) {
-      var date = new Date(util.now() - time);
-      var mins = date.getUTCMinutes() < 10 ? '0' + date.getUTCMinutes() : date.getUTCMinutes();
-      var secs = date.getUTCSeconds() < 10 ? '0' + date.getUTCSeconds() : date.getUTCSeconds();
-      return date.getUTCHours() + ':' + mins + ':' + secs;
-    }
-  },
-
-  chat : {
-    render : function () {
-      $('<style/>', {
-        type : 'text/css',
-        text : "\
-        .message.marker {\
-          border-bottom:1px solid #00f;\
-          background-color:#D2E6FC !important;\
+        div.guestName .status {\
+          padding:0 7px;\
+          margin:0 3px 0 -3px;\
+          background-image:url('https://s3.amazonaws.com/static.turntable.fm/images/pm/status_indicators_depth.png');\
         }\
-      "}).appendTo($(document.head));
+        div.guestName .status.green { background-position:0 0; }\
+        div.guestName .status.yellow { background-position:0 -13px; }\
+        div.guestName .status.grey { background-position:0 -26px; }\
+        div.guestName .status.red { background-position:0 -39px; }\
+        div#voteCount {\
+          position:absolute;\
+          top:3px;\
+          right:20px;\
+          font-size:12px;\
+          text-shadow:-1px 0 black,0 1px black,1px 0 black,0 -1px black;\
+        }\
+        div#voteCount span.up { color:#aea; }\
+        div#voteCount span.down { color:#eaa; }\
+      "}).appendTo(document.head);
+      $('<div/>', { id : 'voteCount' }).appendTo($('div.chatHeader'));
+      ttObjects.room.updateGuestList();
       this.update();
     },
 
     update : function () {
-      $('.messages .message').unbind('click').click(function (e) {
-        var element = $(this);
-        element.toggleClass('marker');
+      ttTools.views.users.updateVoteCount();
+      $('div.guests .guest').each(function (index, element) {
+        ttTools.views.users.updateUser(element.id);
       });
+    },
+
+    updateVoteCount : function () {
+      $('div#voteCount')
+        .html('')
+        .append(util.emojify(':thumbsup:'))
+        .append($('<span/>', { 'class':'up' }).html(ttObjects.room.upvoters.length))
+        .append('&nbsp;&nbsp;&nbsp;')
+        .append(util.emojify(':thumbsdown:'))
+        .append($('<span/>', { 'class':'down' }).html(ttTools.downVotes.downvotes))
+    },
+
+    updateUser : function (uid) {
+      var guest = $('div#' + uid);
+      var guestName = guest.find('div.guestName');
+      var user = ttObjects.room.users[uid];
+
+      guest.find('span').remove();
+      guest.attr('class', 'guest');
+
+      if (uid === ttObjects.room.currentDj) guest.addClass('current_dj');
+      if ($.inArray(uid, ttObjects.room.upvoters) > -1) guest.addClass('upvoter');
+      if ($.inArray(uid, ttTools.downVotes.downvoters) > -1) guest.addClass('downvoter');
+
+      guestName.prepend(
+        $('<span/>')
+          .addClass('status')
+          .addClass(ttTools.views.users.userStatus(uid))
+          .hover(function (e) {
+            var title = 'Last spoke ' + ttTools.timestamp(ttTools.userActivityLog.message(uid)) + ' ago';
+            title += "\n";
+            title += 'Last voted ' + ttTools.timestamp(ttTools.userActivityLog.vote(uid)) + ' ago';
+            $(this)
+              .attr('title', title)
+              .attr('class', 'status')
+              .addClass(ttTools.views.users.userStatus(uid));
+          })
+      );
+
+      if (user.verified)
+        guestName
+          .append(
+            $(util.emojify(':tophat:'))
+              .attr('title', 'Verified ' + user.verified)
+          );
+
+      if ($.inArray(uid, ttTools.constants.hackers) > -1)
+        guestName
+          .append(
+            $(util.emojify(':octocat:'))
+              .attr('title', 'turntable.fm hacker')
+          );
+
+      if ($.inArray(uid, ttObjects.room.djIds) > -1)
+        guestName
+          .append(
+            $(util.emojify(':notes:'))
+              .attr('title', 'Is on the decks')
+          );
+    },
+
+    userStatus : function (uid) {
+      var lastActivity = ttTools.userActivityLog.lastActivity(uid);
+      var threshold = ttTools.idleIndicator.threshold();
+      if (lastActivity > threshold) return 'red';
+      if (lastActivity > (threshold / 2)) return 'yellow';
+      return 'green';
     }
   }
 }

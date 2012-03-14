@@ -2,11 +2,11 @@ ttTools.tags = {
 
   dbTable : 'tags',
 
+  // This class needs to be re-thought
   loadRetry : 30,
   load : function (retry) {
-    if (!turntable.playlist
-      || turntable.playlist.files == 0
-    ) {
+    if (!ttTools.database.isSupported()) return;
+    if (!turntable.playlist || turntable.playlist.files == 0) {
       if (retry > ttTools.tags.loadRetry) { return alert('Could not load ttTools tagging.'); }
       var callback = function () { ttTools.tags.load(retry++); }
       return setTimeout(callback, 1000);
@@ -34,13 +34,10 @@ ttTools.tags = {
         position: absolute;\
       }\
     "}).appendTo(document.head);
-    $.getScript('https://raw.github.com/xoxco/jQuery-Tags-Input/master/jquery.tagsinput.min.js', function() {
-      ttTools.tags.createTable();
-      ttTools.tags.updateQueue();
-      ttTools.tags.addSongOverride();
-      ttTools.tags.filterQueueOverride();
-      ttTools.tags.views.menu.render();
-    });
+    ttTools.tags.createTable();
+    ttTools.tags.updateQueue();
+    ttTools.tags.addSongOverride();
+    ttTools.tags.filterQueueOverride();
   },
 
   updateQueue : function () {
@@ -70,17 +67,17 @@ ttTools.tags = {
   },
 
   addSongOverride : function () {
-    turntable.playlist.addSongFunc = turntable.playlist.addSong;
+    turntable.playlist.addSong_ttTools = turntable.playlist.addSong;
     turntable.playlist.addSong = function (b, a) {
-      turntable.playlist.addSongFunc(b, a);
+      turntable.playlist.addSong_ttTools(b, a);
       ttTools.tags.updateQueue();
     }
   },
 
   filterQueueOverride : function () {
-    turntable.playlist.filterQueueFunc = turntable.playlist.filterQueue;
+    turntable.playlist.filterQueue_ttTools = turntable.playlist.filterQueue;
     turntable.playlist.filterQueue = function (filter) {
-      turntable.playlist.filterQueueFunc(filter);
+      turntable.playlist.filterQueue_ttTools(filter);
       if (filter.length > 0) {
         ttTools.tags.getFidsForTagLike(
           filter,

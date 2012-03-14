@@ -1,0 +1,6 @@
+[submodule "ttObjects"]
+	path = ttObjects
+	url = git@github.com:ttdevelopers/ttObjects.git
+[submodule "jquery-tags"]
+	path = jquery-tags
+	url = https://github.com/xoxco/jQuery-Tags-Input.git

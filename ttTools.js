@@ -1,10 +1,9 @@
 ttTools = {
 
+  // This shit needs to go... There's got to be a better way...
   loadRetry : 30,
   load : function (retry) {
-    if (!turntable
-      || !ttTools.getRoom()
-    ) {
+    if (!turntable || !ttObjects.getRoom()) {
       if (retry > ttTools.loadRetry) { return alert('Could not load ttTools.'); }
       var callback = function () { ttTools.load(retry++); }
       return setTimeout(callback, 1000);
@@ -13,197 +12,373 @@ ttTools = {
   },
 
   init : function() {
-    var form = $('div.chat-container form');
-    form.find('input').val('I <3 ttTools! http://tttools.egeste.net/');
-
     $('<link/>', {
       type : 'text/css',
       rel  : 'stylesheet',
       href : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/sunny/jquery-ui.css'
     }).appendTo(document.head);
-    
-    this.idleTimeOverride();
-    this.removeDjOverride();
-    this.setCurrentSongOverride();
 
-    this.populateActivityLog();
-    this.showChatMessageOverride();
-    this.updateVotesOverride();
-    this.removeUserOverride();
-    this.addUserOverride();
+    this.roomChanged();
+    this.userActivityLog.init();
 
     this.views.menu.render();
     this.views.toolbar.render();
     this.views.users.render();
-    this.views.chat.render();
 
-    if (this.database.isSupported()) { this.tags.load(0); }
-    if (this.portability.isSupported()) { this.portability.init(); }
+    // TODO: Cloudify tags
+    this.tags.load(0);
+
+    // Register event listeners
+    turntable.addEventListener('auth', $.proxy(this.authEvent, this));
+    turntable.addEventListener('message', $.proxy(this.messageEvent, this));
+    turntable.addEventListener('reconnect', $.proxy(this.reconnectEvent, this));
+    turntable.addEventListener('userinfo', $.proxy(this.userInfoEvent, this));
+
+    this.checkVersion();
   },
 
-  getRoom : function() {
-    for (var memberName in turntable) {
-      var member = turntable[memberName];
-      if (member == null) { continue; }
-      if (typeof member != 'object') { continue; }
-      if (member.hasOwnProperty('setupRoom')) {
-        return member;
+  // Event listeners
+  authEvent : function (message) {
+    console.warn(message);
+  },
+
+  messageEvent : function (message) {
+    if (typeof message.msgid !== 'undefined') return;
+
+    switch (message.command) {
+      case 'speak':
+        return this.userSpoke(message);
+        break;
+      case 'update_votes':
+        return this.votesUpdated(message);
+        break;
+      case 'registered':
+        return this.userAdded(message);
+        break;
+      case 'deregistered':
+        return this.userRemoved(message);
+        break;
+      case 'newsong':
+        return this.songChanged(message);
+        break;
+      case 'rem_dj':
+        return this.djRemoved(message);
+        break;
+      case 'add_dj':
+        return this.djAdded(message);
+        break;
+      case 'booted_user':
+        return this.userBooted(message);
+        break;
+      case 'update_user':
+        return this.userUpdated();
+        break;
+      case 'snagged':
+        return this.songSnagged();
+        break;
+      default:
+        return console.warn(message);
+        break;
+    }
+
+    // Courtesy of Frick
+    if (typeof message.users !== 'undefined'
+      && typeof message.room === 'object'
+      && typeof message.room.metadata === 'object'
+      && typeof message.room.metadata.songlog !== 'undefined')
+        return this.roomChanged();
+  },
+
+  reconnectEvent : function (message) {
+    console.warn(message);
+  },
+
+  userInfoEvent : function (message) {
+    console.warn(message);
+  },
+
+  // Event handlers
+  djRemoved : function (message) {
+    this.autoDJ.execute(message.user);
+    // this.autoRoll.execute();
+    this.views.users.update();
+  },
+
+  djAdded : function (message) {
+    this.views.users.update();
+  },
+
+  roomChanged : function (message) {
+    ttObjects.getManager(); // getManager also updates the room object
+    this.autoDJ.setEnabled(false);
+    // this.autoRoll.setEnabled(false);
+    this.animations.setEnabled(this.animations.enabled());
+    this.override_idleTime();
+    this.override_guestListName();
+    this.override_updateGuestList();
+  },
+
+  songChanged : function (message) {
+    this.downVotes.downvoters = [];
+    this.downVotes.downvotes = 0;
+    this.views.users.update();
+    this.autoVote.execute();
+  },
+
+  songSnagged : $.noop,
+
+  userAdded : $.noop,
+
+  userBooted : function (message) {
+    delete this.userActivityLog[message.userid];
+  },
+
+  userRemoved : function (message) {
+    $(message.user).each(function (index, user) {
+      delete this.userActivityLog[user.userid];
+    });
+  },
+
+  userSpoke : function (message) {
+    this.userActivityLog[message.userid].message = util.now();
+    this.views.users.updateUser(message.userid);
+  },
+
+  userUpdated : $.noop,
+
+  votesUpdated : function (message) {
+    this.downVotes.update(message.room.metadata);
+    this.views.users.updateVoteCount();
+  },
+
+  // State machines
+  autoVote : {
+    enabled : function () {
+      var enabled = $.cookie('ttTools_autoVote_enabled');
+      if (enabled === null || enabled === 'false') return false;
+      return enabled;
+    },
+    setEnabled : function (enabled) {
+      $.cookie('ttTools_autoVote_enabled', enabled);
+    },
+    delay : function () {
+      var delay = $.cookie('ttTools_autoVote_delay');
+      return delay === null ? (30 * ttTools.constants.time.seconds) : parseInt(delay);
+    },
+    setDelay : function (delay) {
+      $.cookie('ttTools_autoVote_delay', delay);
+    },
+    execute : function () {
+      var enabled = this.enabled();
+      if (enabled) {
+        setTimeout(function() {
+          turntable.whenSocketConnected(function() {
+            ttObjects.room.connectRoomSocket(enabled);
+          });
+        }, this.delay());
       }
     }
-    return false;
   },
 
-  getRoomManager : function(room) {
-    var room = room ? room : this.getRoom();
-    for (var memberName in room) {
-      var member = room[memberName];
-      if (member == null) { continue; }
-      if (typeof member != 'object') { continue; }
-      if (member.hasOwnProperty('blackswan')) {
-        return member;
+  autoDJ : {
+    enabled : function () {
+      var enabled = $.cookie('ttTools_autoDJ_enabled');
+      return enabled === null ? false : enabled === 'true';
+    },
+    setEnabled : function (enabled) {
+      $.cookie('ttTools_autoDJ_enabled', enabled);
+    },
+    delay : function () {
+      var delay = $.cookie('ttTools_autoDJ_delay');
+      return delay === null ? (2 * ttTools.constants.time.seconds) : parseInt(delay);
+    },
+    setDelay : function (delay) {
+      $.cookie('ttTools_autoDJ_delay', delay);
+    },
+    execute : function (users) {
+      var self = false;
+      $(users).each(function (index, user) {
+        if (user.userid === turntable.user.id) self = true;
+      });
+      if (this.enabled() && !self && !ttObjects.room.isDj()) {
+        setTimeout(function () {
+          if (ttObjects.room.numDjs() < ttObjects.room.maxDjs) {
+            ttObjects.room.becomeDj();
+            ttTools.autoDJ.setEnabled(false);
+            ttTools.views.toolbar.update();
+          }
+        }, this.delay());
       }
     }
-    return false;
   },
 
-  idleTimeOverride : function () {
+  // Coming soon...
+  // autoRoll : {
+  //   enabled : function () {
+  //     var enabled = $.cookie('ttTools_autoRoll_enabled');
+  //     return enabled === null ? false : enabled === 'true';
+  //   },
+  //   setEnabled : function (enabled) {
+  //     $.cookie('ttTools_autoRoll_enabled', enabled);
+  //   },
+  //   execute : function () {
+  //     if (this.enabled()) {
+  //       $('div.chatBar form.input-box input[type=text]').val('roll').submit();
+  //     }
+  //   },
+  // },
+
+  animations : {
+    enabled : function () {
+      var enabled = $.cookie('ttTools_animations_enabled');
+      return enabled === null ? true : enabled === 'true';
+    },
+    setEnabled : function (enabled) {
+      $.cookie('ttTools_animations_enabled', enabled);
+      enabled ? ttTools.animations.enable() : ttTools.animations.disable();
+    },
+    enable : function () {
+      if (ttObjects.manager.add_animation_to_ttTools)
+        ttObjects.manager.add_animation_to = ttObjects.manager.add_animation_to_ttTools;
+      if (ttObjects.manager.speak_ttTools)
+        ttObjects.manager.speak = ttObjects.manager.speak_ttTools;
+
+      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
+        var dancer = ttObjects.manager.djs_uid[uid][0];
+        if (uid === ttObjects.room.currentDj)
+          return ttObjects.manager.add_animation_to(dancer, 'bob');
+        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
+          return ttObjects.manager.add_animation_to(dancer, 'rock');
+      });
+
+      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
+        var dancer = ttObjects.manager.listeners[uid];
+        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
+          return ttObjects.manager.add_animation_to(dancer, 'rock');
+      });
+    },
+    disable : function () {
+      ttObjects.manager.add_animation_to_ttTools = ttObjects.manager.add_animation_to;
+      ttObjects.manager.add_animation_to = $.noop;
+      ttObjects.manager.speak_ttTools = ttObjects.manager.speak;
+      ttObjects.manager.speak = $.noop;
+      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
+        ttObjects.manager.djs_uid[uid][0].stop();
+      });
+      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
+        ttObjects.manager.listeners[uid].stop();
+      });
+    }
+  },
+
+  idleIndicator : {
+    threshold : function () {
+      var threshold = $.cookie('ttTools_idleIndicator_threshold');
+      return threshold === null ? (60 * ttTools.constants.time.minutes) : parseInt(threshold);
+    },
+    setThreshold : function (threshold) {
+      $.cookie('ttTools_idleIndicator_threshold', threshold);
+    }
+  },
+
+  userActivityLog : {
+    init : function () {
+      var users = Object.keys(ttObjects.room.users);
+      $(users).each(function (index, uid) {
+        ttTools.userActivityLog.initUser(uid);
+      });
+    },
+
+    initUser : function (uid) {
+      if (typeof ttTools.userActivityLog[uid] === 'undefined') {
+        ttTools.userActivityLog[uid] = {
+          message : util.now(),
+          vote    : util.now()
+        }
+      }
+      return ttTools.userActivityLog[uid];
+    },
+
+    vote : function (uid) {
+      var activity = ttTools.userActivityLog.initUser(uid);
+      return activity.vote;
+    },
+
+    message : function (uid) {
+      var activity = ttTools.userActivityLog.initUser(uid);
+      return activity.message;
+    },
+
+    lastActivity : function (uid) {
+      var activity = ttTools.userActivityLog.initUser(uid);
+      var last = activity.vote > activity.message ? activity.vote : activity.message;
+      return util.now() - last;
+    }
+  },
+
+  downVotes : {
+    downvotes : 0,
+    downvoters : [],
+    update : function (metadata) {
+      this.downvotes = metadata.downvotes;
+      $(metadata.votelog).each(function (index, vote) {
+        if (vote[0] === '') return;
+        ttTools.userActivityLog[vote[0]].vote = util.now();
+        if (vote[1] === 'up') {
+          var downIndex = $.inArray(vote[0], ttTools.downVotes.downvoters);
+          if (downIndex > -1) { ttTools.downVotes.downvoters.splice(downIndex, 1); }
+        } else {
+          ttTools.downVotes.downvoters.push(vote[0]);
+        }
+        ttTools.views.users.updateUser(vote[0]);
+      });
+    }
+  },
+
+  // Overrides !! ONLY USE IF ABSOLUTELY NECESSARY !!
+  override_guestListName : function () {
+    Room.layouts.guestListName_ttTools = Room.layouts.guestListName;
+    Room.layouts.guestListName = function (user, room, selected) {
+      var tree = this.guestListName_ttTools(user, room, selected);
+      var div = tree[0].split('.');
+      div[0] += '#' + user.userid;
+      tree[0] = div.join('.');
+      return tree;
+    }
+  },
+  override_updateGuestList : function () {
+    ttObjects.room.updateGuestList_ttTools = ttObjects.room.updateGuestList;
+    ttObjects.room.updateGuestList = function () {
+      this.updateGuestList_ttTools();
+      ttTools.views.users.update();
+    }
+  },
+  override_idleTime : function () {
     turntable.idleTime = function () {
       return 0;
     };
   },
 
-  autoDJ      : false,
-  autoDJDelay : 2000,
-  removeDjOverride : function () {
-    var room = this.getRoom();
-    room.removeDjFunc = room.removeDj;
-    room.removeDj = function (userId) {
-      if (userId != this.selfId && !this.isDj() && ttTools.autoDJ) {
-        setTimeout(function() {
-          room.becomeDj();
-          ttTools.autoDJ = false;
-          $('#autoDJ').prop('checked', false).button('refresh');
-        }, ttTools.autoDJDelay);
-      }
-      this.removeDjFunc(userId);
-    };
-  },
-
-  autoAwesome      : false,
-  autoAwesomeDelay : 30000,
-  setCurrentSongOverride : function () {
-    var room = this.getRoom();
-    room.setCurrentSongFunc = room.setCurrentSong;
-    room.setCurrentSong = function (roomState) {
-      this.setCurrentSongFunc(roomState);
-      room.downvoters = [];
-      ttTools.upvotes = room.upvoters.length;
-      ttTools.downvotes = 0;
-      if (ttTools.autoAwesome) {
-        setTimeout(function() {
-          turntable.whenSocketConnected(function() {
-            room.connectRoomSocket('up');
-          });
-        }, ttTools.autoAwesomeDelay);
-      }
-    };
-  },
-
-  userActivityLog : {},
-  populateActivityLog : function () {
-    var users = Object.keys(this.getRoom().users);
-    $(users).each(function (index, uid) {
-      ttTools.userActivityLog[uid] = {
-        message : util.now(),
-        vote    : util.now()
-      }
-    });
-  },
-
-  showChatMessageOverride : function () {
-    var room = this.getRoom();
-    room.showChatMessageFunc = room.showChatMessage;
-    room.showChatMessage = function (uid, name, msg) {
-      this.showChatMessageFunc(uid, name, msg);
-      ttTools.views.chat.update();
-      ttTools.userActivityLog[uid].message = util.now();
+  // Utility functions
+  checkVersion : function () {
+    if (parseInt($.cookie('ttTools_release')) !== ttTools.release) {
+      $.cookie('ttTools_release', ttTools.release);
+      this.views.info.render();
     }
   },
 
-  upvotes : 0,
-  downvotes : 0,
-  updateVotesOverride : function () {
-    var room = this.getRoom();
-    if (!room.downvoters) { room.downvoters = []; }
-    this.upvotes = room.upvoters.length;
-    room.updateVotesFunc = room.updateVotes;
-    room.updateVotes = function (votes, g) {
-      this.updateVotesFunc(votes, g);
-      ttTools.upvotes   = votes.upvotes;
-      ttTools.downvotes = votes.downvotes;
-      if (!this.downvoters) { this.downvoters = []; }
-      $(votes.votelog).each(function (index, vote) {
-        if (vote[0] != '') {
-          ttTools.userActivityLog[vote[0]].vote = util.now();
-          if (vote[1] == 'up') {
-            var downIndex = $.inArray(vote[0], room.downvoters);
-            if (downIndex > -1) { room.downvoters.splice(downIndex, 1); }
-          } else {
-            room.downvoters.push(vote[0]);
-          }
-        }
-      });
-    }
-  },
+  timestamp : function (millis) {
+    millis = util.now() - millis;
 
-  removeUserOverride : function () {
-    var room = this.getRoom();
-    room.removeUserFunc = room.removeUser;
-    room.removeUser = function (uid) {
-      this.removeUserFunc(uid);
-      delete ttTools.userActivityLog[uid];
-    }
-  },
+    if (millis < ttTools.constants.time.minutes)
+      return Math.round(millis / ttTools.constants.time.seconds) + 's';
 
-  addUserOverride : function (user) {
-    var room = this.getRoom();
-    room.addUserFunc = room.addUser;
-    room.addUser = function (user) {
-      this.addUserFunc(user);
-      ttTools.userActivityLog[user.userid] = {
-        message : util.now(),
-        vote    : util.now()
-      }
-    }
-  },
+    if (millis < ttTools.constants.time.hours)
+      return Math.round(100 * (millis / ttTools.constants.time.minutes))/100 + 'm';
 
-  showTheLove : function () {
-    var room = this.getRoom();
-    var roomManager = this.getRoomManager(room);
-    var maxOffset = 200 * Object.keys(room.users).length;
-    for (user in room.users) {
-      setTimeout(function (user) {
-        roomManager.show_heart(user);
-      }, Math.round(Math.random() * maxOffset), user);
-    }
-  },
+    if (millis < ttTools.constants.time.days)
+      return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
 
-  resetPlayer : function () {
-    var room = this.getRoom();
-    if (!room.currentSong) { return; }
-    turntablePlayer.playSong(
-      room.roomId,
-      room.currentSong._id,
-      room.currentSong.starttime + turntable.clientTimeDelta + 2
-    );
-  },
-
-  donateButton : function () {
-    return "<form action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>\
-      <input type='hidden' name='cmd' value='_s-xclick'>\
-      <input type='hidden' name='hosted_button_id' value='ZNTHAXPNKMKBN'>\
-      <input type='image' src='https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif' border='0' name='submit' alt='PayPal - The safer, easier way to pay online!'>\
-      <img alt='' border='0' src='https://www.paypalobjects.com/en_US/i/scr/pixel.gif' width='1' height='1'>\
-      </form>";
+    return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
   }
 }
