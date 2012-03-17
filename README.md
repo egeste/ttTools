@@ -3,7 +3,8 @@
 
 ttTools is a lightweight, small, un-intrusive plugin for turntable.fm that aims to provide an enhanced user experience. 
 
-## Features
+## Solid Feature Set
+Despite what you may have heard, ttTools is much more than an "auto-clicker". ttTools provides numerous added functions to the turntable.fm platform in a seamless, easy to use interface.  
 [Guestlist Integration w/ Vote Indicators, Idle Markers, +more!](http://tttools.egeste.net/features/guestlist)  
 [Auto Awesome/Lame w/ Cached Switch & Cached Variable Delay](http://tttools.egeste.net/features/auto-awesome-lame)  
 [Auto DJ w/ Cached Switch, Cached Variable Delay & Auto-Off](http://tttools.egeste.net/features/auto-dj)  
@@ -11,7 +12,8 @@ ttTools is a lightweight, small, un-intrusive plugin for turntable.fm that aims 
 [Toggle Animations](http://tttools.egeste.net/features/toggle-animations)  
 [+More!](http://tttools.egeste.net/features/extras)  
 
-## To use:
+## Easy To Use
+ttTools is flexible and can be loaded a number of different ways, pick whichever method is easiest for you and make life easy.  
 ### Google Chrome Extension
 Visit [ttTools on the The Chrome Web Store](https://chrome.google.com/webstore/detail/acbcngngbldcpfemhpibfjlmmlgohlmo) and click "Add To Chrome". ttTools should load automatically when you enter a new turntable.fm room.
 
@@ -19,7 +21,7 @@ Or if you're feeling nerdy, you can simply clone this repository and build the e
 `zip -r ttTools-loader.zip extension/*`
 
 ### Bookmarklet
-For a simple drag & drop link you can simply drag into your bookmarks bar, visit the [official ttTools website](http://tttools.egeste.net/)  
+For a drag & drop link you can simply drag into your bookmarks bar, visit the [official ttTools website](http://tttools.egeste.net/)  
 
 To add the bookmark manually:
 
