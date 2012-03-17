@@ -3,7 +3,7 @@ ttTools = {
   // This shit needs to go... There's got to be a better way...
   loadRetry : 30,
   load : function (retry) {
-    if (!turntable || !ttObjects.getRoom()) {
+    if (!turntable || !ttObjects.getManager()) {
       if (retry > ttTools.loadRetry) { return alert('Could not load ttTools.'); }
       var callback = function () { ttTools.load(retry++); }
       return setTimeout(callback, 1000);

@@ -379,7 +379,7 @@ ttObjects = {
   // This shit needs to go... There's got to be a better way...
   loadRetry : 30,
   load : function (retry) {
-    if (!turntable || !ttObjects.getRoom()) {
+    if (!turntable || !ttObjects.getManager()) {
       if (retry > ttTools.loadRetry) { return alert('Could not load ttTools.'); }
       var callback = function () { ttTools.load(retry++); }
       return setTimeout(callback, 1000);
@@ -876,7 +876,7 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, 'Released: ' + (new Date(ttTools.release)).toGMTString()],
+        ['div', {}, 'Released: ' + (new Date(ttTools.release * 1000)).toGMTString()],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},
@@ -1414,5 +1414,5 @@ ttTools.tags.views = {
     }
   }
 }
-ttTools.release = 1331958231;
+ttTools.release = 1332007348;
 ttTools.load(0);

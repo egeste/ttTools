@@ -71,7 +71,7 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, 'Released: ' + (new Date(ttTools.release)).toGMTString()],
+        ['div', {}, 'Released: ' + (new Date(ttTools.release * 1000)).toGMTString()],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},
