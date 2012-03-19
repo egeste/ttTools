@@ -52,17 +52,11 @@ ttTools = {
       case 'update_votes':
         return this.votesUpdated(message);
         break;
-      case 'registered':
-        return this.userAdded(message);
-        break;
       case 'deregistered':
         return this.userRemoved(message);
         break;
       case 'newsong':
         return this.songChanged(message);
-        break;
-      case 'rem_dj':
-        return this.djRemoved(message);
         break;
       case 'add_dj':
         return this.djAdded(message);
@@ -70,11 +64,13 @@ ttTools = {
       case 'booted_user':
         return this.userBooted(message);
         break;
-      case 'update_user':
-        return this.userUpdated();
+      case 'rem_dj':
+        return this.djRemoved(message);
         break;
+      case 'registered':
       case 'snagged':
-        return this.songSnagged();
+      case 'update_user':
+        return; // noop
         break;
       default:
         return console.warn(message);
@@ -98,14 +94,14 @@ ttTools = {
   },
 
   // Event handlers
-  djRemoved : function (message) {
-    this.autoDJ.execute(message.user);
-    // this.autoRoll.execute();
+  djAdded : function (message) {
     this.views.users.update();
   },
 
-  djAdded : function (message) {
-    this.views.users.update();
+  djRemoved : function (message) {
+    $(message.user).each(function (index, user) {
+      ttTools.views.users.updateUser(user.userid);
+    });
   },
 
   roomChanged : function (message) {
@@ -114,6 +110,7 @@ ttTools = {
     // this.autoRoll.setEnabled(false);
     this.animations.setEnabled(this.animations.enabled());
     this.override_idleTime();
+    this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
   },
@@ -124,10 +121,6 @@ ttTools = {
     this.views.users.update();
     this.autoVote.execute();
   },
-
-  songSnagged : $.noop,
-
-  userAdded : $.noop,
 
   userBooted : function (message) {
     delete this.userActivityLog[message.userid];
@@ -143,8 +136,6 @@ ttTools = {
     this.userActivityLog[message.userid].message = util.now();
     this.views.users.updateUser(message.userid);
   },
-
-  userUpdated : $.noop,
 
   votesUpdated : function (message) {
     this.downVotes.update(message.room.metadata);
@@ -195,12 +186,8 @@ ttTools = {
     setDelay : function (delay) {
       $.cookie('ttTools_autoDJ_delay', delay);
     },
-    execute : function (users) {
-      var self = false;
-      $(users).each(function (index, user) {
-        if (user.userid === turntable.user.id) self = true;
-      });
-      if (this.enabled() && !self && !ttObjects.room.isDj()) {
+    execute : function (uid) {
+      if (this.enabled() && uid !== turntable.user.id && !ttObjects.room.isDj()) {
         setTimeout(function () {
           if (ttObjects.room.numDjs() < ttObjects.room.maxDjs) {
             ttObjects.room.becomeDj();
@@ -357,6 +344,13 @@ ttTools = {
     turntable.idleTime = function () {
       return 0;
     };
+  },
+  override_removeDj : function () {
+    ttObjects.room.removeDj_ttTools = ttObjects.room.removeDj;
+    ttObjects.room.removeDj = function (uid) {
+      ttTools.autoDJ.execute();
+      this.removeDj_ttTools(uid);
+    }
   },
 
   // Utility functions

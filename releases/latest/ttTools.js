@@ -428,17 +428,11 @@ ttObjects = {
       case 'update_votes':
         return this.votesUpdated(message);
         break;
-      case 'registered':
-        return this.userAdded(message);
-        break;
       case 'deregistered':
         return this.userRemoved(message);
         break;
       case 'newsong':
         return this.songChanged(message);
-        break;
-      case 'rem_dj':
-        return this.djRemoved(message);
         break;
       case 'add_dj':
         return this.djAdded(message);
@@ -446,11 +440,13 @@ ttObjects = {
       case 'booted_user':
         return this.userBooted(message);
         break;
-      case 'update_user':
-        return this.userUpdated();
+      case 'rem_dj':
+        return this.djRemoved(message);
         break;
+      case 'registered':
       case 'snagged':
-        return this.songSnagged();
+      case 'update_user':
+        return; // noop
         break;
       default:
         return console.warn(message);
@@ -474,14 +470,14 @@ ttObjects = {
   },
 
   // Event handlers
-  djRemoved : function (message) {
-    this.autoDJ.execute(message.user);
-    // this.autoRoll.execute();
+  djAdded : function (message) {
     this.views.users.update();
   },
 
-  djAdded : function (message) {
-    this.views.users.update();
+  djRemoved : function (message) {
+    $(message.user).each(function (index, user) {
+      ttTools.views.users.updateUser(user.userid);
+    });
   },
 
   roomChanged : function (message) {
@@ -490,6 +486,7 @@ ttObjects = {
     // this.autoRoll.setEnabled(false);
     this.animations.setEnabled(this.animations.enabled());
     this.override_idleTime();
+    this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
   },
@@ -500,10 +497,6 @@ ttObjects = {
     this.views.users.update();
     this.autoVote.execute();
   },
-
-  songSnagged : $.noop,
-
-  userAdded : $.noop,
 
   userBooted : function (message) {
     delete this.userActivityLog[message.userid];
@@ -519,8 +512,6 @@ ttObjects = {
     this.userActivityLog[message.userid].message = util.now();
     this.views.users.updateUser(message.userid);
   },
-
-  userUpdated : $.noop,
 
   votesUpdated : function (message) {
     this.downVotes.update(message.room.metadata);
@@ -571,12 +562,8 @@ ttObjects = {
     setDelay : function (delay) {
       $.cookie('ttTools_autoDJ_delay', delay);
     },
-    execute : function (users) {
-      var self = false;
-      $(users).each(function (index, user) {
-        if (user.userid === turntable.user.id) self = true;
-      });
-      if (this.enabled() && !self && !ttObjects.room.isDj()) {
+    execute : function (uid) {
+      if (this.enabled() && uid !== turntable.user.id && !ttObjects.room.isDj()) {
         setTimeout(function () {
           if (ttObjects.room.numDjs() < ttObjects.room.maxDjs) {
             ttObjects.room.becomeDj();
@@ -734,6 +721,13 @@ ttObjects = {
       return 0;
     };
   },
+  override_removeDj : function () {
+    ttObjects.room.removeDj_ttTools = ttObjects.room.removeDj;
+    ttObjects.room.removeDj = function (uid) {
+      ttTools.autoDJ.execute();
+      this.removeDj_ttTools(uid);
+    }
+  },
 
   // Utility functions
   checkVersion : function () {
@@ -762,6 +756,14 @@ ttTools.constants = {
   whatsNew : "\
     <h2>What's New in ttTTools?</h2>\
     <br />\
+    <h3>March 18</h3>\
+    <ul>\
+      <li>Popout guest list</li>\
+      <li>Search Youtube button</li>\
+      <li>Search SoundCloud button</li>\
+      <li>Faster autoDJ</li>\
+    </ul>\
+    <h3>March 16</h3>\
     <ul>\
       <li>Guestlist integration</li>\
       <li>New minified toolbar</li>\
@@ -940,20 +942,25 @@ ttTools.views = {
           font-size:0.5em;\
           top:95px !important;\
         }\
-        #playlistTools {\
+        div#playlistTools {\
           left:0;\
           right:0;\
           top:65px;\
           height:2em;\
-          padding:2px 0 2px 50px;\
+          padding:2px 0 2px 25px;\
           position:absolute;\
         }\
-        #playlistTools label { font-size:5px; }\
-        #playlistTools button { width:auto; height:auto; }\
-        #playlistTools button .ui-button-text { padding:.6em; }\
-        #playlistTools div, #playlistTools button { float:left; }\
-        #switches { margin:0 3px; }\
-        #switches ui-button-text { padding:0.6em 1em; }\
+        div#playlistTools label { font-size:5px; }\
+        div#playlistTools button { width:auto; height:auto; }\
+        div#playlistTools button .ui-button-text { padding:.6em; }\
+        div#playlistTools button .site-icons {\
+          background:url(https://github.com/egeste/ttTools/raw/master/images/site-icons.png);\
+        }\
+        div#playlistTools button .site-icons.youtube { background-position:0 0; }\
+        div#playlistTools button .site-icons.soundcloud { background-position:17px 0; }\
+        div#playlistTools div, #playlistTools button { float:left; }\
+        div#switches { margin:0 3px; }\
+        div#switches ui-button-text { padding:0.6em 1em; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
@@ -1002,6 +1009,32 @@ ttTools.views = {
           }, Math.round(Math.random() * maxOffset), user);
         }
       });
+
+      $('button#youtube').button({
+        text  : false,
+        icons : {
+          primary: 'site-icons youtube'
+        }
+      }).click(function (e) {
+        if (!ttObjects.room.currentSong) return;
+        var metadata = ttObjects.room.currentSong.metadata;
+        var uri = 'http://www.youtube.com/results?search_query=';
+        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+        window.open(uri, '_blank');
+      });
+
+      $('button#soundcloud').button({
+        text  : false,
+        icons : {
+          primary: 'site-icons soundcloud'
+        }
+      }).click(function (e) {
+        if (!ttObjects.room.currentSong) return;
+        var metadata = ttObjects.room.currentSong.metadata;
+        var uri = 'http://soundcloud.com/search?q[fulltext]=';
+        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+        window.open(uri, '_blank');
+      });
     },
 
     tree : function () {
@@ -1028,6 +1061,8 @@ ttTools.views = {
             ['span.ui-icon.ui-icon-video', { title: 'Toggle animations on/off' }]
           ],
         ],
+        ['button#youtube', { title: 'Search YouTube' }],
+        ['button#soundcloud', { title: 'Search SoundCloud' }],
         ['button#showTheLove', { title: 'Show The Love' }]
       ];
     },
@@ -1050,10 +1085,7 @@ ttTools.views = {
         div.guest.downvoter:hover { background-color:#ecc !important; }\
         div.guest.current_dj { background-color:#ccf !important; }\
         div.guest.current_dj:hover { background-color:#ddf !important; }\
-        div.guestName .emoji {\
-          padding:3px 0;\
-          margin-left:3px;\
-        }\
+        div.guestName .emoji { padding:3px 0; margin-left:3px; }\
         div.guestName .status {\
           padding:0 7px;\
           margin:0 3px 0 -3px;\
@@ -1072,10 +1104,83 @@ ttTools.views = {
         }\
         div#voteCount span.up { color:#aea; }\
         div#voteCount span.down { color:#eaa; }\
+        div.guestButton {\
+          width: 35px;\
+          height: 36px;\
+          cursor: pointer;\
+          background:none;\
+          position: absolute;\
+          border: 0;\
+          border-left: 1px solid #D0D0D0;\
+          border-right: 1px solid #7B7B7B;\
+        }\
+        div.guestButton.popout { left: 36px; }\
+        div.ui-icon { margin:10px; }\
+        div.guestListSize {\
+          left:73px !important;\
+          width:157px !important;\
+          font-size:11px !important;\
+        }\
+        div#guestDialog { padding:0; }\
+        div#guestDialog div.guest-list-container {\
+          top:auto !important;\
+          height:auto !important;\
+          position:relative;\
+        }\
+        div#guestDialog div.guest-list-container div.guests {\
+          top:0;\
+          height:auto !important;\
+          overflow:hidden;\
+          background:none;\
+          position:relative;\
+        }\
       "}).appendTo(document.head);
       $('<div/>', { id : 'voteCount' }).appendTo($('div.chatHeader'));
       ttObjects.room.updateGuestList();
       this.update();
+      $('<div/>', { id : 'guestDialog' }).appendTo(document.body);
+      this.setupDialog();
+    },
+
+    setupDialog : function () {
+      $('div#guestDialog')
+        .dialog({
+          width : 230,
+          height : 400,
+          title : 'Guest List',
+          autoOpen : false,
+          open : function (e, ui) {
+            $('div.chat-container div.guestListButton').hide();
+            $('div.chat-container div.guestButton').show();
+            $('div.guest-list-container').appendTo(this);
+            $('div.guest-list-container div.chatBar').hide();
+            $('div.guest-list-container div.chatHeader').hide();
+          },
+          close : function (e, ui) {
+            $('div.chat-container div.guestListButton').show();
+            $('div.chat-container div.guestButton').hide();
+            $('div.guest-list-container').appendTo($('div#right-panel'));
+            $('div.guest-list-container div.chatBar').show();
+            $('div.guest-list-container div.chatHeader').show();
+          }
+        });
+
+      $('div.guest-list-container div.guestListButton')
+        .after($('<div/>', { 'class' : 'guestButton ui-state-default popout' })
+            .append($('<div/>', { 'class' : 'ui-icon ui-icon-newwin' }))
+            .bind('click', function (e) {
+              $('div#guestDialog').dialog('open');
+            })
+        );
+
+      $('div.chat-container div.guestListButton')
+        .after($('<div/>', { 'class' : 'guestButton ui-state-default', style : 'border-left:0;' })
+            .hide()
+            .append($('<div/>', { 'class' : 'ui-icon ui-icon-pin-w' }))
+            .bind('click', function (e) {
+              $('div#guestDialog').dialog('close');
+            })
+        );
     },
 
     update : function () {
@@ -1414,5 +1519,5 @@ ttTools.tags.views = {
     }
   }
 }
-ttTools.release = 1332007348;
+ttTools.release = 1332132172;
 ttTools.load(0);

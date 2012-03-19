@@ -2,6 +2,14 @@ ttTools.constants = {
   whatsNew : "\
     <h2>What's New in ttTTools?</h2>\
     <br />\
+    <h3>March 18</h3>\
+    <ul>\
+      <li>Popout guest list</li>\
+      <li>Search Youtube button</li>\
+      <li>Search SoundCloud button</li>\
+      <li>Faster autoDJ</li>\
+    </ul>\
+    <h3>March 16</h3>\
     <ul>\
       <li>Guestlist integration</li>\
       <li>New minified toolbar</li>\
