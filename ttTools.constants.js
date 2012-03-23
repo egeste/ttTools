@@ -2,23 +2,17 @@ ttTools.constants = {
   whatsNew : "\
     <h2>What's New in ttTTools?</h2>\
     <br />\
+    <h3>March ??</h3>\
+    <ul>\
+      <li>Fixed autoDJ</li>\
+      <li>Added 'roll' button</li>\
+    </ul>\
     <h3>March 18</h3>\
     <ul>\
       <li>Popout guest list</li>\
       <li>Search Youtube button</li>\
       <li>Search SoundCloud button</li>\
       <li>Faster autoDJ</li>\
-    </ul>\
-    <h3>March 16</h3>\
-    <ul>\
-      <li>Guestlist integration</li>\
-      <li>New minified toolbar</li>\
-      <li>New toggle animations capability</li>\
-      <li>New auto-lame capability</li>\
-      <li>New slider for guest list idle indicator threshold</li>\
-      <li>Improved event-driven architecture</li>\
-      <li>Implemented new ttObjects object cache for bookmarklet interoperability</li>\
-      <li>Removed support for import/export, functionality (still available as an extra)</li>\
     </ul>\
   ",
 
@@ -34,6 +28,14 @@ ttTools.constants = {
     <br />\
   ",
 
+  submitIssue : "\
+    <h2>Found a bug? Want a feature?</h2>\
+    <p>\
+      It's impossible to keep track of bugs and feature requests unless they're centralized. \
+      <a href='https://github.com/egeste/ttTools/issues' target='_blank'>Please submit all bugs and feature requests here.</a>\
+    </p>\
+  ",
+
   time : {
     seconds : 1000,
     minutes : 60 * 1000,
@@ -45,9 +47,13 @@ ttTools.constants = {
   },
 
   hackers : [
-    '4e55144e4fe7d02a3f2c486a' // Egeste
-    // Frick
-    // SubFuze
-    // ???
+    '4deadb0f4fe7d013dc0555f1', // @alain_gilbert
+    '4e42c21b4fe7d02e6107b1ff', // chrisinajar
+    '4e55144e4fe7d02a3f2c486a', // Egeste
+    '4dee9d454fe7d0589304d644', // Frick
+    '4e0b4de14fe7d076b205e657', // Jake.Smith
+    '4e596d44a3f7517501058e25', // overra
+    '4ddb2be9e8a6c45f6f000125', // SubFuze
+    '4dee6cd24fe7d05893018656', // vin
   ]
 }
