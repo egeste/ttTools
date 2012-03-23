@@ -19,11 +19,10 @@ ttTools = {
     }).appendTo(document.head);
 
     this.roomChanged();
-    this.userActivityLog.init();
 
     this.views.menu.render();
-    this.views.toolbar.render();
     this.views.users.render();
+    this.views.toolbar.render();
 
     // TODO: Cloudify tags
     this.tags.load(0);
@@ -105,7 +104,9 @@ ttTools = {
   },
 
   roomChanged : function (message) {
-    ttObjects.getManager(); // getManager also updates the room object
+    ttObjects.getApi();
+    ttObjects.getManager();
+    this.userActivityLog.init();
     this.autoDJ.setEnabled(false);
     // this.autoRoll.setEnabled(false);
     this.animations.setEnabled(this.animations.enabled());
