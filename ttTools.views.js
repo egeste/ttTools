@@ -140,17 +140,16 @@ ttTools.views = {
           right:0;\
           top:65px;\
           height:2em;\
-          padding:2px 0 2px 25px;\
+          padding:2px 0 2px 12px;\
           position:absolute;\
         }\
         div#playlistTools label { font-size:5px; }\
         div#playlistTools button { width:auto; height:auto; }\
         div#playlistTools button .ui-button-text { padding:.6em; }\
-        div#playlistTools button .site-icons {\
-          background:url(https://github.com/egeste/ttTools/raw/master/images/site-icons.png);\
-        }\
-        div#playlistTools button .site-icons.youtube { background-position:0 0; }\
-        div#playlistTools button .site-icons.soundcloud { background-position:17px 0; }\
+        div#playlistTools button .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
+        div#playlistTools button .custom-icons.youtube { background-position:0 0; }\
+        div#playlistTools button .custom-icons.dice { background-position:17px 0; }\
+        div#playlistTools button .custom-icons.soundcloud { background-position:34px 0; }\
         div#playlistTools div, #playlistTools button { float:left; }\
         div#switches { margin:0 3px; }\
         div#switches ui-button-text { padding:0.6em 1em; }\
@@ -176,10 +175,6 @@ ttTools.views = {
         ttTools.autoVote.execute();
       }).prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
 
-      // $('input#autoRoll').click(function (e) {
-      //   ttTools.autoRoll.setEnabled(!ttTools.autoRoll.enabled());
-      // }).prop('checked', ttTools.autoRoll.enabled()).button('refresh');
-
       $('input#autoDJ').click(function (e) {
         ttTools.autoDJ.setEnabled(!ttTools.autoDJ.enabled());
         ttTools.autoDJ.execute();
@@ -188,6 +183,44 @@ ttTools.views = {
       $('input#animations').click(function (e) {
         ttTools.animations.setEnabled(!ttTools.animations.enabled());
       }).prop('checked', ttTools.animations.enabled()).button('refresh');      
+
+      $('button#youtube').button({
+        text  : false,
+        icons : {
+          primary: 'custom-icons youtube'
+        }
+      }).click(function (e) {
+        if (!ttObjects.room.currentSong) return;
+        var metadata = ttObjects.room.currentSong.metadata;
+        var uri = 'http://www.youtube.com/results?search_query=';
+        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+        window.open(uri, '_blank');
+      });
+
+      $('button#soundcloud').button({
+        text  : false,
+        icons : {
+          primary: 'custom-icons soundcloud'
+        }
+      }).click(function (e) {
+        if (!ttObjects.room.currentSong) return;
+        var metadata = ttObjects.room.currentSong.metadata;
+        var uri = 'http://soundcloud.com/search?q[fulltext]=';
+        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+        window.open(uri, '_blank');
+      });
+
+      $('button#casinoRoll').button({
+        text  : false,
+        icons : {
+          primary: 'custom-icons dice'
+        }
+      }).click(function (e) {
+        $('div.chat-container form input')
+          .val('roll')
+          .parent()
+          .submit();
+      });
 
       $('button#showTheLove').button({
         text  : false,
@@ -202,32 +235,6 @@ ttTools.views = {
           }, Math.round(Math.random() * maxOffset), user);
         }
       });
-
-      $('button#youtube').button({
-        text  : false,
-        icons : {
-          primary: 'site-icons youtube'
-        }
-      }).click(function (e) {
-        if (!ttObjects.room.currentSong) return;
-        var metadata = ttObjects.room.currentSong.metadata;
-        var uri = 'http://www.youtube.com/results?search_query=';
-        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
-        window.open(uri, '_blank');
-      });
-
-      $('button#soundcloud').button({
-        text  : false,
-        icons : {
-          primary: 'site-icons soundcloud'
-        }
-      }).click(function (e) {
-        if (!ttObjects.room.currentSong) return;
-        var metadata = ttObjects.room.currentSong.metadata;
-        var uri = 'http://soundcloud.com/search?q[fulltext]=';
-        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
-        window.open(uri, '_blank');
-      });
     },
 
     tree : function () {
@@ -241,10 +248,6 @@ ttTools.views = {
           ['label', { 'for' : 'autoLame' },
             ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically downvote songs' }],
           ],
-          // ['input#autoRoll', { type : 'checkbox' }],
-          // ['label', { 'for' : 'autoRoll' },
-          //   ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically roll (casino mode)' }],
-          // ],
           ['input#autoDJ', { type : 'checkbox' }],
           ['label', { 'for' : 'autoDJ' },
             ['span.ui-icon.ui-icon-person', { title: 'Attempt to get the next DJ spot' }],
@@ -256,6 +259,7 @@ ttTools.views = {
         ],
         ['button#youtube', { title: 'Search YouTube' }],
         ['button#soundcloud', { title: 'Search SoundCloud' }],
+        ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
         ['button#showTheLove', { title: 'Show The Love' }]
       ];
     },

@@ -108,7 +108,6 @@ ttTools = {
     ttObjects.getManager();
     this.userActivityLog.init();
     this.autoDJ.setEnabled(false);
-    // this.autoRoll.setEnabled(false);
     this.animations.setEnabled(this.animations.enabled());
     this.override_idleTime();
     this.override_removeDj();
@@ -204,22 +203,6 @@ ttTools = {
       }
     }
   },
-
-  // Coming soon...
-  // autoRoll : {
-  //   enabled : function () {
-  //     var enabled = $.cookie('ttTools_autoRoll_enabled');
-  //     return enabled === null ? false : enabled === 'true';
-  //   },
-  //   setEnabled : function (enabled) {
-  //     $.cookie('ttTools_autoRoll_enabled', enabled);
-  //   },
-  //   execute : function () {
-  //     if (this.enabled()) {
-  //       $('div.chatBar form.input-box input[type=text]').val('roll').submit();
-  //     }
-  //   },
-  // },
 
   animations : {
     enabled : function () {
