@@ -30,8 +30,11 @@ To add the bookmark manually:
         `javascript:(function(){document.body.appendChild(document.createElement('script')).src='https://raw.github.com/egeste/ttTools/master/releases/latest/ttTools.min.js';})();`  
 *   After entering a turntable.fm room, click the ttTools bookmark.
 
+## Found a bug? Want a feature?
+It's impossible to keep track of bugs and feature requests unless they're centralized. [Please submit all bugs and feature requests here.](https://github.com/egeste/ttTools/issues)
+
 ## Send questions, comments, complaints, money, and spam to:
 Steve Regester  
 egeste@egeste.net  
 http://www.egeste.net/  
-http://www.linkedin.com/in/egeste  
+http://www.linkedin.com/in/egeste
