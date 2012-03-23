@@ -188,11 +188,16 @@ ttTools = {
     },
     execute : function (uid) {
       if (this.enabled() && uid !== turntable.user.id && !ttObjects.room.isDj()) {
-        setTimeout(function () {
+        this.timeout = setTimeout(function () {
           if (ttObjects.room.numDjs() < ttObjects.room.maxDjs) {
-            ttObjects.room.becomeDj();
-            ttTools.autoDJ.setEnabled(false);
-            ttTools.views.toolbar.update();
+            ttObjects.api({
+              api: "room.add_dj",
+              roomid: ttObjects.room.roomId
+            }, function (response) {
+              if (!response.success && !ttObjects.room.isDj()) return;
+              ttTools.autoDJ.setEnabled(false);
+              ttTools.views.toolbar.update();
+            });
           }
         }, this.delay());
       }
