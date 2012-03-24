@@ -352,9 +352,9 @@ div#guestDialog div.guest-list-container div.guests {\
     setupDialog : function () {
       $('div#guestDialog')
         .dialog({
-          width : 230,
-          height : 400,
-          title : 'Guest List',
+          width : 265,
+          height : 350,
+          title : ' people are in this room',
           autoOpen : false,
           open : function (e, ui) {
             $('div.chat-container div.guestListButton').hide();
@@ -362,6 +362,10 @@ div#guestDialog div.guest-list-container div.guests {\
             $('div.guest-list-container').appendTo(this);
             $('div.guest-list-container div.chatBar').hide();
             $('div.guest-list-container div.chatHeader').hide();
+            $('div#guestDialog')
+              .prev()
+              .find('span:first')
+              .prepend($('span#totalUsers'));
           },
           close : function (e, ui) {
             $('div.chat-container div.guestListButton').show();
@@ -369,6 +373,7 @@ div#guestDialog div.guest-list-container div.guests {\
             $('div.guest-list-container').appendTo($('div#right-panel'));
             $('div.guest-list-container div.chatBar').show();
             $('div.guest-list-container div.chatHeader').show();
+            $('span#totalUsers').prependTo('div.guestListSize');
           }
         });
 

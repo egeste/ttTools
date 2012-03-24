@@ -8,6 +8,7 @@ ttTools.constants = {
       <li>Added 'roll' button</li>\
       <li>Updated &amp; brought back import/export</li>\
       <li>Status indicators now change based on the user's average time since last activity</li>\
+      <li>Popout guest list now shows number of users in room</li>\
     </ul>\
     <h3>March 18</h3>\
     <ul>\
