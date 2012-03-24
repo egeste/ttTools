@@ -114,6 +114,7 @@ ttTools = {
     this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
+    this.override_connectRoomSocket();
   },
 
   songChanged : function (message) {
@@ -145,6 +146,7 @@ ttTools = {
 
   // State machines
   autoVote : {
+    timeout : null,
     enabled : function () {
       var enabled = $.cookie('ttTools_autoVote_enabled');
       if (enabled === null || enabled === 'false') return false;
@@ -161,9 +163,10 @@ ttTools = {
       $.cookie('ttTools_autoVote_delay', delay);
     },
     execute : function () {
+      clearTimeout(this.timeout);
       var enabled = this.enabled();
       if (enabled) {
-        setTimeout(function() {
+        this.timeout = setTimeout(function() {
           turntable.whenSocketConnected(function() {
             ttObjects.room.connectRoomSocket(enabled);
           });
@@ -173,6 +176,7 @@ ttTools = {
   },
 
   autoDJ : {
+    timeout : null,
     enabled : function () {
       var enabled = $.cookie('ttTools_autoDJ_enabled');
       return enabled === null ? false : enabled === 'true';
@@ -188,6 +192,7 @@ ttTools = {
       $.cookie('ttTools_autoDJ_delay', delay);
     },
     execute : function (uid) {
+      clearTimeout(this.timeout);
       if (this.enabled() && uid !== turntable.user.id && !ttObjects.room.isDj()) {
         this.timeout = setTimeout(function () {
           if (ttObjects.room.numDjs() < ttObjects.room.maxDjs) {
@@ -310,7 +315,7 @@ ttTools = {
     }
   },
 
-  // Overrides !! ONLY USE IF ABSOLUTELY NECESSARY !!
+  // Overrides
   override_guestListName : function () {
     Room.layouts.guestListName_ttTools = Room.layouts.guestListName;
     Room.layouts.guestListName = function (user, room, selected) {
@@ -338,6 +343,14 @@ ttTools = {
     ttObjects.room.removeDj = function (uid) {
       ttTools.autoDJ.execute();
       this.removeDj_ttTools(uid);
+    }
+  },
+  // I wouldn't have to override this if the element ids weren't scrambled -.-
+  override_connectRoomSocket : function () {
+    ttObjects.room.connectRoomSocket_ttTools = ttObjects.room.connectRoomSocket;
+    ttObjects.room.connectRoomSocket = function (vote) {
+      clearTimeout(ttTools.autoVote.timeout);
+      ttObjects.room.connectRoomSocket_ttTools(vote);
     }
   },
 

@@ -9,6 +9,7 @@ ttTools.constants = {
       <li>Updated &amp; brought back import/export</li>\
       <li>Status indicators now change based on the user's average time since last activity</li>\
       <li>Popout guest list now shows number of users in room</li>\
+      <li>Added logic to cancel autovote/autodj if the user manually votes or becomes a dj</li>\
     </ul>\
     <h3>March 18</h3>\
     <ul>\
