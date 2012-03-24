@@ -457,10 +457,10 @@ div#guestDialog div.guest-list-container div.guests {\
     },
 
     userStatus : function (uid) {
-      var lastActivity = ttTools.userActivityLog.lastActivity(uid);
+      var averageActivity = ttTools.userActivityLog.averageActivity(uid);
       var threshold = ttTools.idleIndicator.threshold();
-      if (lastActivity > threshold) return 'red';
-      if (lastActivity > (threshold / 2)) return 'yellow';
+      if (averageActivity > threshold) return 'red';
+      if (averageActivity > (threshold / 2)) return 'yellow';
       return 'green';
     }
   }

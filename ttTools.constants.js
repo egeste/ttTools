@@ -7,6 +7,7 @@ ttTools.constants = {
       <li>Fixed autoDJ</li>\
       <li>Added 'roll' button</li>\
       <li>Updated &amp; brought back import/export</li>\
+      <li>Status indicators now change based on the user's average time since last activity</li>\
     </ul>\
     <h3>March 18</h3>\
     <ul>\

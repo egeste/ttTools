@@ -265,7 +265,6 @@ ttTools = {
         ttTools.userActivityLog.initUser(uid);
       });
     },
-
     initUser : function (uid) {
       if (typeof ttTools.userActivityLog[uid] === 'undefined') {
         ttTools.userActivityLog[uid] = {
@@ -275,21 +274,20 @@ ttTools = {
       }
       return ttTools.userActivityLog[uid];
     },
-
     vote : function (uid) {
       var activity = ttTools.userActivityLog.initUser(uid);
       return activity.vote;
     },
-
     message : function (uid) {
       var activity = ttTools.userActivityLog.initUser(uid);
       return activity.message;
     },
-
-    lastActivity : function (uid) {
-      var activity = ttTools.userActivityLog.initUser(uid);
-      var last = activity.vote > activity.message ? activity.vote : activity.message;
-      return util.now() - last;
+    averageActivity : function (uid) {
+      var activities = ttTools.userActivityLog.initUser(uid),
+          keys = Object.keys(activities),
+          total = 0;
+      $(keys).each(function (index, activity) { total += activities[activity]; });
+      return util.now() - (total / keys.length);
     }
   },
 
@@ -358,7 +356,7 @@ ttTools = {
       return Math.round(millis / ttTools.constants.time.seconds) + 's';
 
     if (millis < ttTools.constants.time.hours)
-      return Math.round(100 * (millis / ttTools.constants.time.minutes))/100 + 'm';
+      return Math.round(millis / ttTools.constants.time.minutes) + 'm';
 
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
