@@ -373,6 +373,21 @@ ttObjects = {
       }
     }
     return false;
+  },
+
+  api : null,
+  getApi: function () {
+    var apiRegex = / Preparing message /i;
+    for (var memberName in turntable) {
+      var member = turntable[memberName];
+      if (typeof member !== 'function') continue;
+      member.toString = Function.prototype.toString;
+      if (apiRegex.test(member.toString())) {
+        ttObjects.api = member;
+        return member;
+      }
+    }
+    return false;
   }
 };ttTools = {
 
@@ -395,14 +410,14 @@ ttObjects = {
     }).appendTo(document.head);
 
     this.roomChanged();
-    this.userActivityLog.init();
 
     this.views.menu.render();
-    this.views.toolbar.render();
     this.views.users.render();
+    this.views.toolbar.render();
 
     // TODO: Cloudify tags
     this.tags.load(0);
+    this.portability.init();
 
     // Register event listeners
     turntable.addEventListener('auth', $.proxy(this.authEvent, this));
@@ -481,14 +496,16 @@ ttObjects = {
   },
 
   roomChanged : function (message) {
-    ttObjects.getManager(); // getManager also updates the room object
+    ttObjects.getApi();
+    ttObjects.getManager();
+    this.userActivityLog.init();
     this.autoDJ.setEnabled(false);
-    // this.autoRoll.setEnabled(false);
     this.animations.setEnabled(this.animations.enabled());
     this.override_idleTime();
     this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
+    this.override_connectRoomSocket();
   },
 
   songChanged : function (message) {
@@ -520,6 +537,7 @@ ttObjects = {
 
   // State machines
   autoVote : {
+    timeout : null,
     enabled : function () {
       var enabled = $.cookie('ttTools_autoVote_enabled');
       if (enabled === null || enabled === 'false') return false;
@@ -536,9 +554,10 @@ ttObjects = {
       $.cookie('ttTools_autoVote_delay', delay);
     },
     execute : function () {
+      clearTimeout(this.timeout);
       var enabled = this.enabled();
       if (enabled) {
-        setTimeout(function() {
+        this.timeout = setTimeout(function() {
           turntable.whenSocketConnected(function() {
             ttObjects.room.connectRoomSocket(enabled);
           });
@@ -548,6 +567,7 @@ ttObjects = {
   },
 
   autoDJ : {
+    timeout : null,
     enabled : function () {
       var enabled = $.cookie('ttTools_autoDJ_enabled');
       return enabled === null ? false : enabled === 'true';
@@ -563,33 +583,23 @@ ttObjects = {
       $.cookie('ttTools_autoDJ_delay', delay);
     },
     execute : function (uid) {
+      clearTimeout(this.timeout);
       if (this.enabled() && uid !== turntable.user.id && !ttObjects.room.isDj()) {
-        setTimeout(function () {
+        this.timeout = setTimeout(function () {
           if (ttObjects.room.numDjs() < ttObjects.room.maxDjs) {
-            ttObjects.room.becomeDj();
-            ttTools.autoDJ.setEnabled(false);
-            ttTools.views.toolbar.update();
+            ttObjects.api({
+              api: "room.add_dj",
+              roomid: ttObjects.room.roomId
+            }, function (response) {
+              if (!response.success && !ttObjects.room.isDj()) return;
+              ttTools.autoDJ.setEnabled(false);
+              ttTools.views.toolbar.update();
+            });
           }
         }, this.delay());
       }
     }
   },
-
-  // Coming soon...
-  // autoRoll : {
-  //   enabled : function () {
-  //     var enabled = $.cookie('ttTools_autoRoll_enabled');
-  //     return enabled === null ? false : enabled === 'true';
-  //   },
-  //   setEnabled : function (enabled) {
-  //     $.cookie('ttTools_autoRoll_enabled', enabled);
-  //   },
-  //   execute : function () {
-  //     if (this.enabled()) {
-  //       $('div.chatBar form.input-box input[type=text]').val('roll').submit();
-  //     }
-  //   },
-  // },
 
   animations : {
     enabled : function () {
@@ -651,7 +661,6 @@ ttObjects = {
         ttTools.userActivityLog.initUser(uid);
       });
     },
-
     initUser : function (uid) {
       if (typeof ttTools.userActivityLog[uid] === 'undefined') {
         ttTools.userActivityLog[uid] = {
@@ -661,21 +670,20 @@ ttObjects = {
       }
       return ttTools.userActivityLog[uid];
     },
-
     vote : function (uid) {
       var activity = ttTools.userActivityLog.initUser(uid);
       return activity.vote;
     },
-
     message : function (uid) {
       var activity = ttTools.userActivityLog.initUser(uid);
       return activity.message;
     },
-
-    lastActivity : function (uid) {
-      var activity = ttTools.userActivityLog.initUser(uid);
-      var last = activity.vote > activity.message ? activity.vote : activity.message;
-      return util.now() - last;
+    averageActivity : function (uid) {
+      var activities = ttTools.userActivityLog.initUser(uid),
+          keys = Object.keys(activities),
+          total = 0;
+      $(keys).each(function (index, activity) { total += activities[activity]; });
+      return util.now() - (total / keys.length);
     }
   },
 
@@ -698,7 +706,7 @@ ttObjects = {
     }
   },
 
-  // Overrides !! ONLY USE IF ABSOLUTELY NECESSARY !!
+  // Overrides
   override_guestListName : function () {
     Room.layouts.guestListName_ttTools = Room.layouts.guestListName;
     Room.layouts.guestListName = function (user, room, selected) {
@@ -728,6 +736,14 @@ ttObjects = {
       this.removeDj_ttTools(uid);
     }
   },
+  // I wouldn't have to override this if the element ids weren't scrambled -.-
+  override_connectRoomSocket : function () {
+    ttObjects.room.connectRoomSocket_ttTools = ttObjects.room.connectRoomSocket;
+    ttObjects.room.connectRoomSocket = function (vote) {
+      clearTimeout(ttTools.autoVote.timeout);
+      ttObjects.room.connectRoomSocket_ttTools(vote);
+    }
+  },
 
   // Utility functions
   checkVersion : function () {
@@ -744,7 +760,7 @@ ttObjects = {
       return Math.round(millis / ttTools.constants.time.seconds) + 's';
 
     if (millis < ttTools.constants.time.hours)
-      return Math.round(100 * (millis / ttTools.constants.time.minutes))/100 + 'm';
+      return Math.round(millis / ttTools.constants.time.minutes) + 'm';
 
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
@@ -756,28 +772,19 @@ ttTools.constants = {
   whatsNew : "\
     <h2>What's New in ttTTools?</h2>\
     <br />\
-    <h3>March 18</h3>\
+    <h3>March 24</h3>\
     <ul>\
-      <li>Popout guest list</li>\
-      <li>Search Youtube button</li>\
-      <li>Search SoundCloud button</li>\
-      <li>Faster autoDJ</li>\
+      <li>Fixed autoDJ</li>\
+      <li>Added 'roll' button</li>\
+      <li>Updated &amp; brought back import/export</li>\
+      <li>Status indicators now change based on the user's average time since last activity</li>\
+      <li>Popout guest list now shows number of users in room</li>\
+      <li>Added logic to cancel autovote/autodj if the user manually votes or becomes a dj</li>\
     </ul>\
-    <h3>March 16</h3>\
-    <ul>\
-      <li>Guestlist integration</li>\
-      <li>New minified toolbar</li>\
-      <li>New toggle animations capability</li>\
-      <li>New auto-lame capability</li>\
-      <li>New slider for guest list idle indicator threshold</li>\
-      <li>Improved event-driven architecture</li>\
-      <li>Implemented new ttObjects object cache for bookmarklet interoperability</li>\
-      <li>Removed support for import/export, functionality (still available as an extra)</li>\
-    </ul>\
+    <br/>\
   ",
 
   donateButton : "\
-    <br />\
     <h3>Do you &lt;3 ttTools?</h3>\
     <form action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>\
     <input type='hidden' name='cmd' value='_s-xclick'>\
@@ -786,6 +793,15 @@ ttTools.constants = {
     <img alt='' border='0' src='https://www.paypalobjects.com/en_US/i/scr/pixel.gif' width='1' height='1'>\
     </form>\
     <br />\
+  ",
+
+  submitIssue : "\
+    <h3>Found a bug? Want a feature?</h3>\
+    <p>\
+      It's impossible to keep track of bugs and feature requests unless they're centralized.<br/>\
+      <a href='https://github.com/egeste/ttTools/issues' target='_blank'>Please submit all bugs and feature requests here.</a>\
+    </p>\
+    <br/>\
   ",
 
   time : {
@@ -799,10 +815,14 @@ ttTools.constants = {
   },
 
   hackers : [
-    '4e55144e4fe7d02a3f2c486a' // Egeste
-    // Frick
-    // SubFuze
-    // ???
+    '4deadb0f4fe7d013dc0555f1', // @alain_gilbert
+    '4e42c21b4fe7d02e6107b1ff', // chrisinajar
+    '4e55144e4fe7d02a3f2c486a', // Egeste
+    '4dee9d454fe7d0589304d644', // Frick
+    '4e0b4de14fe7d076b205e657', // Jake.Smith
+    '4e596d44a3f7517501058e25', // overra
+    '4ddb2be9e8a6c45f6f000125', // SubFuze
+    '4dee6cd24fe7d05893018656', // vin
   ]
 }
 ttTools.views = {
@@ -819,21 +839,23 @@ ttTools.views = {
   settings : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
-      $('div.settingsOverlay.modal').append(ttTools.constants.donateButton);
+      $('div.settingsOverlay.modal')
+        .append(ttTools.constants.submitIssue)
+        .append(ttTools.constants.donateButton);
 
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.field.settings { padding:10px 20px; }\
-        div.field.settings .ui-slider {\
-          height:0.5em;\
-          margin:10px 0 3px;\
-        }\
-        div.field.settings .ui-slider .ui-slider-handle {\
-          width:0.9em;\
-          height:0.9em;\
-        }\
-        div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:center; }\
+div.field.settings { padding:10px 20px; }\
+div.field.settings .ui-slider {\
+  height:0.5em;\
+  margin:10px 0 3px;\
+}\
+div.field.settings .ui-slider .ui-slider-handle {\
+  width:0.9em;\
+  height:0.9em;\
+}\
+div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:center; }\
       "}).appendTo($('div.settingsOverlay.modal'));
 
       $('div#idleIndicatorThreshold').slider({
@@ -878,7 +900,7 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, 'Released: ' + (new Date(ttTools.release * 1000)).toGMTString()],
+        ['div', {}, 'Released: ' + (new Date(ttTools.release)).toGMTString()],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},
@@ -904,14 +926,17 @@ ttTools.views = {
       turntable.showAlert();
       $('<style/>', {
         type : 'text/css',
-        text : "div.modal ul li {\
-          font-size:16px;\
-          text-align:left;\
-        }\
+        text : "\
+div.modal { margin-top:15px !important; }\
+div.modal ul li {\
+  font-size:16px;\
+  text-align:left;\
+}\
       "}).appendTo($('div.modal'));
       $('div.modal div:first')
         .html('')
         .append(ttTools.constants.whatsNew)
+        .append(ttTools.constants.submitIssue)
         .append(ttTools.constants.donateButton);
     }
   },
@@ -932,35 +957,34 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.resultsLabel {\
-          top:65px !important;\
-          height:20px !important;\
-          padding-top:7px !important;\
-          background-color:#CCC !important;\
-        }\
-        div.songlist {\
-          font-size:0.5em;\
-          top:95px !important;\
-        }\
-        div#playlistTools {\
-          left:0;\
-          right:0;\
-          top:65px;\
-          height:2em;\
-          padding:2px 0 2px 25px;\
-          position:absolute;\
-        }\
-        div#playlistTools label { font-size:5px; }\
-        div#playlistTools button { width:auto; height:auto; }\
-        div#playlistTools button .ui-button-text { padding:.6em; }\
-        div#playlistTools button .site-icons {\
-          background:url(https://github.com/egeste/ttTools/raw/master/images/site-icons.png);\
-        }\
-        div#playlistTools button .site-icons.youtube { background-position:0 0; }\
-        div#playlistTools button .site-icons.soundcloud { background-position:17px 0; }\
-        div#playlistTools div, #playlistTools button { float:left; }\
-        div#switches { margin:0 3px; }\
-        div#switches ui-button-text { padding:0.6em 1em; }\
+div.resultsLabel {\
+  top:65px !important;\
+  height:20px !important;\
+  padding-top:7px !important;\
+  background-color:#CCC !important;\
+}\
+div.songlist {\
+  font-size:0.5em;\
+  top:95px !important;\
+}\
+div#playlistTools {\
+  left:0;\
+  right:0;\
+  top:65px;\
+  height:2em;\
+  padding:2px 0;\
+  position:absolute;\
+}\
+div#playlistTools label { font-size:5px; }\
+div#playlistTools button { width:auto; height:auto; }\
+div#playlistTools button .ui-button-text { padding:.6em; }\
+div#playlistTools button .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
+div#playlistTools button .custom-icons.youtube { background-position:0 0; }\
+div#playlistTools button .custom-icons.dice { background-position:17px 0; }\
+div#playlistTools button .custom-icons.soundcloud { background-position:34px 0; }\
+div#playlistTools div, #playlistTools button { float:left; }\
+div#switches { margin:0 3px; }\
+div#switches ui-button-text { padding:0.6em 1em; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
@@ -983,10 +1007,6 @@ ttTools.views = {
         ttTools.autoVote.execute();
       }).prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
 
-      // $('input#autoRoll').click(function (e) {
-      //   ttTools.autoRoll.setEnabled(!ttTools.autoRoll.enabled());
-      // }).prop('checked', ttTools.autoRoll.enabled()).button('refresh');
-
       $('input#autoDJ').click(function (e) {
         ttTools.autoDJ.setEnabled(!ttTools.autoDJ.enabled());
         ttTools.autoDJ.execute();
@@ -995,6 +1015,44 @@ ttTools.views = {
       $('input#animations').click(function (e) {
         ttTools.animations.setEnabled(!ttTools.animations.enabled());
       }).prop('checked', ttTools.animations.enabled()).button('refresh');      
+
+      $('button#youtube').button({
+        text  : false,
+        icons : {
+          primary: 'custom-icons youtube'
+        }
+      }).click(function (e) {
+        if (!ttObjects.room.currentSong) return;
+        var metadata = ttObjects.room.currentSong.metadata;
+        var uri = 'http://www.youtube.com/results?search_query=';
+        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+        window.open(uri, '_blank');
+      });
+
+      $('button#soundcloud').button({
+        text  : false,
+        icons : {
+          primary: 'custom-icons soundcloud'
+        }
+      }).click(function (e) {
+        if (!ttObjects.room.currentSong) return;
+        var metadata = ttObjects.room.currentSong.metadata;
+        var uri = 'http://soundcloud.com/search?q[fulltext]=';
+        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+        window.open(uri, '_blank');
+      });
+
+      $('button#casinoRoll').button({
+        text  : false,
+        icons : {
+          primary: 'custom-icons dice'
+        }
+      }).click(function (e) {
+        $('div.chat-container form input')
+          .val('roll')
+          .parent()
+          .submit();
+      });
 
       $('button#showTheLove').button({
         text  : false,
@@ -1010,30 +1068,13 @@ ttTools.views = {
         }
       });
 
-      $('button#youtube').button({
+      $('button#importExport').button({
         text  : false,
         icons : {
-          primary: 'site-icons youtube'
+          primary : 'ui-icon-transferthick-e-w'
         }
       }).click(function (e) {
-        if (!ttObjects.room.currentSong) return;
-        var metadata = ttObjects.room.currentSong.metadata;
-        var uri = 'http://www.youtube.com/results?search_query=';
-        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
-        window.open(uri, '_blank');
-      });
-
-      $('button#soundcloud').button({
-        text  : false,
-        icons : {
-          primary: 'site-icons soundcloud'
-        }
-      }).click(function (e) {
-        if (!ttObjects.room.currentSong) return;
-        var metadata = ttObjects.room.currentSong.metadata;
-        var uri = 'http://soundcloud.com/search?q[fulltext]=';
-        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
-        window.open(uri, '_blank');
+        ttTools.portability.views.modal.render();
       });
     },
 
@@ -1048,10 +1089,6 @@ ttTools.views = {
           ['label', { 'for' : 'autoLame' },
             ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically downvote songs' }],
           ],
-          // ['input#autoRoll', { type : 'checkbox' }],
-          // ['label', { 'for' : 'autoRoll' },
-          //   ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically roll (casino mode)' }],
-          // ],
           ['input#autoDJ', { type : 'checkbox' }],
           ['label', { 'for' : 'autoDJ' },
             ['span.ui-icon.ui-icon-person', { title: 'Attempt to get the next DJ spot' }],
@@ -1063,7 +1100,9 @@ ttTools.views = {
         ],
         ['button#youtube', { title: 'Search YouTube' }],
         ['button#soundcloud', { title: 'Search SoundCloud' }],
-        ['button#showTheLove', { title: 'Show The Love' }]
+        ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
+        ['button#showTheLove', { title: 'Show The Love' }],
+        ['button#importExport', { title: 'Import/Export' }]
       ];
     },
 
@@ -1079,61 +1118,61 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.guest.upvoter { background-color:#aea !important;}\
-        div.guest.upvoter:hover { background-color:#cec !important; }\
-        div.guest.downvoter { background-color:#eaa !important; }\
-        div.guest.downvoter:hover { background-color:#ecc !important; }\
-        div.guest.current_dj { background-color:#ccf !important; }\
-        div.guest.current_dj:hover { background-color:#ddf !important; }\
-        div.guestName .emoji { padding:3px 0; margin-left:3px; }\
-        div.guestName .status {\
-          padding:0 7px;\
-          margin:0 3px 0 -3px;\
-          background-image:url('https://s3.amazonaws.com/static.turntable.fm/images/pm/status_indicators_depth.png');\
-        }\
-        div.guestName .status.green { background-position:0 0; }\
-        div.guestName .status.yellow { background-position:0 -13px; }\
-        div.guestName .status.grey { background-position:0 -26px; }\
-        div.guestName .status.red { background-position:0 -39px; }\
-        div#voteCount {\
-          position:absolute;\
-          top:3px;\
-          right:20px;\
-          font-size:12px;\
-          text-shadow:-1px 0 black,0 1px black,1px 0 black,0 -1px black;\
-        }\
-        div#voteCount span.up { color:#aea; }\
-        div#voteCount span.down { color:#eaa; }\
-        div.guestButton {\
-          width: 35px;\
-          height: 36px;\
-          cursor: pointer;\
-          background:none;\
-          position: absolute;\
-          border: 0;\
-          border-left: 1px solid #D0D0D0;\
-          border-right: 1px solid #7B7B7B;\
-        }\
-        div.guestButton.popout { left: 36px; }\
-        div.ui-icon { margin:10px; }\
-        div.guestListSize {\
-          left:73px !important;\
-          width:157px !important;\
-          font-size:11px !important;\
-        }\
-        div#guestDialog { padding:0; }\
-        div#guestDialog div.guest-list-container {\
-          top:auto !important;\
-          height:auto !important;\
-          position:relative;\
-        }\
-        div#guestDialog div.guest-list-container div.guests {\
-          top:0;\
-          height:auto !important;\
-          overflow:hidden;\
-          background:none;\
-          position:relative;\
-        }\
+div.guest.upvoter { background-color:#aea !important;}\
+div.guest.upvoter:hover { background-color:#cec !important; }\
+div.guest.downvoter { background-color:#eaa !important; }\
+div.guest.downvoter:hover { background-color:#ecc !important; }\
+div.guest.current_dj { background-color:#ccf !important; }\
+div.guest.current_dj:hover { background-color:#ddf !important; }\
+div.guestName .emoji { padding:3px 0; margin-left:3px; }\
+div.guestName .status {\
+  padding:0 7px;\
+  margin:0 3px 0 -3px;\
+  background-image:url('https://s3.amazonaws.com/static.turntable.fm/images/pm/status_indicators_depth.png');\
+}\
+div.guestName .status.green { background-position:0 0; }\
+div.guestName .status.yellow { background-position:0 -13px; }\
+div.guestName .status.grey { background-position:0 -26px; }\
+div.guestName .status.red { background-position:0 -39px; }\
+div#voteCount {\
+  position:absolute;\
+  top:3px;\
+  right:20px;\
+  font-size:12px;\
+  text-shadow:-1px 0 black,0 1px black,1px 0 black,0 -1px black;\
+}\
+div#voteCount span.up { color:#aea; }\
+div#voteCount span.down { color:#eaa; }\
+div.guestButton {\
+  width: 35px;\
+  height: 36px;\
+  cursor: pointer;\
+  background:none;\
+  position: absolute;\
+  border: 0;\
+  border-left: 1px solid #D0D0D0;\
+  border-right: 1px solid #7B7B7B;\
+}\
+div.guestButton.popout { left: 36px; }\
+div.ui-icon { margin:10px; }\
+div.guestListSize {\
+  left:73px !important;\
+  width:157px !important;\
+  font-size:11px !important;\
+}\
+div#guestDialog { padding:0; }\
+div#guestDialog div.guest-list-container {\
+  top:auto !important;\
+  height:auto !important;\
+  position:relative;\
+}\
+div#guestDialog div.guest-list-container div.guests {\
+  top:0;\
+  height:auto !important;\
+  overflow:hidden;\
+  background:none;\
+  position:relative;\
+}\
       "}).appendTo(document.head);
       $('<div/>', { id : 'voteCount' }).appendTo($('div.chatHeader'));
       ttObjects.room.updateGuestList();
@@ -1145,9 +1184,9 @@ ttTools.views = {
     setupDialog : function () {
       $('div#guestDialog')
         .dialog({
-          width : 230,
-          height : 400,
-          title : 'Guest List',
+          width : 285,
+          height : 350,
+          title : ' people are in this room',
           autoOpen : false,
           open : function (e, ui) {
             $('div.chat-container div.guestListButton').hide();
@@ -1155,6 +1194,10 @@ ttTools.views = {
             $('div.guest-list-container').appendTo(this);
             $('div.guest-list-container div.chatBar').hide();
             $('div.guest-list-container div.chatHeader').hide();
+            $('div#guestDialog')
+              .prev()
+              .find('span:first')
+              .prepend($('span#totalUsers'));
           },
           close : function (e, ui) {
             $('div.chat-container div.guestListButton').show();
@@ -1162,6 +1205,7 @@ ttTools.views = {
             $('div.guest-list-container').appendTo($('div#right-panel'));
             $('div.guest-list-container div.chatBar').show();
             $('div.guest-list-container div.chatHeader').show();
+            $('span#totalUsers').prependTo('div.guestListSize');
           }
         });
 
@@ -1250,10 +1294,10 @@ ttTools.views = {
     },
 
     userStatus : function (uid) {
-      var lastActivity = ttTools.userActivityLog.lastActivity(uid);
+      var averageActivity = ttTools.userActivityLog.averageActivity(uid);
       var threshold = ttTools.idleIndicator.threshold();
-      if (lastActivity > threshold) return 'red';
-      if (lastActivity > (threshold / 2)) return 'yellow';
+      if (averageActivity > threshold) return 'red';
+      if (averageActivity > (threshold / 2)) return 'yellow';
       return 'green';
     }
   }
@@ -1305,21 +1349,22 @@ ttTools.tags = {
     $('<style/>', {
       type : 'text/css',
       text : "\
-      div.tagsinput { border:1px solid #CCC; background: #FFF; padding:5px; width:300px; height:100px; overflow-y: auto;}\
-      div.tagsinput span.tag { border: 1px solid #a5d24a; -moz-border-radius:2px; -webkit-border-radius:2px; display: block; float: left; padding: 5px; text-decoration:none; background: #cde69c; color: #638421; margin-right: 5px; margin-bottom:5px;font-family: helvetica;  font-size:13px;}\
-      div.tagsinput span.tag a { font-weight: bold; color: #82ad2b; text-decoration:none; font-size: 11px;  }\
-      div.tagsinput input { width:80px; margin:0px; font-family: helvetica; font-size: 13px; border:1px solid transparent; padding:5px; background: transparent; color: #000; outline:0px;  margin-right:5px; margin-bottom:5px; }\
-      div.tagsinput div { display:block; float: left; }\
-      .tags_clear { clear: both; width: 100%; height: 0px; }\
-      .not_valid {background: #FBD8DB !important; color: #90111A !important;}\
-      div.song div.ui-icon-tag {\
-        top: 24px;\
-        right: 5px;\
-        width: 16px;\
-        height: 16px;\
-        cursor: pointer;\
-        position: absolute;\
-      }\
+div.tagsinput { border:1px solid #CCC; background: #FFF; padding:5px; width:300px; height:100px; overflow-y: auto;}\
+div.tagsinput span.tag { border: 1px solid #a5d24a; -moz-border-radius:2px; -webkit-border-radius:2px; display: block; float: left; padding: 5px; text-decoration:none; background: #cde69c; color: #638421; margin-right: 5px; margin-bottom:5px;font-family: helvetica;  font-size:13px;}\
+div.tagsinput span.tag a { font-weight: bold; color: #82ad2b; text-decoration:none; font-size: 11px;  }\
+div.tagsinput input { width:80px; margin:0px; font-family: helvetica; font-size: 13px; border:1px solid transparent; padding:5px; background: transparent; color: #000; outline:0px;  margin-right:5px; margin-bottom:5px; }\
+div.tagsinput div { display:block; float: left; }\
+.tags_clear { clear: both; width: 100%; height: 0px; }\
+.not_valid {background: #FBD8DB !important; color: #90111A !important;}\
+div.song div.ui-icon-tag {\
+  margin: 0;\
+  top: 24px;\
+  right: 5px;\
+  width: 16px;\
+  height: 16px;\
+  cursor: pointer;\
+  position: absolute;\
+}\
     "}).appendTo(document.head);
     ttTools.tags.createTable();
     ttTools.tags.updateQueue();
@@ -1519,5 +1564,252 @@ ttTools.tags.views = {
     }
   }
 }
-ttTools.release = 1332132172;
+ttTools.portability = {
+
+  init : function () {
+    this.views.import.render();
+  },
+
+  importProcess : {
+    operations : [],
+    completed  : 0,
+    timeout    : null
+  },
+
+  importPlaylist : function (playlist) {
+    if (playlist.length == 0) { return this.views.import.update(); }
+
+    this.importProcess.operations = [];
+    this.importProcess.completed = 0;
+
+    $(playlist).each(function (index, song) {
+      if ($.inArray(song.fileId, Object.keys(turntable.playlist.songsByFid)) > -1) { return; }
+
+      var operation = function (count) {
+        count = (count == undefined) ? 1 : count;
+
+        if (count > 3) {
+          ttTools.portability.importOperations.splice(ttTools.portability.importProcess.completed, 1);
+          ttTools.portability.views.import.update();
+        }
+
+        var deferredRetry = function () { operation(count++); }
+        ttTools.portability.importProcess.timeout = setTimeout(deferredRetry, 10000);
+
+        var apiCallback = function (response) {
+          clearTimeout(ttTools.portability.importProcess.timeout);
+          if (!response.success) { return operation(count++); }
+          ttTools.portability.importProcess.completed++;
+          ttTools.portability.views.import.update();
+          turntable.playlist.files.push(song);
+          turntable.playlist.songsByFid[song.fileId] = song;
+          turntable.playlist.updatePlaylist();
+          if (ttTools.database.isSupported() && song.tags) {
+            ttTools.tags.getTagsForFid(song.fileId, function (tx, result) {
+              var tags = [];
+              for (var i=0; i<result.rows.length; i++) { tags.push(result.rows.item(i).tag); }
+              $(song.tags).each(function (index, tag) {
+                if ($.inArray(tag, tags) < 0) {
+                  ttTools.tags.addTag(song.fileId, tag, function (tx, result) {
+                    ttTools.tags.updateQueue();
+                  });
+                }
+              });
+            })
+          }
+          if (ttTools.portability.importProcess.operations[ttTools.portability.importProcess.completed]) {
+            ttTools.portability.importProcess.operations[ttTools.portability.importProcess.completed]();
+          }
+        }
+        var deferredOperation = function () {
+          ttObjects.api({
+            api           : 'playlist.add',
+            playlist_name : 'default',
+            index         : turntable.playlist.files.length + 1,
+            song_dict     : { fileid: song.fileId }
+          }, apiCallback);
+        }
+        setTimeout(deferredOperation, 1500); // Offset to avoid getting nailed by the rate limiting
+      }
+      ttTools.portability.importProcess.operations.push(operation);
+    });
+    if (this.importProcess.operations.length == 0) { return this.views.import.update(); }
+    this.importProcess.operations[0]();
+  },
+
+  exportPlaylist : function (tags) {
+    if (!ttTools.database.isSupported() || (tags.length < 2 && tags[0] == '')) {
+      return window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(turntable.playlist.files);
+    }
+    
+    ttTools.tags.getAll(function (tx, result) {
+      var tagsByFid = {}, matchFids = [];
+      for (var i=0; i<result.rows.length; i++) {
+        if (tagsByFid[result.rows.item(i).fid]) {
+          tagsByFid[result.rows.item(i).fid].push(result.rows.item(i).tag);
+        } else {
+          tagsByFid[result.rows.item(i).fid] = [result.rows.item(i).tag];
+        }
+        if ($.inArray(result.rows.item(i).tag, tags) > -1) {
+          matchFids.push(result.rows.item(i).fid);
+        }
+      }
+
+      var playlist = [];
+      $(turntable.playlist.files).each(function (index, file) {
+        if ($.inArray(file.fileId, matchFids) > -1) playlist.push(file);
+      });
+
+      if (playlist.length < 1) {
+        return turntable.showAlert("You have no music tagged with " + tags.join(', '));
+      }
+
+      return window.location.href = 'data:text/json;charset=utf-8,' + JSON.stringify(playlist);
+    });
+  }
+}
+ttTools.portability.views = {
+
+  import : {
+    render : function () {
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+div#importProgress {\
+  top:0;\
+  left:0;\
+  color:#fff;\
+  width:400px;\
+  padding:20px;\
+  z-index:1000;\
+  text-align:center;\
+  position:absolute;\
+  background-color:#888;\
+  border:13px solid #fbd863;\
+  text-shadow:1px 1px 1px black;\
+}\
+      "}).appendTo(document.head);
+
+      $(util.buildTree(this.tree()))
+        .appendTo(document.body)
+        .draggable()
+        .hide()
+        .find('div#importProgressBar')
+        .progressbar();
+    },
+
+    update : function () {
+      var total = ttTools.portability.importProcess.operations.length;
+      var completed = ttTools.portability.importProcess.completed;
+      $('span#importTotal').html(total);
+      $('span#importCount').html(completed);
+      $('div#importProgressBar').progressbar('option', 'value', (completed / total) * 100);
+      if (completed == total) {
+        if (ttTools.database.isSupported()) ttTools.tags.updateQueue();
+        $('div#importProgress').hide();
+      }
+    },
+
+    tree : function () {
+      return ['div#importProgress', {},
+        ['span#status', {}, 'Processing...'],
+        ['div#importProgressBar', {}],
+        ['span#importCount', {}, '0'],
+        ['span', {}, ' of '],
+        ['span#importTotal', {}, '0'],
+        ['div', {}, 'Please be patient, this process is slow. Feel free to drag this dialog out of the way.']
+      ];
+    }
+  },
+
+  modal : {
+    render : function () {
+      util.showOverlay(util.buildTree(this.tree()));
+      
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+div.portability.modal.dropzone { border-style:dotted; }\
+div.portability.modal.dropzone * { visibility: hidden; }\
+div.portability.modal ul { text-align: left; }\
+div.portability.modal div.rightAlign { text-align: right; }\
+      "}).appendTo($('div.portability.modal'));
+
+      ttTools.tags.getAll(function (tx, result) {
+        var tags = {};
+        for (var i=0; i<result.rows.length; i++) { tags[result.rows.item(i).tag] = 1; }
+        var tags = Object.keys(tags);
+        $('input#tagExport').tagsInput({
+          width            : '100%',
+          defaultText      : 'Export tags',
+          autocomplete_url : false,
+          autocomplete     : {
+            source : tags
+          }
+        });
+      });
+
+      $('button#tagExportButton').button().click(function (e) {
+        var tags = $('input#tagExport').val().split(',');
+        util.hideOverlay();
+        ttTools.portability.exportPlaylist(tags);
+      });
+
+      $('div.portability.modal')
+        .on('dragenter', function (e) {
+          $(this).addClass('dropzone');
+        })
+        .on('dragleave', function (e) {
+          $(this).removeClass('dropzone');
+        })
+        .on('dragover', function (e) {
+          e.preventDefault();
+        })
+        .on('drop', function (e) {
+          e = e.originalEvent;
+          util.hideOverlay();
+          for (var i = 0; i < e.dataTransfer.files.length; i++) {
+            var file = e.dataTransfer.files[i];
+            var reader = new FileReader();
+            reader.onload = function () {
+              $('div#importProgress')
+                .show()
+                .find('span#status')
+                .html('Processing: '+file.name);
+              try {
+                ttTools.portability.importPlaylist(JSON.parse(this.result));
+              } catch (err) {
+                $('div#importProgress').hide();
+                alert(file.name+' cannot be imported as a playlist.');
+              }
+            }
+            reader.readAsText(file, 'utf-8');
+          }
+        });
+    },
+
+    tree : function () {
+      return ['div.portability.modal', {},
+        ['div.close-x', {
+          event : {
+            click : util.hideOverlay
+          }
+        }],
+        ['h1', 'Import/Export'],
+        ['br'],
+        ['ul', {},
+          ['li', {}, 'To import a playlist, simply drag & drop the file on this dialog'],
+          ['li', {}, 'To export your entire playlist, just click export.'],
+          ['li', {}, 'To only export songs with specific tags, enter them in the field below, then click export.']
+        ],
+        ['input#tagExport', { type : 'text' }],
+        ['br'],
+        ['div.rightAlign', {},
+          ['button#tagExportButton', 'Export'],
+        ],
+      ];
+    }
+  }
+}
+ttTools.release = 1332578556;
 ttTools.load(0);

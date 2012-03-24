@@ -1,8 +1,8 @@
 ttTools.constants = {
   whatsNew : "\
-    <h2>What's New in ttTTools?</h2>\
+    <h2>What's New in ttTools?</h2>\
     <br />\
-    <h3>March ??</h3>\
+    <h3>March 24</h3>\
     <ul>\
       <li>Fixed autoDJ</li>\
       <li>Added 'roll' button</li>\
@@ -11,17 +11,10 @@ ttTools.constants = {
       <li>Popout guest list now shows number of users in room</li>\
       <li>Added logic to cancel autovote/autodj if the user manually votes or becomes a dj</li>\
     </ul>\
-    <h3>March 18</h3>\
-    <ul>\
-      <li>Popout guest list</li>\
-      <li>Search Youtube button</li>\
-      <li>Search SoundCloud button</li>\
-      <li>Faster autoDJ</li>\
-    </ul>\
+    <br/>\
   ",
 
   donateButton : "\
-    <br />\
     <h3>Do you &lt;3 ttTools?</h3>\
     <form action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>\
     <input type='hidden' name='cmd' value='_s-xclick'>\
@@ -33,11 +26,12 @@ ttTools.constants = {
   ",
 
   submitIssue : "\
-    <h2>Found a bug? Want a feature?</h2>\
+    <h3>Found a bug? Want a feature?</h3>\
     <p>\
-      It's impossible to keep track of bugs and feature requests unless they're centralized. \
+      It's impossible to keep track of bugs and feature requests unless they're centralized.<br/>\
       <a href='https://github.com/egeste/ttTools/issues' target='_blank'>Please submit all bugs and feature requests here.</a>\
     </p>\
+    <br/>\
   ",
 
   time : {

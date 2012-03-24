@@ -12,7 +12,9 @@ ttTools.views = {
   settings : {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
-      $('div.settingsOverlay.modal').append(ttTools.constants.donateButton);
+      $('div.settingsOverlay.modal')
+        .append(ttTools.constants.submitIssue)
+        .append(ttTools.constants.donateButton);
 
       $('<style/>', {
         type : 'text/css',
@@ -97,14 +99,17 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
       turntable.showAlert();
       $('<style/>', {
         type : 'text/css',
-        text : "div.modal ul li {\
-          font-size:16px;\
-          text-align:left;\
-        }\
+        text : "\
+div.modal { margin-top:15px !important; }\
+div.modal ul li {\
+  font-size:16px;\
+  text-align:left;\
+}\
       "}).appendTo($('div.modal'));
       $('div.modal div:first')
         .html('')
         .append(ttTools.constants.whatsNew)
+        .append(ttTools.constants.submitIssue)
         .append(ttTools.constants.donateButton);
     }
   },
@@ -352,7 +357,7 @@ div#guestDialog div.guest-list-container div.guests {\
     setupDialog : function () {
       $('div#guestDialog')
         .dialog({
-          width : 265,
+          width : 285,
           height : 350,
           title : ' people are in this room',
           autoOpen : false,
