@@ -770,7 +770,7 @@ ttObjects = {
 }
 ttTools.constants = {
   whatsNew : "\
-    <h2>What's New in ttTTools?</h2>\
+    <h2>What's New in ttTools?</h2>\
     <br />\
     <h3>March 24</h3>\
     <ul>\
