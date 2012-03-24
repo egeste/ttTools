@@ -26,6 +26,7 @@ ttTools = {
 
     // TODO: Cloudify tags
     this.tags.load(0);
+    this.portability.init();
 
     // Register event listeners
     turntable.addEventListener('auth', $.proxy(this.authEvent, this));

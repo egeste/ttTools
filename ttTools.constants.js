@@ -6,6 +6,7 @@ ttTools.constants = {
     <ul>\
       <li>Fixed autoDJ</li>\
       <li>Added 'roll' button</li>\
+      <li>Updated &amp; brought back import/export</li>\
     </ul>\
     <h3>March 18</h3>\
     <ul>\

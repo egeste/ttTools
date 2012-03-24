@@ -17,16 +17,16 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.field.settings { padding:10px 20px; }\
-        div.field.settings .ui-slider {\
-          height:0.5em;\
-          margin:10px 0 3px;\
-        }\
-        div.field.settings .ui-slider .ui-slider-handle {\
-          width:0.9em;\
-          height:0.9em;\
-        }\
-        div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:center; }\
+div.field.settings { padding:10px 20px; }\
+div.field.settings .ui-slider {\
+  height:0.5em;\
+  margin:10px 0 3px;\
+}\
+div.field.settings .ui-slider .ui-slider-handle {\
+  width:0.9em;\
+  height:0.9em;\
+}\
+div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:center; }\
       "}).appendTo($('div.settingsOverlay.modal'));
 
       $('div#idleIndicatorThreshold').slider({
@@ -71,7 +71,7 @@ ttTools.views = {
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, 'Released: ' + (new Date(ttTools.release * 1000)).toGMTString()],
+        ['div', {}, 'Released: ' + (new Date(ttTools.release)).toGMTString()],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},
@@ -125,34 +125,34 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.resultsLabel {\
-          top:65px !important;\
-          height:20px !important;\
-          padding-top:7px !important;\
-          background-color:#CCC !important;\
-        }\
-        div.songlist {\
-          font-size:0.5em;\
-          top:95px !important;\
-        }\
-        div#playlistTools {\
-          left:0;\
-          right:0;\
-          top:65px;\
-          height:2em;\
-          padding:2px 0 2px 12px;\
-          position:absolute;\
-        }\
-        div#playlistTools label { font-size:5px; }\
-        div#playlistTools button { width:auto; height:auto; }\
-        div#playlistTools button .ui-button-text { padding:.6em; }\
-        div#playlistTools button .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
-        div#playlistTools button .custom-icons.youtube { background-position:0 0; }\
-        div#playlistTools button .custom-icons.dice { background-position:17px 0; }\
-        div#playlistTools button .custom-icons.soundcloud { background-position:34px 0; }\
-        div#playlistTools div, #playlistTools button { float:left; }\
-        div#switches { margin:0 3px; }\
-        div#switches ui-button-text { padding:0.6em 1em; }\
+div.resultsLabel {\
+  top:65px !important;\
+  height:20px !important;\
+  padding-top:7px !important;\
+  background-color:#CCC !important;\
+}\
+div.songlist {\
+  font-size:0.5em;\
+  top:95px !important;\
+}\
+div#playlistTools {\
+  left:0;\
+  right:0;\
+  top:65px;\
+  height:2em;\
+  padding:2px 0;\
+  position:absolute;\
+}\
+div#playlistTools label { font-size:5px; }\
+div#playlistTools button { width:auto; height:auto; }\
+div#playlistTools button .ui-button-text { padding:.6em; }\
+div#playlistTools button .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
+div#playlistTools button .custom-icons.youtube { background-position:0 0; }\
+div#playlistTools button .custom-icons.dice { background-position:17px 0; }\
+div#playlistTools button .custom-icons.soundcloud { background-position:34px 0; }\
+div#playlistTools div, #playlistTools button { float:left; }\
+div#switches { margin:0 3px; }\
+div#switches ui-button-text { padding:0.6em 1em; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
@@ -235,6 +235,15 @@ ttTools.views = {
           }, Math.round(Math.random() * maxOffset), user);
         }
       });
+
+      $('button#importExport').button({
+        text  : false,
+        icons : {
+          primary : 'ui-icon-transferthick-e-w'
+        }
+      }).click(function (e) {
+        ttTools.portability.views.modal.render();
+      });
     },
 
     tree : function () {
@@ -260,7 +269,8 @@ ttTools.views = {
         ['button#youtube', { title: 'Search YouTube' }],
         ['button#soundcloud', { title: 'Search SoundCloud' }],
         ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
-        ['button#showTheLove', { title: 'Show The Love' }]
+        ['button#showTheLove', { title: 'Show The Love' }],
+        ['button#importExport', { title: 'Import/Export' }]
       ];
     },
 
@@ -276,61 +286,61 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-        div.guest.upvoter { background-color:#aea !important;}\
-        div.guest.upvoter:hover { background-color:#cec !important; }\
-        div.guest.downvoter { background-color:#eaa !important; }\
-        div.guest.downvoter:hover { background-color:#ecc !important; }\
-        div.guest.current_dj { background-color:#ccf !important; }\
-        div.guest.current_dj:hover { background-color:#ddf !important; }\
-        div.guestName .emoji { padding:3px 0; margin-left:3px; }\
-        div.guestName .status {\
-          padding:0 7px;\
-          margin:0 3px 0 -3px;\
-          background-image:url('https://s3.amazonaws.com/static.turntable.fm/images/pm/status_indicators_depth.png');\
-        }\
-        div.guestName .status.green { background-position:0 0; }\
-        div.guestName .status.yellow { background-position:0 -13px; }\
-        div.guestName .status.grey { background-position:0 -26px; }\
-        div.guestName .status.red { background-position:0 -39px; }\
-        div#voteCount {\
-          position:absolute;\
-          top:3px;\
-          right:20px;\
-          font-size:12px;\
-          text-shadow:-1px 0 black,0 1px black,1px 0 black,0 -1px black;\
-        }\
-        div#voteCount span.up { color:#aea; }\
-        div#voteCount span.down { color:#eaa; }\
-        div.guestButton {\
-          width: 35px;\
-          height: 36px;\
-          cursor: pointer;\
-          background:none;\
-          position: absolute;\
-          border: 0;\
-          border-left: 1px solid #D0D0D0;\
-          border-right: 1px solid #7B7B7B;\
-        }\
-        div.guestButton.popout { left: 36px; }\
-        div.ui-icon { margin:10px; }\
-        div.guestListSize {\
-          left:73px !important;\
-          width:157px !important;\
-          font-size:11px !important;\
-        }\
-        div#guestDialog { padding:0; }\
-        div#guestDialog div.guest-list-container {\
-          top:auto !important;\
-          height:auto !important;\
-          position:relative;\
-        }\
-        div#guestDialog div.guest-list-container div.guests {\
-          top:0;\
-          height:auto !important;\
-          overflow:hidden;\
-          background:none;\
-          position:relative;\
-        }\
+div.guest.upvoter { background-color:#aea !important;}\
+div.guest.upvoter:hover { background-color:#cec !important; }\
+div.guest.downvoter { background-color:#eaa !important; }\
+div.guest.downvoter:hover { background-color:#ecc !important; }\
+div.guest.current_dj { background-color:#ccf !important; }\
+div.guest.current_dj:hover { background-color:#ddf !important; }\
+div.guestName .emoji { padding:3px 0; margin-left:3px; }\
+div.guestName .status {\
+  padding:0 7px;\
+  margin:0 3px 0 -3px;\
+  background-image:url('https://s3.amazonaws.com/static.turntable.fm/images/pm/status_indicators_depth.png');\
+}\
+div.guestName .status.green { background-position:0 0; }\
+div.guestName .status.yellow { background-position:0 -13px; }\
+div.guestName .status.grey { background-position:0 -26px; }\
+div.guestName .status.red { background-position:0 -39px; }\
+div#voteCount {\
+  position:absolute;\
+  top:3px;\
+  right:20px;\
+  font-size:12px;\
+  text-shadow:-1px 0 black,0 1px black,1px 0 black,0 -1px black;\
+}\
+div#voteCount span.up { color:#aea; }\
+div#voteCount span.down { color:#eaa; }\
+div.guestButton {\
+  width: 35px;\
+  height: 36px;\
+  cursor: pointer;\
+  background:none;\
+  position: absolute;\
+  border: 0;\
+  border-left: 1px solid #D0D0D0;\
+  border-right: 1px solid #7B7B7B;\
+}\
+div.guestButton.popout { left: 36px; }\
+div.ui-icon { margin:10px; }\
+div.guestListSize {\
+  left:73px !important;\
+  width:157px !important;\
+  font-size:11px !important;\
+}\
+div#guestDialog { padding:0; }\
+div#guestDialog div.guest-list-container {\
+  top:auto !important;\
+  height:auto !important;\
+  position:relative;\
+}\
+div#guestDialog div.guest-list-container div.guests {\
+  top:0;\
+  height:auto !important;\
+  overflow:hidden;\
+  background:none;\
+  position:relative;\
+}\
       "}).appendTo(document.head);
       $('<div/>', { id : 'voteCount' }).appendTo($('div.chatHeader'));
       ttObjects.room.updateGuestList();
