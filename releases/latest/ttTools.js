@@ -900,7 +900,7 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, 'Released: ' + (new Date(ttTools.release)).toGMTString()],
+        ['div', {}, 'Released: ' + (new Date(ttTools.release * ttTools.constants.time.seconds)).toGMTString()],
         ['br'],
         ['div.fields', {},
           ['div.field.settings', {},

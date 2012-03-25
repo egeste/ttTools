@@ -24,7 +24,7 @@ for file in ${jsFiles[@]}; do jsFileList="${jsFileList}${file} "; done
 if [ $1 == 'test' ]; then
   mkdir -p releases/test
   cat $jsFileList > releases/test/ttTools.js
-  echo "ttTools.release = 540374400000;" >> releases/test/ttTools.js
+  echo "ttTools.release = 540374400;" >> releases/test/ttTools.js
   echo "ttTools.load(0);" >> releases/test/ttTools.js
 elif [ $1 == 'release' ]; then
   epoch=`date +%s`
