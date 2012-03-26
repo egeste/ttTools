@@ -169,7 +169,7 @@ ttTools = {
         this.timeout = setTimeout(function() {
           turntable.whenSocketConnected(function() {
             if (ttObjects.room.currentSong) {
-              var roomSongHash = $.sha1(ttObjects.room.roomId + c + ttObjects.room.currentSong._id);
+              var roomSongHash = $.sha1(ttObjects.room.roomId + enabled + ttObjects.room.currentSong._id);
               var randHash1 = $.sha1(Math.random() + "");
               var randHash2 = $.sha1(Math.random() + "");
               ttObjects.api({
