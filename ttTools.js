@@ -168,7 +168,19 @@ ttTools = {
       if (enabled) {
         this.timeout = setTimeout(function() {
           turntable.whenSocketConnected(function() {
-            ttObjects.room.connectRoomSocket(enabled);
+            if (ttObjects.room.currentSong) {
+              var roomSongHash = $.sha1(ttObjects.room.roomId + c + ttObjects.room.currentSong._id);
+              var randHash1 = $.sha1(Math.random() + "");
+              var randHash2 = $.sha1(Math.random() + "");
+              ttObjects.api({
+                api: "room.vote",
+                roomid: ttObjects.room.roomId,
+                val: enabled,
+                vh: roomSongHash,
+                th: randHash1,
+                ph: randHash2
+              });
+            }
           });
         }, this.delay());
       }
