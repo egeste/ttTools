@@ -33,6 +33,9 @@ ttTools = {
     turntable.addEventListener('message', $.proxy(this.messageEvent, this));
     turntable.addEventListener('reconnect', $.proxy(this.reconnectEvent, this));
     turntable.addEventListener('userinfo', $.proxy(this.userInfoEvent, this));
+    $('div#top-panel').next().find('a[id]').on('click', function (e) {
+      clearTimeout(ttTools.autoVote.timeout);
+    });
 
     this.checkVersion();
   },
@@ -114,7 +117,6 @@ ttTools = {
     this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
-    this.override_connectRoomSocket();
   },
 
   songChanged : function (message) {
@@ -169,16 +171,13 @@ ttTools = {
         this.timeout = setTimeout(function() {
           turntable.whenSocketConnected(function() {
             if (ttObjects.room.currentSong) {
-              var roomSongHash = $.sha1(ttObjects.room.roomId + enabled + ttObjects.room.currentSong._id);
-              var randHash1 = $.sha1(Math.random() + "");
-              var randHash2 = $.sha1(Math.random() + "");
               ttObjects.api({
-                api: "room.vote",
+                api: 'room.vote',
                 roomid: ttObjects.room.roomId,
                 val: enabled,
-                vh: roomSongHash,
-                th: randHash1,
-                ph: randHash2
+                vh: $.sha1(ttObjects.room.roomId + enabled + ttObjects.room.currentSong._id),
+                th: $.sha1(Math.random() + ""),
+                ph: $.sha1(Math.random() + "")
               });
             }
           });
@@ -355,14 +354,6 @@ ttTools = {
     ttObjects.room.removeDj = function (uid) {
       ttTools.autoDJ.execute();
       this.removeDj_ttTools(uid);
-    }
-  },
-  // I wouldn't have to override this if the element ids weren't scrambled -.-
-  override_connectRoomSocket : function () {
-    ttObjects.room.connectRoomSocket_ttTools = ttObjects.room.connectRoomSocket;
-    ttObjects.room.connectRoomSocket = function (vote) {
-      clearTimeout(ttTools.autoVote.timeout);
-      ttObjects.room.connectRoomSocket_ttTools(vote);
     }
   },
 
