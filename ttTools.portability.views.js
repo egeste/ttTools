@@ -35,7 +35,7 @@ div#importProgress {\
       $('span#importCount').html(completed);
       $('div#importProgressBar').progressbar('option', 'value', (completed / total) * 100);
       if (completed == total) {
-        if (ttTools.database.isSupported()) ttTools.tags.updateQueue();
+        if (ttTools.database.isSupported()) ttTools.tags.views.playlist.update();
         $('div#importProgress').hide();
       }
     },

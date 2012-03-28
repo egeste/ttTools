@@ -45,7 +45,7 @@ ttTools.portability = {
               $(song.tags).each(function (index, tag) {
                 if ($.inArray(tag, tags) < 0) {
                   ttTools.tags.addTag(song.fileId, tag, function (tx, result) {
-                    ttTools.tags.updateQueue();
+                    ttTools.tags.views.playlist.update();
                   });
                 }
               });

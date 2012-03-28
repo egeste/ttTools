@@ -130,15 +130,12 @@ div.modal ul li {\
       $('<style/>', {
         type : 'text/css',
         text : "\
-div.resultsLabel {\
+div.queueView div.songlist { top:95px !important; }\
+div.queueView div.resultsLabel {\
   top:65px !important;\
   height:20px !important;\
   padding-top:7px !important;\
   background-color:#CCC !important;\
-}\
-div.songlist {\
-  font-size:0.5em;\
-  top:95px !important;\
 }\
 div#playlistTools {\
   left:0;\
@@ -151,9 +148,9 @@ div#playlistTools {\
 div#playlistTools div { float:left; }\
 div#playlistTools label { font-size:5px; }\
 div#playlistTools div#buttons { margin:0 12px; }\
-div#playlistTools div#buttons ui-button-text { padding:2px 3px; }\
-div#playlistTools button { width:auto; height:auto; margin-right:-1px; }\
-div#playlistTools button .ui-button-text { padding:10px 11px; }\
+div#playlistTools div#buttons .ui-button-text { padding:2px 3px; }\
+div#playlistTools div#buttons button { width:auto; height:auto; margin-right:-1px; }\
+div#playlistTools div#buttons button .ui-button-text { padding:10px 11px; }\
 div#playlistTools .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
 div#playlistTools .custom-icons.youtube { background-position:0 0; }\
 div#playlistTools .custom-icons.dice { background-position:17px 0; }\
@@ -474,6 +471,55 @@ div#guestDialog div.guest-list-container div.guests {\
       if (averageActivity > threshold) return 'red';
       if (averageActivity > (threshold / 2)) return 'yellow';
       return 'green';
+    }
+  },
+
+  playlist : {
+    render : function () {
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+.playlist-container .song .goTop {\
+  top:2px !important;\
+  left:10px !important;\
+}\
+.playlist-container .song .goBottom {\
+  top:22px;\
+  left:0px;\
+  width:34px;\
+  height:17px;\
+  cursor:pointer;\
+  position:absolute;\
+  background-position:0 17px !important;\
+  background:url(https://github.com/egeste/ttTools/raw/master/images/bottom.png);\
+}\
+.playlist-container .song .goBottom:hover { background-position:0 0 !important; }\
+.playlist-container .song.topSong .goBottom { display:none; }\
+      "}).appendTo(document.head);
+      this.update();
+    },
+
+    update : function () {
+      $('div.realPlaylist div.song div.goBottom').remove();
+      $('<div class="goBottom"/>')
+        .on('click', function (e) {
+          e.stopPropagation();
+          var song = $(this).closest('.song').data('songData');
+          var fids = [];
+          $(turntable.playlist.files).each(function (index, file) { fids.push(file.fileId); });
+          var index = fids.indexOf(song.fileId);
+          ASSERT((index !== fids.length), 'Cannot move bottom song to bottom');
+          turntable.playlist.files.splice(index, 1);
+          turntable.playlist.files.push(song);
+          turntable.playlist.updatePlaylist(null, true);
+          ttObjects.api({
+            api: "playlist.reorder",
+            playlist_name: "default",
+            index_from: index,
+            index_to: fids.length
+          });
+        })
+        .appendTo($('div.realPlaylist div.song'))
     }
   }
 }

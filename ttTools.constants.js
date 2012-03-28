@@ -4,12 +4,10 @@ ttTools.constants = {
     <br />\
     <h3>March 24</h3>\
     <ul>\
-      <li>Fixed autoDJ</li>\
-      <li>Added 'roll' button</li>\
-      <li>Updated &amp; brought back import/export</li>\
-      <li>Status indicators now change based on the user's average time since last activity</li>\
-      <li>Popout guest list now shows number of users in room</li>\
-      <li>Added logic to cancel autovote/autodj if the user manually votes or becomes a dj</li>\
+      <li>Added several developers to the 'hackers' list</li>\
+      <li>Unified the toolbar</li>\
+      <li>Fixed/updated autovote code properly</li>\
+      <li>Added 'move to bottom' button to playlist</li>\
     </ul>\
     <br/>\
   ",

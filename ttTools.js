@@ -23,6 +23,7 @@ ttTools = {
     this.views.menu.render();
     this.views.users.render();
     this.views.toolbar.render();
+    this.views.playlist.render();
 
     // TODO: Cloudify tags
     this.tags.load(0);
@@ -51,33 +52,28 @@ ttTools = {
     switch (message.command) {
       case 'speak':
         return this.userSpoke(message);
-        break;
       case 'update_votes':
         return this.votesUpdated(message);
-        break;
       case 'deregistered':
         return this.userRemoved(message);
-        break;
       case 'newsong':
         return this.songChanged(message);
-        break;
       case 'add_dj':
         return this.djAdded(message);
-        break;
       case 'booted_user':
         return this.userBooted(message);
-        break;
       case 'rem_dj':
         return this.djRemoved(message);
-        break;
+      case 'playlist_complete':
+        return this.playlistComplete(message);
+      case 'search_complete':
+        return this.searchComplete(message);
       case 'registered':
       case 'snagged':
       case 'update_user':
         return; // noop
-        break;
       default:
         return console.warn(message);
-        break;
     }
 
     // Courtesy of Frick
@@ -107,6 +103,11 @@ ttTools = {
     });
   },
 
+  playlistComplete : function (message) {
+    this.views.playlist.update();
+    this.tags.views.playlist.update();
+  },
+
   roomChanged : function (message) {
     ttObjects.getApi();
     ttObjects.getManager();
@@ -117,6 +118,10 @@ ttTools = {
     this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
+  },
+
+  searchComplete : function (message) {
+    this.tags.views.playlist.update();
   },
 
   songChanged : function (message) {
@@ -364,19 +369,14 @@ ttTools = {
       this.views.info.render();
     }
   },
-
   timestamp : function (millis) {
     millis = util.now() - millis;
-
     if (millis < ttTools.constants.time.minutes)
       return Math.round(millis / ttTools.constants.time.seconds) + 's';
-
     if (millis < ttTools.constants.time.hours)
       return Math.round(millis / ttTools.constants.time.minutes) + 'm';
-
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
-
     return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
   }
 }
