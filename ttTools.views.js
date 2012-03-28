@@ -148,23 +148,23 @@ div#playlistTools {\
   padding:2px 0;\
   position:absolute;\
 }\
+div#playlistTools div { float:left; }\
 div#playlistTools label { font-size:5px; }\
-div#playlistTools button { width:auto; height:auto; }\
-div#playlistTools button .ui-button-text { padding:.6em; }\
-div#playlistTools button .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
-div#playlistTools button .custom-icons.youtube { background-position:0 0; }\
-div#playlistTools button .custom-icons.dice { background-position:17px 0; }\
-div#playlistTools button .custom-icons.soundcloud { background-position:34px 0; }\
-div#playlistTools div, #playlistTools button { float:left; }\
-div#switches { margin:0 3px; }\
-div#switches ui-button-text { padding:0.6em 1em; }\
+div#playlistTools div#buttons { margin:0 12px; }\
+div#playlistTools div#buttons ui-button-text { padding:2px 3px; }\
+div#playlistTools button { width:auto; height:auto; margin-right:-1px; }\
+div#playlistTools button .ui-button-text { padding:10px 11px; }\
+div#playlistTools .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
+div#playlistTools .custom-icons.youtube { background-position:0 0; }\
+div#playlistTools .custom-icons.dice { background-position:17px 0; }\
+div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
         $('form.playlistSearch')
       );
 
-      $('div#switches').buttonset();
+      $('div#buttons').buttonset();
 
       $('input#autoAwesome').click(function (e) {
         if (ttTools.autoVote.enabled() !== 'up') ttTools.autoVote.setEnabled('up');
@@ -189,18 +189,20 @@ div#switches ui-button-text { padding:0.6em 1em; }\
         ttTools.animations.setEnabled(!ttTools.animations.enabled());
       }).prop('checked', ttTools.animations.enabled()).button('refresh');      
 
-      $('button#youtube').button({
-        text  : false,
-        icons : {
-          primary: 'custom-icons youtube'
-        }
-      }).click(function (e) {
-        if (!ttObjects.room.currentSong) return;
-        var metadata = ttObjects.room.currentSong.metadata;
-        var uri = 'http://www.youtube.com/results?search_query=';
-        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
-        window.open(uri, '_blank');
-      });
+      $('button#youtube')
+        .button({
+          text  : false,
+          icons : {
+            primary: 'custom-icons youtube'
+          }
+        })
+        .click(function (e) {
+          if (!ttObjects.room.currentSong) return;
+          var metadata = ttObjects.room.currentSong.metadata;
+          var uri = 'http://www.youtube.com/results?search_query=';
+          uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+          window.open(uri, '_blank');
+        });
 
       $('button#soundcloud').button({
         text  : false,
@@ -253,7 +255,7 @@ div#switches ui-button-text { padding:0.6em 1em; }\
 
     tree : function () {
       return ['div#playlistTools', {},
-        ['div#switches', {},
+        ['div#buttons', {},
           ['input#autoAwesome', { type : 'checkbox' }],
           ['label', { 'for' : 'autoAwesome' },
             ['span.ui-icon.ui-icon-circle-arrow-n', { title: 'Automatically upvote songs' }],
@@ -270,12 +272,12 @@ div#switches ui-button-text { padding:0.6em 1em; }\
           ['label', { 'for' : 'animations' },
             ['span.ui-icon.ui-icon-video', { title: 'Toggle animations on/off' }]
           ],
-        ],
-        ['button#youtube', { title: 'Search YouTube' }],
-        ['button#soundcloud', { title: 'Search SoundCloud' }],
-        ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
-        ['button#showTheLove', { title: 'Show The Love' }],
-        ['button#importExport', { title: 'Import/Export' }]
+          ['button#youtube', { title: 'Search YouTube' }],
+          ['button#soundcloud', { title: 'Search SoundCloud' }],
+          ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
+          ['button#showTheLove', { title: 'Show The Love' }],
+          ['button#importExport', { title: 'Import/Export' }]
+        ]
       ];
     },
 
