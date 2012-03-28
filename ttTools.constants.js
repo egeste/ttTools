@@ -46,12 +46,15 @@ ttTools.constants = {
 
   hackers : [
     '4deadb0f4fe7d013dc0555f1', // @alain_gilbert
+    '4e10fde04fe7d074cd0d8b95', // (TC Axe_)
     '4e42c21b4fe7d02e6107b1ff', // chrisinajar
     '4e55144e4fe7d02a3f2c486a', // Egeste
     '4dee9d454fe7d0589304d644', // Frick
+    '4e6498184fe7d042db021e95', // Inumedia
     '4e0b4de14fe7d076b205e657', // Jake.Smith
     '4e596d44a3f7517501058e25', // overra
     '4ddb2be9e8a6c45f6f000125', // SubFuze
     '4dee6cd24fe7d05893018656', // vin
+    '4e0ff328a3f751670a084ba6', // YayRamen
   ]
 }
