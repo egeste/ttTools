@@ -129,6 +129,7 @@ ttTools = {
     this.downVotes.downvotes = 0;
     this.views.users.update();
     this.autoVote.execute();
+    this.autoSongDrop.execute(message);
   },
 
   userBooted : function (message) {
@@ -279,6 +280,28 @@ ttTools = {
     }
   },
 
+  autoSongDrop : {
+    threshold : function () {
+      var threshold = $.cookie('ttTools_autoSongDrop_threshold');
+      return threshold === null ? 0 : parseInt(threshold);
+    },
+    setThreshold : function (threshold) {
+      $.cookie('ttTools_autoSongDrop_threshold', threshold);
+    },
+    execute : function (message) {
+      if (ttObjects.room.isDj()) return;
+      var currentSong = message.room.metadata.current_song;
+      if (currentSong.djid === turntable.user.id) return;
+      var files = turntable.playlist.files.slice(0, this.threshold());
+      if (files.length === 0) return;
+      $(files).each(function (index, file) {
+        if (file.fileId !== currentSong._id) return;
+        ttTools.moveSongToBottom(file.fileId);
+        return false;
+      });
+    }
+  },
+
   userActivityLog : {
     init : function () {
       var users = Object.keys(ttObjects.room.users);
@@ -378,5 +401,22 @@ ttTools = {
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
     return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
+  },
+  moveSongToBottom : function (fid) {
+    if ($.inArray(fid, Object.keys(turntable.playlist.songsByFid)) === -1) return;
+    $(turntable.playlist.files).each(function (index, file) {
+      if (index === turntable.playlist.files.length) return false;
+      if (file.fileId !== fid) return;
+      turntable.playlist.files.splice(index, 1);
+      turntable.playlist.files.push(file);
+      turntable.playlist.updatePlaylist(null, true);
+      ttObjects.api({
+        api: "playlist.reorder",
+        playlist_name: "default",
+        index_from: index,
+        index_to: turntable.playlist.files.length
+      });
+      return false;
+    });
   }
 }

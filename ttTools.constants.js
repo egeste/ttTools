@@ -7,7 +7,8 @@ ttTools.constants = {
       <li>Added several developers to the 'hackers' list</li>\
       <li>Unified the toolbar</li>\
       <li>Fixed/updated autovote code properly</li>\
-      <li>Added 'move to bottom' button to playlist</li>\
+      <li><a href='http://tttools.egeste.net/features/extras#drop-song'>Added 'Drop Song' button to playlist</a></li>\
+      <li><a href='http://tttools.egeste.net/features/extras#auto-drop-song'>Added 'Auto Drop Song' feature</a></li>\
     </ul>\
     <br/>\
   ",

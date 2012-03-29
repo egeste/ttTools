@@ -19,17 +19,32 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-div.field.settings { padding:10px 20px; }\
-div.field.settings .ui-slider {\
+div.settingsOverlay {\
+  width:400px !important;\
+  margin-top:15px !important;\
+  padding:20px 20px 0 !important;\
+}\
+div.settingsOverlay .ui-slider {\
   height:0.5em;\
   margin:10px 0 3px;\
 }\
-div.field.settings .ui-slider .ui-slider-handle {\
+div.settingsOverlay .ui-slider .ui-slider-handle {\
   width:0.9em;\
   height:0.9em;\
 }\
 div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:center; }\
       "}).appendTo($('div.settingsOverlay.modal'));
+
+      $('div#autoSongDrop').slider({
+        min   : 0,
+        max   : 20,
+        step  : 1,
+        value : ttTools.autoSongDrop.threshold(),
+        slide : function (event, ui) {
+          ttTools.autoSongDrop.setThreshold(ui.value);
+          $('div#autoSongDropDisplay').text(ui.value + ' songs');
+        }
+      });
 
       $('div#idleIndicatorThreshold').slider({
         min   : 10 * ttTools.constants.time.minutes,
@@ -75,21 +90,28 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
         ['h1', 'ttTools'],
         ['div', {}, 'Released: ' + (new Date(ttTools.release * ttTools.constants.time.seconds)).toGMTString()],
         ['br'],
-        ['div.fields', {},
-          ['div.field.settings', {},
-            ['div', {}, 'Idle Indicator Threshold'],
-            ['div#idleIndicatorThreshold', {}],
-            ['div#idleIndicatorDisplay', {}, (ttTools.idleIndicator.threshold() / ttTools.constants.time.minutes) + 'm'],
-            ['br'],
-            ['div', {}, 'Auto DJ Delay'],
-            ['div#autoDJDelay', {}],
-            ['div#autoDJDisplay', {}, (ttTools.autoDJ.delay() / ttTools.constants.time.seconds) + 's'],
-            ['br'],
-            ['div', {}, 'Auto Vote Delay'],
-            ['div#autoVoteDelay', {}],
-            ['div#autoVoteDisplay', {}, (ttTools.autoVote.delay() / ttTools.constants.time.seconds) + 's']
-          ],
-        ]
+        ['div', {},
+          ['span', {}, 'Auto Song-Drop Threshold '],
+          ['a', { href: 'http://tttools.egeste.net/features/extras#auto-drop-song', target: '_blank' }, '[?]']
+        ],
+        ['div#autoSongDrop', {}],
+        ['div#autoSongDropDisplay', {}, ttTools.autoSongDrop.threshold() + ' songs'],
+        ['br'],
+        ['div', {},
+          ['span', {}, 'Idle Indicator Threshold '],
+          ['a', { href: 'http://tttools.egeste.net/tutorials/understanding-the-idle-indicators', target: '_blank' }, '   [?]']
+        ],
+        ['div#idleIndicatorThreshold', {}],
+        ['div#idleIndicatorDisplay', {}, (ttTools.idleIndicator.threshold() / ttTools.constants.time.minutes) + 'm'],
+        ['br'],
+        ['div', {}, 'Auto DJ Delay'],
+        ['div#autoDJDelay', {}],
+        ['div#autoDJDisplay', {}, (ttTools.autoDJ.delay() / ttTools.constants.time.seconds) + 's'],
+        ['br'],
+        ['div', {}, 'Auto Vote Delay'],
+        ['div#autoVoteDelay', {}],
+        ['div#autoVoteDisplay', {}, (ttTools.autoVote.delay() / ttTools.constants.time.seconds) + 's'],
+        ['br'],
       ];
     }
   },
@@ -505,19 +527,7 @@ div#guestDialog div.guest-list-container div.guests {\
         .on('click', function (e) {
           e.stopPropagation();
           var song = $(this).closest('.song').data('songData');
-          var fids = [];
-          $(turntable.playlist.files).each(function (index, file) { fids.push(file.fileId); });
-          var index = fids.indexOf(song.fileId);
-          ASSERT((index !== fids.length), 'Cannot move bottom song to bottom');
-          turntable.playlist.files.splice(index, 1);
-          turntable.playlist.files.push(song);
-          turntable.playlist.updatePlaylist(null, true);
-          ttObjects.api({
-            api: "playlist.reorder",
-            playlist_name: "default",
-            index_from: index,
-            index_to: fids.length
-          });
+          ttTools.moveSongToBottom(song.fileId);
         })
         .appendTo($('div.realPlaylist div.song'))
     }
