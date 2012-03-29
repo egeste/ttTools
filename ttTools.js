@@ -289,7 +289,7 @@ ttTools = {
       $.cookie('ttTools_autoSongDrop_threshold', threshold);
     },
     execute : function (message) {
-      if (ttObjects.room.isDj()) return;
+      if (!ttObjects.room.isDj()) return;
       var currentSong = message.room.metadata.current_song;
       if (currentSong.djid === turntable.user.id) return;
       var files = turntable.playlist.files.slice(0, this.threshold());
