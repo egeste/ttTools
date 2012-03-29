@@ -2,13 +2,13 @@ ttTools.constants = {
   whatsNew : "\
     <h2>What's New in ttTools?</h2>\
     <br />\
-    <h3>March 24</h3>\
+    <h3>March 29</h3>\
     <ul>\
       <li>Added several developers to the 'hackers' list</li>\
       <li>Unified the toolbar</li>\
       <li>Fixed/updated autovote code properly</li>\
-      <li><a href='http://tttools.egeste.net/features/extras#drop-song'>Added 'Drop Song' button to playlist</a></li>\
-      <li><a href='http://tttools.egeste.net/features/extras#auto-drop-song'>Added 'Auto Drop Song' feature</a></li>\
+      <li>Added 'Drop Song' button to playlist <a href='http://tttools.egeste.net/features/extras#drop-song' target='_blank'>[?]</a></li>\
+      <li>Added 'Auto Drop Song' feature <a href='http://tttools.egeste.net/features/extras#auto-drop-song' target='_blank'>[?]</a></li>\
     </ul>\
     <br/>\
   ",

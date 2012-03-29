@@ -414,6 +414,7 @@ ttObjects = {
     this.views.menu.render();
     this.views.users.render();
     this.views.toolbar.render();
+    this.views.playlist.render();
 
     // TODO: Cloudify tags
     this.tags.load(0);
@@ -424,6 +425,9 @@ ttObjects = {
     turntable.addEventListener('message', $.proxy(this.messageEvent, this));
     turntable.addEventListener('reconnect', $.proxy(this.reconnectEvent, this));
     turntable.addEventListener('userinfo', $.proxy(this.userInfoEvent, this));
+    $('div#top-panel').next().find('a[id]').on('click', function (e) {
+      clearTimeout(ttTools.autoVote.timeout);
+    });
 
     this.checkVersion();
   },
@@ -439,33 +443,28 @@ ttObjects = {
     switch (message.command) {
       case 'speak':
         return this.userSpoke(message);
-        break;
       case 'update_votes':
         return this.votesUpdated(message);
-        break;
       case 'deregistered':
         return this.userRemoved(message);
-        break;
       case 'newsong':
         return this.songChanged(message);
-        break;
       case 'add_dj':
         return this.djAdded(message);
-        break;
       case 'booted_user':
         return this.userBooted(message);
-        break;
       case 'rem_dj':
         return this.djRemoved(message);
-        break;
+      case 'playlist_complete':
+        return this.playlistComplete(message);
+      case 'search_complete':
+        return this.searchComplete(message);
       case 'registered':
       case 'snagged':
       case 'update_user':
         return; // noop
-        break;
       default:
         return console.warn(message);
-        break;
     }
 
     // Courtesy of Frick
@@ -495,6 +494,11 @@ ttObjects = {
     });
   },
 
+  playlistComplete : function (message) {
+    this.views.playlist.update();
+    this.tags.views.playlist.update();
+  },
+
   roomChanged : function (message) {
     ttObjects.getApi();
     ttObjects.getManager();
@@ -505,7 +509,10 @@ ttObjects = {
     this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
-    this.override_connectRoomSocket();
+  },
+
+  searchComplete : function (message) {
+    this.tags.views.playlist.update();
   },
 
   songChanged : function (message) {
@@ -513,6 +520,7 @@ ttObjects = {
     this.downVotes.downvotes = 0;
     this.views.users.update();
     this.autoVote.execute();
+    this.autoSongDrop.execute(message);
   },
 
   userBooted : function (message) {
@@ -560,16 +568,13 @@ ttObjects = {
         this.timeout = setTimeout(function() {
           turntable.whenSocketConnected(function() {
             if (ttObjects.room.currentSong) {
-              var roomSongHash = $.sha1(ttObjects.room.roomId + enabled + ttObjects.room.currentSong._id);
-              var randHash1 = $.sha1(Math.random() + "");
-              var randHash2 = $.sha1(Math.random() + "");
               ttObjects.api({
-                api: "room.vote",
+                api: 'room.vote',
                 roomid: ttObjects.room.roomId,
                 val: enabled,
-                vh: roomSongHash,
-                th: randHash1,
-                ph: randHash2
+                vh: $.sha1(ttObjects.room.roomId + enabled + ttObjects.room.currentSong._id),
+                th: $.sha1(Math.random() + ""),
+                ph: $.sha1(Math.random() + "")
               });
             }
           });
@@ -666,6 +671,28 @@ ttObjects = {
     }
   },
 
+  autoSongDrop : {
+    threshold : function () {
+      var threshold = $.cookie('ttTools_autoSongDrop_threshold');
+      return threshold === null ? 0 : parseInt(threshold);
+    },
+    setThreshold : function (threshold) {
+      $.cookie('ttTools_autoSongDrop_threshold', threshold);
+    },
+    execute : function (message) {
+      if (ttObjects.room.isDj()) return;
+      var currentSong = message.room.metadata.current_song;
+      if (currentSong.djid === turntable.user.id) return;
+      var files = turntable.playlist.files.slice(0, this.threshold());
+      if (files.length === 0) return;
+      $(files).each(function (index, file) {
+        if (file.fileId !== currentSong._id) return;
+        ttTools.moveSongToBottom(file.fileId);
+        return false;
+      });
+    }
+  },
+
   userActivityLog : {
     init : function () {
       var users = Object.keys(ttObjects.room.users);
@@ -748,14 +775,6 @@ ttObjects = {
       this.removeDj_ttTools(uid);
     }
   },
-  // I wouldn't have to override this if the element ids weren't scrambled -.-
-  override_connectRoomSocket : function () {
-    ttObjects.room.connectRoomSocket_ttTools = ttObjects.room.connectRoomSocket;
-    ttObjects.room.connectRoomSocket = function (vote) {
-      clearTimeout(ttTools.autoVote.timeout);
-      ttObjects.room.connectRoomSocket_ttTools(vote);
-    }
-  },
 
   // Utility functions
   checkVersion : function () {
@@ -764,34 +783,45 @@ ttObjects = {
       this.views.info.render();
     }
   },
-
   timestamp : function (millis) {
     millis = util.now() - millis;
-
     if (millis < ttTools.constants.time.minutes)
       return Math.round(millis / ttTools.constants.time.seconds) + 's';
-
     if (millis < ttTools.constants.time.hours)
       return Math.round(millis / ttTools.constants.time.minutes) + 'm';
-
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
-
     return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
+  },
+  moveSongToBottom : function (fid) {
+    if ($.inArray(fid, Object.keys(turntable.playlist.songsByFid)) === -1) return;
+    $(turntable.playlist.files).each(function (index, file) {
+      if (index === turntable.playlist.files.length) return false;
+      if (file.fileId !== fid) return;
+      turntable.playlist.files.splice(index, 1);
+      turntable.playlist.files.push(file);
+      turntable.playlist.updatePlaylist(null, true);
+      ttObjects.api({
+        api: "playlist.reorder",
+        playlist_name: "default",
+        index_from: index,
+        index_to: turntable.playlist.files.length
+      });
+      return false;
+    });
   }
 }
 ttTools.constants = {
   whatsNew : "\
     <h2>What's New in ttTools?</h2>\
     <br />\
-    <h3>March 24</h3>\
+    <h3>March 29</h3>\
     <ul>\
-      <li>Fixed autoDJ</li>\
-      <li>Added 'roll' button</li>\
-      <li>Updated &amp; brought back import/export</li>\
-      <li>Status indicators now change based on the user's average time since last activity</li>\
-      <li>Popout guest list now shows number of users in room</li>\
-      <li>Added logic to cancel autovote/autodj if the user manually votes or becomes a dj</li>\
+      <li>Added several developers to the 'hackers' list</li>\
+      <li>Unified the toolbar</li>\
+      <li>Fixed/updated autovote code properly</li>\
+      <li>Added 'Drop Song' button to playlist <a href='http://tttools.egeste.net/features/extras#drop-song' target='_blank'>[?]</a></li>\
+      <li>Added 'Auto Drop Song' feature <a href='http://tttools.egeste.net/features/extras#auto-drop-song' target='_blank'>[?]</a></li>\
     </ul>\
     <br/>\
   ",
@@ -828,13 +858,17 @@ ttTools.constants = {
 
   hackers : [
     '4deadb0f4fe7d013dc0555f1', // @alain_gilbert
+    '4e10fde04fe7d074cd0d8b95', // Axe_
     '4e42c21b4fe7d02e6107b1ff', // chrisinajar
     '4e55144e4fe7d02a3f2c486a', // Egeste
     '4dee9d454fe7d0589304d644', // Frick
+    '4e6498184fe7d042db021e95', // Inumedia
     '4e0b4de14fe7d076b205e657', // Jake.Smith
     '4e596d44a3f7517501058e25', // overra
+    '4e09dc63a3f7517d140c300d', // Starburst
     '4ddb2be9e8a6c45f6f000125', // SubFuze
     '4dee6cd24fe7d05893018656', // vin
+    '4e0ff328a3f751670a084ba6', // YayRamen
   ]
 }
 ttTools.views = {
@@ -858,17 +892,32 @@ ttTools.views = {
       $('<style/>', {
         type : 'text/css',
         text : "\
-div.field.settings { padding:10px 20px; }\
-div.field.settings .ui-slider {\
+div.settingsOverlay {\
+  width:400px !important;\
+  margin-top:15px !important;\
+  padding:20px 20px 0 !important;\
+}\
+div.settingsOverlay .ui-slider {\
   height:0.5em;\
   margin:10px 0 3px;\
 }\
-div.field.settings .ui-slider .ui-slider-handle {\
+div.settingsOverlay .ui-slider .ui-slider-handle {\
   width:0.9em;\
   height:0.9em;\
 }\
 div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:center; }\
       "}).appendTo($('div.settingsOverlay.modal'));
+
+      $('div#autoSongDrop').slider({
+        min   : 0,
+        max   : 20,
+        step  : 1,
+        value : ttTools.autoSongDrop.threshold(),
+        slide : function (event, ui) {
+          ttTools.autoSongDrop.setThreshold(ui.value);
+          $('div#autoSongDropDisplay').text(ui.value + ' songs');
+        }
+      });
 
       $('div#idleIndicatorThreshold').slider({
         min   : 10 * ttTools.constants.time.minutes,
@@ -914,21 +963,28 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
         ['h1', 'ttTools'],
         ['div', {}, 'Released: ' + (new Date(ttTools.release * ttTools.constants.time.seconds)).toGMTString()],
         ['br'],
-        ['div.fields', {},
-          ['div.field.settings', {},
-            ['div', {}, 'Idle Indicator Threshold'],
-            ['div#idleIndicatorThreshold', {}],
-            ['div#idleIndicatorDisplay', {}, (ttTools.idleIndicator.threshold() / ttTools.constants.time.minutes) + 'm'],
-            ['br'],
-            ['div', {}, 'Auto DJ Delay'],
-            ['div#autoDJDelay', {}],
-            ['div#autoDJDisplay', {}, (ttTools.autoDJ.delay() / ttTools.constants.time.seconds) + 's'],
-            ['br'],
-            ['div', {}, 'Auto Vote Delay'],
-            ['div#autoVoteDelay', {}],
-            ['div#autoVoteDisplay', {}, (ttTools.autoVote.delay() / ttTools.constants.time.seconds) + 's']
-          ],
-        ]
+        ['div', {},
+          ['span', {}, 'Auto Song-Drop Threshold '],
+          ['a', { href: 'http://tttools.egeste.net/features/extras#auto-drop-song', target: '_blank' }, '[?]']
+        ],
+        ['div#autoSongDrop', {}],
+        ['div#autoSongDropDisplay', {}, ttTools.autoSongDrop.threshold() + ' songs'],
+        ['br'],
+        ['div', {},
+          ['span', {}, 'Idle Indicator Threshold '],
+          ['a', { href: 'http://tttools.egeste.net/tutorials/understanding-the-idle-indicators', target: '_blank' }, '   [?]']
+        ],
+        ['div#idleIndicatorThreshold', {}],
+        ['div#idleIndicatorDisplay', {}, (ttTools.idleIndicator.threshold() / ttTools.constants.time.minutes) + 'm'],
+        ['br'],
+        ['div', {}, 'Auto DJ Delay'],
+        ['div#autoDJDelay', {}],
+        ['div#autoDJDisplay', {}, (ttTools.autoDJ.delay() / ttTools.constants.time.seconds) + 's'],
+        ['br'],
+        ['div', {}, 'Auto Vote Delay'],
+        ['div#autoVoteDelay', {}],
+        ['div#autoVoteDisplay', {}, (ttTools.autoVote.delay() / ttTools.constants.time.seconds) + 's'],
+        ['br'],
       ];
     }
   },
@@ -969,15 +1025,12 @@ div.modal ul li {\
       $('<style/>', {
         type : 'text/css',
         text : "\
-div.resultsLabel {\
+div.queueView div.songlist { top:95px !important; }\
+div.queueView div.resultsLabel {\
   top:65px !important;\
   height:20px !important;\
   padding-top:7px !important;\
   background-color:#CCC !important;\
-}\
-div.songlist {\
-  font-size:0.5em;\
-  top:95px !important;\
 }\
 div#playlistTools {\
   left:0;\
@@ -987,23 +1040,23 @@ div#playlistTools {\
   padding:2px 0;\
   position:absolute;\
 }\
+div#playlistTools div { float:left; }\
 div#playlistTools label { font-size:5px; }\
-div#playlistTools button { width:auto; height:auto; }\
-div#playlistTools button .ui-button-text { padding:.6em; }\
-div#playlistTools button .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
-div#playlistTools button .custom-icons.youtube { background-position:0 0; }\
-div#playlistTools button .custom-icons.dice { background-position:17px 0; }\
-div#playlistTools button .custom-icons.soundcloud { background-position:34px 0; }\
-div#playlistTools div, #playlistTools button { float:left; }\
-div#switches { margin:0 3px; }\
-div#switches ui-button-text { padding:0.6em 1em; }\
+div#playlistTools div#buttons { margin:0 12px; }\
+div#playlistTools div#buttons .ui-button-text { padding:2px 3px; }\
+div#playlistTools div#buttons button { width:auto; height:auto; margin-right:-1px; }\
+div#playlistTools div#buttons button .ui-button-text { padding:10px 11px; }\
+div#playlistTools .custom-icons { background:url(https://github.com/egeste/ttTools/raw/master/images/custom-icons.png); }\
+div#playlistTools .custom-icons.youtube { background-position:0 0; }\
+div#playlistTools .custom-icons.dice { background-position:17px 0; }\
+div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
         $('form.playlistSearch')
       );
 
-      $('div#switches').buttonset();
+      $('div#buttons').buttonset();
 
       $('input#autoAwesome').click(function (e) {
         if (ttTools.autoVote.enabled() !== 'up') ttTools.autoVote.setEnabled('up');
@@ -1028,18 +1081,20 @@ div#switches ui-button-text { padding:0.6em 1em; }\
         ttTools.animations.setEnabled(!ttTools.animations.enabled());
       }).prop('checked', ttTools.animations.enabled()).button('refresh');      
 
-      $('button#youtube').button({
-        text  : false,
-        icons : {
-          primary: 'custom-icons youtube'
-        }
-      }).click(function (e) {
-        if (!ttObjects.room.currentSong) return;
-        var metadata = ttObjects.room.currentSong.metadata;
-        var uri = 'http://www.youtube.com/results?search_query=';
-        uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
-        window.open(uri, '_blank');
-      });
+      $('button#youtube')
+        .button({
+          text  : false,
+          icons : {
+            primary: 'custom-icons youtube'
+          }
+        })
+        .click(function (e) {
+          if (!ttObjects.room.currentSong) return;
+          var metadata = ttObjects.room.currentSong.metadata;
+          var uri = 'http://www.youtube.com/results?search_query=';
+          uri += encodeURIComponent(metadata.artist + ' - ' + metadata.song);
+          window.open(uri, '_blank');
+        });
 
       $('button#soundcloud').button({
         text  : false,
@@ -1092,7 +1147,7 @@ div#switches ui-button-text { padding:0.6em 1em; }\
 
     tree : function () {
       return ['div#playlistTools', {},
-        ['div#switches', {},
+        ['div#buttons', {},
           ['input#autoAwesome', { type : 'checkbox' }],
           ['label', { 'for' : 'autoAwesome' },
             ['span.ui-icon.ui-icon-circle-arrow-n', { title: 'Automatically upvote songs' }],
@@ -1109,12 +1164,12 @@ div#switches ui-button-text { padding:0.6em 1em; }\
           ['label', { 'for' : 'animations' },
             ['span.ui-icon.ui-icon-video', { title: 'Toggle animations on/off' }]
           ],
-        ],
-        ['button#youtube', { title: 'Search YouTube' }],
-        ['button#soundcloud', { title: 'Search SoundCloud' }],
-        ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
-        ['button#showTheLove', { title: 'Show The Love' }],
-        ['button#importExport', { title: 'Import/Export' }]
+          ['button#youtube', { title: 'Search YouTube' }],
+          ['button#soundcloud', { title: 'Search SoundCloud' }],
+          ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
+          ['button#showTheLove', { title: 'Show The Love' }],
+          ['button#importExport', { title: 'Import/Export' }]
+        ]
       ];
     },
 
@@ -1312,6 +1367,43 @@ div#guestDialog div.guest-list-container div.guests {\
       if (averageActivity > (threshold / 2)) return 'yellow';
       return 'green';
     }
+  },
+
+  playlist : {
+    render : function () {
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+.playlist-container .song .goTop {\
+  top:2px !important;\
+  left:10px !important;\
+}\
+.playlist-container .song .goBottom {\
+  top:22px;\
+  left:0px;\
+  width:34px;\
+  height:17px;\
+  cursor:pointer;\
+  position:absolute;\
+  background-position:0 17px !important;\
+  background:url(https://github.com/egeste/ttTools/raw/master/images/bottom.png);\
+}\
+.playlist-container .song .goBottom:hover { background-position:0 0 !important; }\
+.playlist-container .song.topSong .goBottom { display:none; }\
+      "}).appendTo(document.head);
+      this.update();
+    },
+
+    update : function () {
+      $('div.realPlaylist div.song div.goBottom').remove();
+      $('<div class="goBottom"/>')
+        .on('click', function (e) {
+          e.stopPropagation();
+          var song = $(this).closest('.song').data('songData');
+          ttTools.moveSongToBottom(song.fileId);
+        })
+        .appendTo($('div.realPlaylist div.song'))
+    }
   }
 }
 ttTools.database = {
@@ -1358,67 +1450,13 @@ ttTools.tags = {
   },
 
   init : function () {
-    $('<style/>', {
-      type : 'text/css',
-      text : "\
-div.tagsinput { border:1px solid #CCC; background: #FFF; padding:5px; width:300px; height:100px; overflow-y: auto;}\
-div.tagsinput span.tag { border: 1px solid #a5d24a; -moz-border-radius:2px; -webkit-border-radius:2px; display: block; float: left; padding: 5px; text-decoration:none; background: #cde69c; color: #638421; margin-right: 5px; margin-bottom:5px;font-family: helvetica;  font-size:13px;}\
-div.tagsinput span.tag a { font-weight: bold; color: #82ad2b; text-decoration:none; font-size: 11px;  }\
-div.tagsinput input { width:80px; margin:0px; font-family: helvetica; font-size: 13px; border:1px solid transparent; padding:5px; background: transparent; color: #000; outline:0px;  margin-right:5px; margin-bottom:5px; }\
-div.tagsinput div { display:block; float: left; }\
-.tags_clear { clear: both; width: 100%; height: 0px; }\
-.not_valid {background: #FBD8DB !important; color: #90111A !important;}\
-div.song div.ui-icon-tag {\
-  margin: 0;\
-  top: 24px;\
-  right: 5px;\
-  width: 16px;\
-  height: 16px;\
-  cursor: pointer;\
-  position: absolute;\
-}\
-    "}).appendTo(document.head);
-    ttTools.tags.createTable();
-    ttTools.tags.updateQueue();
-    ttTools.tags.addSongOverride();
-    ttTools.tags.filterQueueOverride();
+    this.createTable();
+    this.views.playlist.render();
+    this.override_filterQueue();
   },
 
-  updateQueue : function () {
-    var elements = $('div.song').unbind(
-      'click'
-    ).click(function(e) {
-      ttTools.tags.views.add.file = $(this).closest('.song').data('songData');
-      ttTools.tags.views.add.render();
-    });
-    $('div.song div.ui-icon-tag').remove();
-    this.getFids(function (tx, result) {
-      var fids = [];
-      for (var i=0; i<result.rows.length; i++) {
-        fids.push(result.rows.item(i).fid);
-      }
-      elements.each(function (index, element) {
-        element = $(element);
-        var fid = element.closest('.song').data('songData').fileId;
-        if ($.inArray(fid, fids) > -1) {
-          $('<div/>', {
-            'class' : 'ui-icon ui-icon-tag',
-            title   : 'This song is ttTagged'
-          }).appendTo(element);
-        }
-      });
-    });
-  },
-
-  addSongOverride : function () {
-    turntable.playlist.addSong_ttTools = turntable.playlist.addSong;
-    turntable.playlist.addSong = function (b, a) {
-      turntable.playlist.addSong_ttTools(b, a);
-      ttTools.tags.updateQueue();
-    }
-  },
-
-  filterQueueOverride : function () {
+  override_filterQueue : function () {
+    turntable.playlist.addSong.toString = Function.prototype.toString;
     turntable.playlist.filterQueue_ttTools = turntable.playlist.filterQueue;
     turntable.playlist.filterQueue = function (filter) {
       turntable.playlist.filterQueue_ttTools(filter);
@@ -1458,7 +1496,7 @@ div.song div.ui-icon-tag {\
     ttTools.database.execute('DROP TABLE IF EXISTS ' + this.dbTable + ';');
     this.createTable();
     this.addTag('4dd6c222e8a6c404330002c5', 'trololo');
-    ttTools.tags.updateQueue();
+    this.views.playlist.update();
   },
 
   getAll : function (success, failure) {
@@ -1519,12 +1557,65 @@ div.song div.ui-icon-tag {\
 }
 ttTools.tags.views = {
 
-  add : {
-    file : null,
-
+  playlist : {
     render : function () {
-      util.showOverlay(util.buildTree(this.tree()));
-      var file = this.file;
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+div.song div.ui-icon-tag {\
+  margin: 0;\
+  top: 24px;\
+  right: 5px;\
+  width: 16px;\
+  height: 16px;\
+  cursor: pointer;\
+  position: absolute;\
+}\
+      "}).appendTo(document.head);
+      this.update();
+    },
+
+    update : function () {
+      $('div.song div.ui-icon-tag').remove();
+      var elements = $('div.song')
+        .unbind('click')
+        .on('click', function(e) {
+          ttTools.tags.views.add.render($(this).closest('.song').data('songData'));
+        });
+      ttTools.tags.getFids(function (tx, result) {
+        var fids = [];
+        for (var i=0; i<result.rows.length; i++) {
+          fids.push(result.rows.item(i).fid);
+        }
+        elements.each(function (index, element) {
+          element = $(element);
+          var fid = element.closest('.song').data('songData').fileId;
+          if ($.inArray(fid, fids) > -1) {
+            $('<div/>', {
+              'class' : 'ui-icon ui-icon-tag',
+              title   : 'This song is ttTagged'
+            }).appendTo(element);
+          }
+        });
+      });
+    }
+  },
+
+  add : {
+    render : function (file) {
+      util.showOverlay(util.buildTree(this.tree(file)));
+
+      $('<style/>', {
+        type : 'text/css',
+        text : "\
+div.tagsinput { border:1px solid #CCC; background: #FFF; padding:5px; width:300px; height:100px; overflow-y: auto;}\
+div.tagsinput span.tag { border: 1px solid #a5d24a; -moz-border-radius:2px; -webkit-border-radius:2px; display: block; float: left; padding: 5px; text-decoration:none; background: #cde69c; color: #638421; margin-right: 5px; margin-bottom:5px;font-family: helvetica;  font-size:13px;}\
+div.tagsinput span.tag a { font-weight: bold; color: #82ad2b; text-decoration:none; font-size: 11px;  }\
+div.tagsinput input { width:80px; margin:0px; font-family: helvetica; font-size: 13px; border:1px solid transparent; padding:5px; background: transparent; color: #000; outline:0px;  margin-right:5px; margin-bottom:5px; }\
+div.tagsinput div { display:block; float: left; }\
+.tags_clear { clear: both; width: 100%; height: 0px; }\
+.not_valid {background: #FBD8DB !important; color: #90111A !important;}\
+      "}).appendTo($('div.tagsOverlay.modal'));
 
       ttTools.tags.getAll(function (tx, result) {
         var tags = {};
@@ -1546,7 +1637,7 @@ ttTools.tags.views = {
       });
 
       ttTools.tags.getTagsForFid(
-        this.file.fileId,
+        file.fileId,
         function (tx, result) {
           for (var i=0; i<result.rows.length; i++) {
             $('#tags').addTag(result.rows.item(i).tag, {
@@ -1557,19 +1648,19 @@ ttTools.tags.views = {
       );
     },
 
-    tree : function () {
-      return ['div.settingsOverlay.modal', {},
+    tree : function (file) {
+      return ['div.tagsOverlay.modal', {},
         ['div.close-x', {
           event : {
             click : function () {
               util.hideOverlay();
-              ttTools.tags.updateQueue();
+              ttTools.tags.views.playlist.update();
             }
           }
         }],
         ['br'],
-        ['h1', this.file.metadata.song],
-        ['div', {}, this.file.metadata.artist],
+        ['h1', file.metadata.song],
+        ['div', {}, file.metadata.artist],
         ['br'],
         ['input#tags', { type : 'text' }]
       ];
@@ -1623,7 +1714,7 @@ ttTools.portability = {
               $(song.tags).each(function (index, tag) {
                 if ($.inArray(tag, tags) < 0) {
                   ttTools.tags.addTag(song.fileId, tag, function (tx, result) {
-                    ttTools.tags.updateQueue();
+                    ttTools.tags.views.playlist.update();
                   });
                 }
               });
@@ -1717,7 +1808,7 @@ div#importProgress {\
       $('span#importCount').html(completed);
       $('div#importProgressBar').progressbar('option', 'value', (completed / total) * 100);
       if (completed == total) {
-        if (ttTools.database.isSupported()) ttTools.tags.updateQueue();
+        if (ttTools.database.isSupported()) ttTools.tags.views.playlist.update();
         $('div#importProgress').hide();
       }
     },
@@ -1823,5 +1914,5 @@ div.portability.modal div.rightAlign { text-align: right; }\
     }
   }
 }
-ttTools.release = 1332578556;
+ttTools.release = 1333047103;
 ttTools.load(0);
