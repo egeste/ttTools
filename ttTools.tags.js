@@ -2,46 +2,45 @@ ttTools.tags = {
 
   dbTable : 'tags',
 
-  // This class needs to be re-thought
-  loadRetry : 30,
-  load : function (retry) {
-    if (!ttTools.database.isSupported()) return;
-    if (!turntable.playlist || turntable.playlist.files == 0) {
-      if (retry > ttTools.tags.loadRetry) { return alert('Could not load ttTools tagging.'); }
-      var callback = function () { ttTools.tags.load(retry++); }
-      return setTimeout(callback, 1000);
+  playlistLoaded : function () {
+    var defer = $.Deferred();
+    var resolveWhenReady = function () {
+      if (turntable && turntable.playlist && turntable.playlist.files)
+        return defer.resolve();
+      setTimeout(resolveWhenReady, 500);
     }
-    ttTools.tags.init();
+    resolveWhenReady();
+    return defer.promise();
   },
 
   init : function () {
     this.createTable();
     this.views.playlist.render();
+    this.defaults();
+  },
+
+  defaults : function () {
+    this.views.playlist.update();
     this.override_filterQueue();
   },
 
   override_filterQueue : function () {
-    turntable.playlist.addSong.toString = Function.prototype.toString;
-    turntable.playlist.filterQueue_ttTools = turntable.playlist.filterQueue;
+    // turntable.playlist.addSong.toString = Function.prototype.toString;
+    if (!turntable.playlist.filterQueue_ttTools)
+      turntable.playlist.filterQueue_ttTools = turntable.playlist.filterQueue;
     turntable.playlist.filterQueue = function (filter) {
       turntable.playlist.filterQueue_ttTools(filter);
       if (filter.length > 0) {
-        ttTools.tags.getFidsForTagLike(
-          filter,
-          function (tx, result) {
-            var fids = [];
-            for (var i=0; i<result.rows.length; i++) {
-              fids.push(result.rows.item(i).fid);
-            }
-            $('div.queue div.song:hidden').each(function(index, value) {
-              var element = $(value);
-              var fid = element.data('songData').fileId;
-              if ($.inArray(fid, fids) > -1) {
-                element.closest('.song').show().addClass('filtered');
-              }
-            });
-          }
-        );
+        ttTools.tags.getFidsForTagLike(filter, function (tx, result) {
+          var fids = [];
+          for (var i=0; i<result.rows.length; i++) { fids.push(result.rows.item(i).fid); }
+          $('div.queue div.song:hidden').each(function(index, element) {
+            var element = $(element);
+            var fid = element.data('songData').fileId;
+            if ($.inArray(fid, fids) > -1)
+              element.closest('.song').show().addClass('filtered');
+          });
+        });
       }
     }
   },

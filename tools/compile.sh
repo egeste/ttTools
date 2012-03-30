@@ -22,20 +22,19 @@ jsFiles=(
 for file in ${jsFiles[@]}; do jsFileList="${jsFileList}${file} "; done
 
 if [ $1 == 'test' ]; then
-  mkdir -p releases/test
-  cat $jsFileList > releases/test/ttTools.js
-  echo "ttTools.release = 540374400;" >> releases/test/ttTools.js
-  echo "ttTools.load(0);" >> releases/test/ttTools.js
+  target="releases/test"
+  epoch=540374400
 elif [ $1 == 'release' ]; then
+  target="releases/latest"
   epoch=$2
   if [ -z $epoch ]; then epoch=`date +%s`; fi
-  mkdir -p releases/latest
-  cat $jsFileList > releases/latest/ttTools.js
-  echo "ttTools.release = $epoch;" >> releases/latest/ttTools.js
-  echo "ttTools.load(0);" >> releases/latest/ttTools.js
-  $jsmin < releases/latest/ttTools.js > releases/latest/ttTools.min.js
-elif [ $1 == 'extension' ]; then
-  zip -r ../ttTools-loader.zip extension/*
 else
   echo "Unknown action ${1}"
+  exit 1
 fi
+
+mkdir -p $target
+cat $jsFileList > "${target}/ttTools.js"
+echo "ttTools.release = new Date(${epoch}000);" >> "${target}/ttTools.js"
+echo "$.when(ttTools.roomLoaded()).then($.proxy(ttTools.init, ttTools));" >> "${target}/ttTools.js"
+$jsmin < "${target}/ttTools.js" > "${target}/ttTools.min.js"

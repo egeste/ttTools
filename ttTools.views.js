@@ -13,8 +13,8 @@ ttTools.views = {
     render : function () {
       util.showOverlay(util.buildTree(this.tree()));
       $('div.settingsOverlay.modal')
-        .append(ttTools.constants.submitIssue)
-        .append(ttTools.constants.donateButton);
+        .append(ttTools.constants.submitIssue())
+        .append(ttTools.constants.donateButton());
 
       $('<style/>', {
         type : 'text/css',
@@ -88,7 +88,7 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
           }
         }],
         ['h1', 'ttTools'],
-        ['div', {}, 'Released: ' + (new Date(ttTools.release * ttTools.constants.time.seconds)).toGMTString()],
+        ['div', {}, 'Released: ' + ttTools.release.toUTCString()],
         ['br'],
         ['div', {},
           ['span', {}, 'Auto Song-Drop Threshold '],
@@ -130,9 +130,9 @@ div.modal ul li {\
       "}).appendTo($('div.modal'));
       $('div.modal div:first')
         .html('')
-        .append(ttTools.constants.whatsNew)
-        .append(ttTools.constants.submitIssue)
-        .append(ttTools.constants.donateButton);
+        .append(ttTools.constants.whatsNew())
+        .append(ttTools.constants.submitIssue())
+        .append(ttTools.constants.donateButton());
     }
   },
 
@@ -368,9 +368,6 @@ div#guestDialog div.guest-list-container div.guests {\
   position:relative;\
 }\
       "}).appendTo(document.head);
-      $('<div/>', { id : 'voteCount' }).appendTo($('div.chatHeader'));
-      ttObjects.room.updateGuestList();
-      this.update();
       $('<div/>', { id : 'guestDialog' }).appendTo(document.body);
       this.setupDialog();
     },
@@ -402,7 +399,17 @@ div#guestDialog div.guest-list-container div.guests {\
             $('span#totalUsers').prependTo('div.guestListSize');
           }
         });
+    },
 
+    update : function () {
+      ttTools.views.users.updateVoteCount();
+      $('div.guests .guest').each(function (index, element) {
+        ttTools.views.users.updateUser(element.id);
+      });
+    },
+
+    modifyContainer : function () {
+      $('<div/>', { id : 'voteCount' }).appendTo($('div.chatHeader'));
       $('div.guest-list-container div.guestListButton')
         .after($('<div/>', { 'class' : 'guestButton ui-state-default popout' })
             .append($('<div/>', { 'class' : 'ui-icon ui-icon-newwin' }))
@@ -410,7 +417,6 @@ div#guestDialog div.guest-list-container div.guests {\
               $('div#guestDialog').dialog('open');
             })
         );
-
       $('div.chat-container div.guestListButton')
         .after($('<div/>', { 'class' : 'guestButton ui-state-default', style : 'border-left:0;' })
             .hide()
@@ -419,13 +425,6 @@ div#guestDialog div.guest-list-container div.guests {\
               $('div#guestDialog').dialog('close');
             })
         );
-    },
-
-    update : function () {
-      ttTools.views.users.updateVoteCount();
-      $('div.guests .guest').each(function (index, element) {
-        ttTools.views.users.updateUser(element.id);
-      });
     },
 
     updateVoteCount : function () {
@@ -518,7 +517,6 @@ div#guestDialog div.guest-list-container div.guests {\
 .playlist-container .song .goBottom:hover { background-position:0 0 !important; }\
 .playlist-container .song.topSong .goBottom { display:none; }\
       "}).appendTo(document.head);
-      this.update();
     },
 
     update : function () {

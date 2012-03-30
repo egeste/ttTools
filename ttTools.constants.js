@@ -1,37 +1,40 @@
 ttTools.constants = {
-  whatsNew : "\
-    <h2>What's New in ttTools?</h2>\
-    <br />\
-    <h3>March 29</h3>\
-    <ul>\
-      <li>Added several developers to the 'hackers' list</li>\
-      <li>Unified the toolbar</li>\
-      <li>Fixed/updated autovote code properly</li>\
-      <li>Added 'Drop Song' button to playlist <a href='http://tttools.egeste.net/features/extras#drop-song' target='_blank'>[?]</a></li>\
-      <li>Added 'Auto Drop Song' feature <a href='http://tttools.egeste.net/features/extras#auto-drop-song' target='_blank'>[?]</a></li>\
-    </ul>\
-    <br/>\
-  ",
+  whatsNew : function () {
+    return "\
+<h2>What's New in ttTools?</h2>\
+<br />\
+<h3>" +
+  ttTools.constants.months[ttTools.release.getMonth()] + " " +
+  ttTools.release.getDate() + ", " +
+  ttTools.release.getFullYear() +
+"</h3>\
+<ul>\
+  <li>ttTools is now persistent when you change rooms via the 'List Rooms' or 'Random Room' buttons</li>\
+</ul>\
+<br/>";
+  },
 
-  donateButton : "\
-    <h3>Do you &lt;3 ttTools?</h3>\
-    <form action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>\
-    <input type='hidden' name='cmd' value='_s-xclick'>\
-    <input type='hidden' name='hosted_button_id' value='ZNTHAXPNKMKBN'>\
-    <input type='image' src='https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif' border='0' name='submit' alt='PayPal - The safer, easier way to pay online!'>\
-    <img alt='' border='0' src='https://www.paypalobjects.com/en_US/i/scr/pixel.gif' width='1' height='1'>\
-    </form>\
-    <br />\
-  ",
+  donateButton : function () {
+    return "\
+<h3>Do you &lt;3 ttTools?</h3>\
+<form action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>\
+<input type='hidden' name='cmd' value='_s-xclick'>\
+<input type='hidden' name='hosted_button_id' value='ZNTHAXPNKMKBN'>\
+<input type='image' src='https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif' border='0' name='submit' alt='PayPal - The safer, easier way to pay online!'>\
+<img alt='' border='0' src='https://www.paypalobjects.com/en_US/i/scr/pixel.gif' width='1' height='1'>\
+</form>\
+<br />";
+  },
 
-  submitIssue : "\
-    <h3>Found a bug? Want a feature?</h3>\
-    <p>\
-      It's impossible to keep track of bugs and feature requests unless they're centralized.<br/>\
-      <a href='https://github.com/egeste/ttTools/issues' target='_blank'>Please submit all bugs and feature requests here.</a>\
-    </p>\
-    <br/>\
-  ",
+  submitIssue : function () {
+    return "\
+<h3>Found a bug? Want a feature?</h3>\
+<p>\
+  It's impossible to keep track of bugs and feature requests unless they're centralized.<br/>\
+  <a href='https://github.com/egeste/ttTools/issues' target='_blank'>Please submit all bugs and feature requests here.</a>\
+</p>\
+<br/>";
+  },
 
   time : {
     seconds : 1000,
@@ -42,6 +45,21 @@ ttTools.constants = {
     months  : 30 * 7 * 24 * 60 * 60 * 1000,
     years   : 365 * 30 * 7 * 24 * 60 * 60 * 1000
   },
+
+  months : [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ],
 
   hackers : [
     '4deadb0f4fe7d013dc0555f1', // @alain_gilbert

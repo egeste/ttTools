@@ -15,7 +15,6 @@ div.song div.ui-icon-tag {\
   position: absolute;\
 }\
       "}).appendTo(document.head);
-      this.update();
     },
 
     update : function () {

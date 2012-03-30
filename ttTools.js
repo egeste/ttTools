@@ -1,14 +1,14 @@
 ttTools = {
 
-  // This shit needs to go... There's got to be a better way...
-  loadRetry : 30,
-  load : function (retry) {
-    if (!turntable || !ttObjects.getManager()) {
-      if (retry > ttTools.loadRetry) { return alert('Could not load ttTools.'); }
-      var callback = function () { ttTools.load(retry++); }
-      return setTimeout(callback, 1000);
+  roomLoaded : function () {
+    var defer = $.Deferred();
+    var resolveWhenReady = function () {
+      if (turntable && ttObjects.getManager() && ttObjects.getApi())
+        return defer.resolve();
+      setTimeout(resolveWhenReady, 500);
     }
-    ttTools.init();
+    resolveWhenReady();
+    return defer.promise();
   },
 
   init : function() {
@@ -18,15 +18,14 @@ ttTools = {
       href : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/sunny/jquery-ui.css'
     }).appendTo(document.head);
 
-    this.roomChanged();
-
     this.views.menu.render();
     this.views.users.render();
     this.views.toolbar.render();
     this.views.playlist.render();
 
     // TODO: Cloudify tags
-    this.tags.load(0);
+    $.when(ttTools.tags.playlistLoaded())
+      .then($.proxy(ttTools.tags.init, ttTools.tags))
     this.portability.init();
 
     // Register event listeners
@@ -38,7 +37,34 @@ ttTools = {
       clearTimeout(ttTools.autoVote.timeout);
     });
 
+    this.defaults();
     this.checkVersion();
+  },
+
+  defaults : function () {
+    // Cancel any timeouts
+    clearTimeout(this.autoDJ.timeout);
+    clearTimeout(this.autoVote.timeout);
+    // Initialize state machines
+    this.userActivityLog.init();
+    this.autoDJ.setEnabled(false);
+    this.autoVote.setEnabled(this.autoVote.enabled());
+    this.autoVote.execute();
+    this.animations.setEnabled(this.animations.enabled());
+    this.downVotes.downvotes = 0;
+    this.downVotes.downvoters = [];
+    // Override internals
+    this.override_idleTime();
+    this.override_removeDj();
+    this.override_guestListName();
+    this.override_updateGuestList();
+    // Update views
+    this.views.playlist.update();
+    this.views.users.modifyContainer();
+    ttObjects.room.updateGuestList();
+    // Call defaults for modules
+    $.when(ttTools.tags.playlistLoaded())
+      .then($.proxy(ttTools.tags.defaults, ttTools.tags));
   },
 
   // Event listeners
@@ -47,7 +73,15 @@ ttTools = {
   },
 
   messageEvent : function (message) {
-    if (typeof message.msgid !== 'undefined') return;
+    if (typeof message.msgid !== 'undefined') {
+      if (typeof message.users !== 'undefined'
+      && typeof message.room === 'object'
+      && typeof message.room.metadata === 'object'
+      && typeof message.room.metadata.songlog !== 'undefined') {
+        return $.when(this.roomLoaded()).then($.proxy(this.roomChanged, this));
+      }
+      return;
+    }
 
     switch (message.command) {
       case 'speak':
@@ -75,13 +109,6 @@ ttTools = {
       default:
         return console.warn(message);
     }
-
-    // Courtesy of Frick
-    if (typeof message.users !== 'undefined'
-      && typeof message.room === 'object'
-      && typeof message.room.metadata === 'object'
-      && typeof message.room.metadata.songlog !== 'undefined')
-        return this.roomChanged();
   },
 
   reconnectEvent : function (message) {
@@ -108,16 +135,8 @@ ttTools = {
     this.tags.views.playlist.update();
   },
 
-  roomChanged : function (message) {
-    ttObjects.getApi();
-    ttObjects.getManager();
-    this.userActivityLog.init();
-    this.autoDJ.setEnabled(false);
-    this.animations.setEnabled(this.animations.enabled());
-    this.override_idleTime();
-    this.override_removeDj();
-    this.override_guestListName();
-    this.override_updateGuestList();
+  roomChanged : function () {
+    this.defaults();
   },
 
   searchComplete : function (message) {
@@ -356,7 +375,8 @@ ttTools = {
 
   // Overrides
   override_guestListName : function () {
-    Room.layouts.guestListName_ttTools = Room.layouts.guestListName;
+    if (!Room.layouts.guestListName_ttTools)
+      Room.layouts.guestListName_ttTools = Room.layouts.guestListName;
     Room.layouts.guestListName = function (user, room, selected) {
       var tree = this.guestListName_ttTools(user, room, selected);
       var div = tree[0].split('.');
@@ -366,7 +386,8 @@ ttTools = {
     }
   },
   override_updateGuestList : function () {
-    ttObjects.room.updateGuestList_ttTools = ttObjects.room.updateGuestList;
+    if (!ttObjects.room.updateGuestList_ttTools)
+      ttObjects.room.updateGuestList_ttTools = ttObjects.room.updateGuestList;
     ttObjects.room.updateGuestList = function () {
       this.updateGuestList_ttTools();
       ttTools.views.users.update();
@@ -378,7 +399,8 @@ ttTools = {
     };
   },
   override_removeDj : function () {
-    ttObjects.room.removeDj_ttTools = ttObjects.room.removeDj;
+    if (!ttObjects.room.removeDj_ttTools)
+      ttObjects.room.removeDj_ttTools = ttObjects.room.removeDj;
     ttObjects.room.removeDj = function (uid) {
       ttTools.autoDJ.execute();
       this.removeDj_ttTools(uid);
@@ -387,8 +409,8 @@ ttTools = {
 
   // Utility functions
   checkVersion : function () {
-    if (parseInt($.cookie('ttTools_release')) !== ttTools.release) {
-      $.cookie('ttTools_release', ttTools.release);
+    if (parseInt($.cookie('ttTools_release')) !== ttTools.release.UTC()) {
+      $.cookie('ttTools_release', ttTools.release.UTC());
       this.views.info.render();
     }
   },
