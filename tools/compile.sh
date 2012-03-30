@@ -27,7 +27,8 @@ if [ $1 == 'test' ]; then
   echo "ttTools.release = 540374400;" >> releases/test/ttTools.js
   echo "ttTools.load(0);" >> releases/test/ttTools.js
 elif [ $1 == 'release' ]; then
-  epoch=`date +%s`
+  epoch=$2
+  if [ -z $epoch ]; then epoch=`date +%s`; fi
   mkdir -p releases/latest
   cat $jsFileList > releases/latest/ttTools.js
   echo "ttTools.release = $epoch;" >> releases/latest/ttTools.js
