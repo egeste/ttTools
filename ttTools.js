@@ -404,17 +404,19 @@ ttTools = {
   },
   moveSongToBottom : function (fid) {
     if ($.inArray(fid, Object.keys(turntable.playlist.songsByFid)) === -1) return;
+    var maxIndex = turntable.playlist.files.length - 1;
+    maxIndex += (ttObjects.room.currentDj === turntable.user.id) ? -1 : 0;
     $(turntable.playlist.files).each(function (index, file) {
-      if (index === turntable.playlist.files.length) return false;
       if (file.fileId !== fid) return;
+      if (index === maxIndex) return false;
       turntable.playlist.files.splice(index, 1);
-      turntable.playlist.files.push(file);
+      turntable.playlist.files.splice(maxIndex, 0, file);
       turntable.playlist.updatePlaylist(null, true);
       ttObjects.api({
         api: "playlist.reorder",
         playlist_name: "default",
         index_from: index,
-        index_to: turntable.playlist.files.length
+        index_to: maxIndex
       });
       return false;
     });
