@@ -409,8 +409,8 @@ ttTools = {
 
   // Utility functions
   checkVersion : function () {
-    if (parseInt($.cookie('ttTools_release')) !== ttTools.release.UTC()) {
-      $.cookie('ttTools_release', ttTools.release.UTC());
+    if (parseInt($.cookie('ttTools_release')) !== ttTools.release.getTime()) {
+      $.cookie('ttTools_release', ttTools.release.getTime());
       this.views.info.render();
     }
   },
