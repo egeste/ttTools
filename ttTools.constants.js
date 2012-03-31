@@ -10,6 +10,7 @@ ttTools.constants = {
 "</h3>\
 <ul>\
   <li>ttTools is now persistent when you change rooms via the 'List Rooms' or 'Random Room' buttons</li>\
+  <li>Images are pre-loaded as b64 blobs instead of downloading from github (hoping this fixes the \"missing bottom button\" issue)</li>\
 </ul>\
 <br/>";
   },

@@ -7,20 +7,6 @@ if [ -z $jsmin ]; then echo 'jsmin not found'; exit 1; fi
 
 if [ -z $1 ]; then echo 'No option specified'; exit 1; fi
 
-jsFiles=(
-  'jquery-tags/jquery.tagsinput.js'
-  'ttObjects/ttObjects.js'
-  'ttTools.js'
-  'ttTools.constants.js'
-  'ttTools.views.js'
-  'ttTools.database.js'
-  'ttTools.tags.js'
-  'ttTools.tags.views.js'
-  'ttTools.portability.js'
-  'ttTools.portability.views.js'
-)
-for file in ${jsFiles[@]}; do jsFileList="${jsFileList}${file} "; done
-
 if [ $1 == 'extension' ]; then
   zip -r ../ttTools-loader.zip extension/*
   exit 0
@@ -36,8 +22,29 @@ else
   exit 1
 fi
 
+jsFiles=(
+  'jquery-tags/jquery.tagsinput.js'
+  'ttObjects/ttObjects.js'
+  'ttTools.js'
+  'ttTools.views.js'
+  'ttTools.database.js'
+  'ttTools.tags.js'
+  'ttTools.tags.views.js'
+  'ttTools.portability.js'
+  'ttTools.portability.views.js'
+  'ttTools.constants.js'
+)
+for file in ${jsFiles[@]}; do jsFileList="${jsFileList}${file} "; done
+
+customIcons=$(openssl enc -base64 -in images/custom-icons.png | tr -d '\n')
+bottomButton=$(openssl enc -base64 -in images/bottom.png | tr -d '\n')
+
 mkdir -p $target
 cat $jsFileList > "${target}/ttTools.js"
+echo "ttTools.images = {" >> "${target}/ttTools.js"
+echo "  customIcons : \"data:image/png;base64,${customIcons}\"," >> "${target}/ttTools.js"
+echo "  bottomButton : \"data:image/png;base64,${bottomButton}\"," >> "${target}/ttTools.js"
+echo "}" >> "${target}/ttTools.js"
 echo "ttTools.release = new Date(${epoch}000);" >> "${target}/ttTools.js"
 echo "$.when(ttTools.roomLoaded()).then($.proxy(ttTools.init, ttTools));" >> "${target}/ttTools.js"
 $jsmin < "${target}/ttTools.js" > "${target}/ttTools.min.js"
