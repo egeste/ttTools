@@ -21,7 +21,10 @@ jsFiles=(
 )
 for file in ${jsFiles[@]}; do jsFileList="${jsFileList}${file} "; done
 
-if [ $1 == 'test' ]; then
+if [ $1 == 'extension' ]; then
+  zip -r ../ttTools-loader.zip extension/*
+  exit 0
+elif [ $1 == 'test' ]; then
   target="releases/test"
   epoch=540374400
 elif [ $1 == 'release' ]; then
