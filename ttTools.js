@@ -377,13 +377,13 @@ ttTools = {
     if (!turntable.playlist.setPlaylistHeight_ttTools)
       turntable.playlist.setPlaylistHeight_ttTools = turntable.playlist.setPlaylistHeight;
     turntable.playlist.setPlaylistHeight = function (a) {
-      var a = this.setPlaylistHeightFunc(a);
+      var a = this.setPlaylistHeight_ttTools(a);
       $(turntable.playlist.nodes.root).find(".queueView .songlist").css({
           height: Math.max(a - 120, 55)
       });
       return a;
     }
-  }
+  },
   override_guestListName : function () {
     if (!Room.layouts.guestListName_ttTools)
       Room.layouts.guestListName_ttTools = Room.layouts.guestListName;
