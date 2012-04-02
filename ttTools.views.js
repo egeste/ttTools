@@ -139,14 +139,6 @@ div.modal ul li {\
   // UI stuff
   toolbar : {
     render : function () {
-      turntable.playlist.setPlaylistHeightFunc = turntable.playlist.setPlaylistHeight;
-      turntable.playlist.setPlaylistHeight = function (a) {
-        var a = this.setPlaylistHeightFunc(a);
-        $(turntable.playlist.nodes.root).find(".queueView .songlist").css({
-            height: Math.max(a - 120, 55)
-        });
-        return a;
-      }
       turntable.playlist.setPlaylistHeight($('div.chat-container').css('top').replace('px', ''));
 
       $('<style/>', {
@@ -173,7 +165,7 @@ div#playlistTools div#buttons { margin:0 12px; }\
 div#playlistTools div#buttons .ui-button-text { padding:2px 3px; }\
 div#playlistTools div#buttons button { width:auto; height:auto; margin-right:-1px; }\
 div#playlistTools div#buttons button .ui-button-text { padding:10px 11px; }\
-div#playlistTools .custom-icons { background:url(" + ttTools.images.customIcons + "); }\
+div#playlistTools .custom-icons { background:url(" + ttTools.resources.customIcons + "); }\
 div#playlistTools .custom-icons.youtube { background-position:0 0; }\
 div#playlistTools .custom-icons.dice { background-position:17px 0; }\
 div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
@@ -512,7 +504,7 @@ div#guestDialog div.guest-list-container div.guests {\
   cursor:pointer;\
   position:absolute;\
   background-position:0 17px !important;\
-  background:url(" + ttTools.images.bottomButton + ");\
+  background:url(" + ttTools.resources.bottomButton + ");\
 }\
 .playlist-container .song .goBottom:hover { background-position:0 0 !important; }\
 .playlist-container .song.topSong .goBottom { display:none; }\

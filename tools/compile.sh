@@ -41,7 +41,7 @@ bottomButton=$(openssl enc -base64 -in images/bottom.png | tr -d '\n')
 
 mkdir -p $target
 cat $jsFileList > "${target}/ttTools.js"
-echo "ttTools.images = {" >> "${target}/ttTools.js"
+echo "ttTools.resources = {" >> "${target}/ttTools.js"
 echo "  customIcons : \"data:image/png;base64,${customIcons}\"," >> "${target}/ttTools.js"
 echo "  bottomButton : \"data:image/png;base64,${bottomButton}\"," >> "${target}/ttTools.js"
 echo "}" >> "${target}/ttTools.js"

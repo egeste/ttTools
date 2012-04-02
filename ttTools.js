@@ -58,6 +58,7 @@ ttTools = {
     this.override_removeDj();
     this.override_guestListName();
     this.override_updateGuestList();
+    this.override_setPlaylistHeight();
     // Update views
     this.views.playlist.update();
     this.views.users.modifyContainer();
@@ -194,18 +195,16 @@ ttTools = {
       var enabled = this.enabled();
       if (enabled) {
         this.timeout = setTimeout(function() {
-          turntable.whenSocketConnected(function() {
-            if (ttObjects.room.currentSong) {
-              ttObjects.api({
-                api: 'room.vote',
-                roomid: ttObjects.room.roomId,
-                val: enabled,
-                vh: $.sha1(ttObjects.room.roomId + enabled + ttObjects.room.currentSong._id),
-                th: $.sha1(Math.random() + ""),
-                ph: $.sha1(Math.random() + "")
-              });
-            }
-          });
+          if (ttObjects.room.currentSong) {
+            ttObjects.api({
+              api: 'room.vote',
+              roomid: ttObjects.room.roomId,
+              val: enabled,
+              vh: $.sha1(ttObjects.room.roomId + enabled + ttObjects.room.currentSong._id),
+              th: $.sha1(Math.random() + ""),
+              ph: $.sha1(Math.random() + "")
+            });
+          }
         }, this.delay());
       }
     }
@@ -374,6 +373,17 @@ ttTools = {
   },
 
   // Overrides
+  override_setPlaylistHeight : function () {
+    if (!turntable.playlist.setPlaylistHeight_ttTools)
+      turntable.playlist.setPlaylistHeight_ttTools = turntable.playlist.setPlaylistHeight;
+    turntable.playlist.setPlaylistHeight = function (a) {
+      var a = this.setPlaylistHeightFunc(a);
+      $(turntable.playlist.nodes.root).find(".queueView .songlist").css({
+          height: Math.max(a - 120, 55)
+      });
+      return a;
+    }
+  }
   override_guestListName : function () {
     if (!Room.layouts.guestListName_ttTools)
       Room.layouts.guestListName_ttTools = Room.layouts.guestListName;
