@@ -254,38 +254,8 @@ ttTools = {
       $.cookie('ttTools_animations_enabled', enabled);
       enabled ? ttTools.animations.enable() : ttTools.animations.disable();
     },
-    enable : function () {
-      if (ttObjects.manager.add_animation_to_ttTools)
-        ttObjects.manager.add_animation_to = ttObjects.manager.add_animation_to_ttTools;
-      if (ttObjects.manager.speak_ttTools)
-        ttObjects.manager.speak = ttObjects.manager.speak_ttTools;
-
-      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
-        var dancer = ttObjects.manager.djs_uid[uid][0];
-        if (uid === ttObjects.room.currentDj)
-          return ttObjects.manager.add_animation_to(dancer, 'bob');
-        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
-          return ttObjects.manager.add_animation_to(dancer, 'rock');
-      });
-
-      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
-        var dancer = ttObjects.manager.listeners[uid];
-        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
-          return ttObjects.manager.add_animation_to(dancer, 'rock');
-      });
-    },
-    disable : function () {
-      ttObjects.manager.add_animation_to_ttTools = ttObjects.manager.add_animation_to;
-      ttObjects.manager.add_animation_to = $.noop;
-      ttObjects.manager.speak_ttTools = ttObjects.manager.speak;
-      ttObjects.manager.speak = $.noop;
-      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
-        ttObjects.manager.djs_uid[uid][0].stop();
-      });
-      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
-        ttObjects.manager.listeners[uid].stop();
-      });
-    }
+    enable : function () {console.log('Did not enable animations, html5 not supported');},
+    disable : function () {console.log('Did not disable animations, html5 not supported');}
   },
 
   idleIndicator : {
