@@ -2,44 +2,50 @@ ttTools.tags.views = {
 
   playlist : {
     render : function () {
-      $('<style/>', {
-        type : 'text/css',
-        text : "\
-div.song div.ui-icon-tag {\
-  margin: 0;\
-  top: 24px;\
-  right: 5px;\
-  width: 16px;\
-  height: 16px;\
-  cursor: pointer;\
-  position: absolute;\
-}\
+    if(tags.isSupported()){
+        $('<style/>', {
+            type : 'text/css',
+            text : "\
+            div.song div.ui-icon-tag {\
+              margin: 0;\
+              top: 24px;\
+              right: 5px;\
+              width: 16px;\
+              height: 16px;\
+              cursor: pointer;\
+              position: absolute;\
+            }\
       "}).appendTo(document.head);
+
+    }
+
     },
 
     update : function () {
-      $('div.song div.ui-icon-tag').remove();
-      var elements = $('div.song')
-        .unbind('click')
-        .on('click', function(e) {
-          ttTools.tags.views.add.render($(this).closest('.song').data('songData'));
-        });
-      ttTools.tags.getFids(function (tx, result) {
-        var fids = [];
-        for (var i=0; i<result.rows.length; i++) {
-          fids.push(result.rows.item(i).fid);
+      if(tags.isSupported()){
+          $('div.song div.ui-icon-tag').remove();
+          var elements = $('div.song')
+            .unbind('click')
+            .on('click', function(e) {
+              ttTools.tags.views.add.render($(this).closest('.song').data('songData'));
+            });
+          ttTools.tags.getFids(function (tx, result) {
+            var fids = [];
+            for (var i=0; i<result.rows.length; i++) {
+              fids.push(result.rows.item(i).fid);
+            }
+            elements.each(function (index, element) {
+              element = $(element);
+              var fid = element.closest('.song').data('songData').fileId;
+              if ($.inArray(fid, fids) > -1) {
+                $('<div/>', {
+                  'class' : 'ui-icon ui-icon-tag',
+                  title   : 'This song is ttTagged'
+                }).appendTo(element);
+              }
+            });
+          });
         }
-        elements.each(function (index, element) {
-          element = $(element);
-          var fid = element.closest('.song').data('songData').fileId;
-          if ($.inArray(fid, fids) > -1) {
-            $('<div/>', {
-              'class' : 'ui-icon ui-icon-tag',
-              title   : 'This song is ttTagged'
-            }).appendTo(element);
-          }
-        });
-      });
     }
   },
 
