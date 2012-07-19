@@ -46,12 +46,24 @@ ttTools = {
         ttObjects.api({
             api: 'room.vote',
             roomid: ttObjects.room.roomId,
+            val: 'up',
+            vh: $.sha1(ttObjects.room.roomId + 'up' + ttObjects.room.currentSong._id),
+            th: $.sha1(Math.random() + ""),
+            ph: $.sha1(Math.random() + "")
+        });
+        setTimeout(function() {
+          ttObjects.api({
+            api: 'room.vote',
+            roomid: ttObjects.room.roomId,
             val: 'down',
             vh: $.sha1(ttObjects.room.roomId + 'down' + ttObjects.room.currentSong._id),
             th: $.sha1(Math.random() + ""),
             ph: $.sha1(Math.random() + "")
-        });
-        console.log('Lamed')
+          });
+          console.log('Lamed')
+        }, 2500)
+
+
     });
   },
 
