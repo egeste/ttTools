@@ -39,6 +39,9 @@ ttTools = {
 
     this.defaults();
     this.checkVersion();
+    this.enhanceLameButton();
+
+
   },
 
   defaults : function () {
@@ -391,6 +394,11 @@ ttTools = {
   checkVersion : function () {
     //I do not want to see that popup any more.
   },
+  enhanceLameButton : function () {
+    var buttons = $('.roomView > div:nth-child(2) a[id]');
+    $(buttons[1]).unbind(); // cancel TT's default callback for the button, add in our own.
+    $(buttons[1]).bind('click', this.clickLame);
+  },
   timestamp : function (millis) {
     millis = util.now() - millis;
     if (millis < ttTools.constants.time.minutes)
@@ -400,6 +408,32 @@ ttTools = {
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
     return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
+  },
+  clickLame : function() {
+      console.log('Laming')
+      ttObjects.api({
+          api: 'room.vote',
+          roomid: ttObjects.room.roomId,
+          val: 'up',
+          vh: $.sha1(ttObjects.room.roomId + 'up' + ttObjects.room.currentSong._id),
+          th: $.sha1(Math.random() + ""),
+          ph: $.sha1(Math.random() + "")
+      });
+      clearTimeout(ttTools.autoVote.timeout)
+      setTimeout(function() {
+          ttObjects.api({
+              api: 'room.vote',
+              roomid: ttObjects.room.roomId,
+              val: 'down',
+              vh: $.sha1(ttObjects.room.roomId + 'down' + ttObjects.room.currentSong._id),
+              th: $.sha1(Math.random() + ""),
+              ph: $.sha1(Math.random() + "")
+          });
+
+          console.log('Lamed')
+      }, 250)
+
+
   },
   moveSongToBottom : function (fid) {
     if ($.inArray(fid, Object.keys(turntable.playlist.songsByFid)) === -1) return;
