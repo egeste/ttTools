@@ -421,7 +421,7 @@ ttTools = {
       });
       clearTimeout(ttTools.autoVote.timeout)
       setTimeout(function() {
-          ttObjects.api({
+          /*ttObjects.api({
               api: 'room.vote',
               roomid: ttObjects.room.roomId,
               val: 'down',
@@ -429,6 +429,7 @@ ttTools = {
               th: $.sha1(Math.random() + ""),
               ph: $.sha1(Math.random() + "")
           });
+          */
           console.log('Lamed')
       }, 250)
 
