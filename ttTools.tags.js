@@ -4,19 +4,24 @@ ttTools.tags = {
 
   playlistLoaded : function () {
     var defer = $.Deferred();
-    var resolveWhenReady = function () {
-      if (turntable && turntable.playlist && turntable.playlist.files)
-        return defer.resolve();
-      setTimeout(resolveWhenReady, 500);
+    if(this.isSupported()){
+        var resolveWhenReady = function () {
+            if (turntable && turntable.playlist && turntable.playlist.files)
+                return defer.resolve();
+            setTimeout(resolveWhenReady, 500);
+        }
+        resolveWhenReady();
     }
-    resolveWhenReady();
     return defer.promise();
   },
-
+  isSupported : function () {
+        return ttTools.database.isSupported()
+  },
   init : function () {
-    $('<style/>', {
-        type : 'text/css',
-        text : "\
+    if(this.isSupported()){
+        $('<style/>', {
+            type : 'text/css',
+            text : "\
 div.tagsinput { border:1px solid #CCC; background: #FFF; padding:5px; width:300px; height:100px; overflow-y: auto;}\
 div.tagsinput span.tag { border: 1px solid #a5d24a; -moz-border-radius:2px; -webkit-border-radius:2px; display: block; float: left; padding: 5px; text-decoration:none; background: #cde69c; color: #638421; margin-right: 5px; margin-bottom:5px;font-family: helvetica;  font-size:13px;}\
 div.tagsinput span.tag a { font-weight: bold; color: #82ad2b; text-decoration:none; font-size: 11px;  }\
@@ -25,9 +30,10 @@ div.tagsinput div { display:block; float: left; }\
 .tags_clear { clear: both; width: 100%; height: 0px; }\
 .not_valid {background: #FBD8DB !important; color: #90111A !important;}\
       "}).appendTo(document.head);
-    this.createTable();
-    this.views.playlist.render();
-    this.defaults();
+        this.createTable();
+        this.views.playlist.render();
+        this.defaults();
+    }
   },
 
   defaults : function () {
