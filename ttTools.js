@@ -51,6 +51,7 @@ ttTools = {
             th: $.sha1(Math.random() + ""),
             ph: $.sha1(Math.random() + "")
         });
+        clearTimeout(ttTools.autoVote.timeout)
         setTimeout(function() {
           ttObjects.api({
             api: 'room.vote',
@@ -61,7 +62,7 @@ ttTools = {
             ph: $.sha1(Math.random() + "")
           });
           console.log('Lamed')
-        }, 2500)
+        }, 250)
 
 
     });
