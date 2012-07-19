@@ -178,7 +178,7 @@ ttTools = {
     enabled : function () {
       var enabled = $.cookie('ttTools_autoVote_enabled');
       if (enabled === null || enabled === 'false') return false;
-      return enabled;
+      return 'up';//Always return up if enabled, prevent down even when set in cookie.
     },
     setEnabled : function (enabled) {
       $.cookie('ttTools_autoVote_enabled', enabled);

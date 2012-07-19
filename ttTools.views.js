@@ -297,7 +297,7 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
     update : function () {
       $('#autoDJ').prop('checked', ttTools.autoDJ.enabled()).button('refresh');
       $('#autoAwesome').prop('checked', ttTools.autoVote.enabled() === 'up').button('refresh');
-      $('#autoLame').prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
+      //$('#autoLame').prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
     }
   },
 
