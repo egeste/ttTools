@@ -395,9 +395,13 @@ ttTools = {
     //I do not want to see that popup any more.
   },
   enhanceLameButton : function () {
-    var buttons = $('.roomView > div:nth-child(2) a[id]');
-    $(buttons[1]).unbind(); // cancel TT's default callback for the button, add in our own.
-    $(buttons[1]).bind('click', this.clickLame);
+    if(ttObjects.room.moderators.indexOf(ttObjects.manager.myuserid)==-1){
+        //Room users will expose their lames, mods will not.
+        var buttons = $('.roomView > div:nth-child(2) a[id]');
+        $(buttons[1]).unbind(); // cancel TT's default callback for the button, add in our own.
+        $(buttons[1]).bind('click', this.clickLame);
+    }
+
   },
   timestamp : function (millis) {
     millis = util.now() - millis;
@@ -409,6 +413,7 @@ ttTools = {
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
     return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
   },
+
   clickLame : function() {
       console.log('Laming')
       ttObjects.api({
