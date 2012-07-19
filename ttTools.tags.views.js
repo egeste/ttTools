@@ -2,7 +2,7 @@ ttTools.tags.views = {
 
   playlist : {
     render : function () {
-    if(tags.isSupported()){
+    if(ttTools.tags.isSupported()){
         $('<style/>', {
             type : 'text/css',
             text : "\
@@ -22,7 +22,7 @@ ttTools.tags.views = {
     },
 
     update : function () {
-      if(tags.isSupported()){
+      if(ttTools.tags.isSupported()){
           $('div.song div.ui-icon-tag').remove();
           var elements = $('div.song')
             .unbind('click')

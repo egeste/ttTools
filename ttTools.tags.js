@@ -15,7 +15,7 @@ ttTools.tags = {
     return defer.promise();
   },
   isSupported : function () {
-        return database.isSupported()
+        return ttTools.database.isSupported()
   },
   init : function () {
     if(this.isSupported()){
