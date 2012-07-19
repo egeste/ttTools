@@ -39,6 +39,20 @@ ttTools = {
 
     this.defaults();
     this.checkVersion();
+    var buttons = $('.roomView > div:nth-child(2) a[id]');
+    $(buttons[1]).unbind(); // cancel TT's default callback for the button, add in our own.
+    $(buttons[1]).bind('click', function() {
+        console.log('Laming')
+        ttObjects.api({
+            api: 'room.vote',
+            roomid: ttObjects.room.roomId,
+            val: 'down',
+            vh: $.sha1(ttObjects.room.roomId + 'down' + ttObjects.room.currentSong._id),
+            th: $.sha1(Math.random() + ""),
+            ph: $.sha1(Math.random() + "")
+        });
+        console.log('Lamed')
+    });
   },
 
   defaults : function () {
