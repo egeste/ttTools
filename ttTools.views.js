@@ -278,11 +278,11 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
           ['input#autoDJ', { type : 'checkbox' }],
           ['label', { 'for' : 'autoDJ' },
             ['span.ui-icon.ui-icon-person', { title: 'Attempt to get the next DJ spot' }],
-          ],
+          ],/*
           ['input#animations', { type : 'checkbox' }],
           ['label', { 'for' : 'animations' },
             ['span.ui-icon.ui-icon-video', { title: 'Toggle animations on/off' }]
-          ],
+          ],*/
           ['button#youtube', { title: 'Search YouTube' }],
           ['button#soundcloud', { title: 'Search SoundCloud' }],
           ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
