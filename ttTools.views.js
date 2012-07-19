@@ -58,8 +58,8 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
       });
 
       $('div#autoDJDelay').slider({
-        min   : 0,
-        max   : 5 * ttTools.constants.time.seconds,
+        min   : 0.5 * ttTools.constants.time.seconds,
+        max   : 25 * ttTools.constants.time.seconds,
         step  : ttTools.constants.time.seconds / 10, // Tenths of a second
         value : ttTools.autoDJ.delay(),
         slide : function (event, ui) {

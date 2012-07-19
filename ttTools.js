@@ -389,10 +389,7 @@ ttTools = {
 
   // Utility functions
   checkVersion : function () {
-    if (parseInt($.cookie('ttTools_release')) !== ttTools.release.getTime()) {
-      $.cookie('ttTools_release', ttTools.release.getTime());
-      this.views.info.render();
-    }
+    //I do not want to see that popup any more.
   },
   timestamp : function (millis) {
     millis = util.now() - millis;
