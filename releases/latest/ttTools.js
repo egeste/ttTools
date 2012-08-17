@@ -1,394 +1,393 @@
 /*
 
-	jQuery Tags Input Plugin 1.3.3
-	
-	Copyright (c) 2011 XOXCO, Inc
-	
-	Documentation for this plugin lives here:
-	http://xoxco.com/clickable/jquery-tags-input
-	
-	Licensed under the MIT license:
-	http://www.opensource.org/licenses/mit-license.php
+ jQuery Tags Input Plugin 1.3.3
 
-	ben@xoxco.com
+ Copyright (c) 2011 XOXCO, Inc
 
-*/
+ Documentation for this plugin lives here:
+ http://xoxco.com/clickable/jquery-tags-input
+
+ Licensed under the MIT license:
+ http://www.opensource.org/licenses/mit-license.php
+
+ ben@xoxco.com
+
+ */
 
 (function($) {
 
-	var delimiter = new Array();
-	var tags_callbacks = new Array();
-	$.fn.doAutosize = function(o){
-	    var minWidth = $(this).data('minwidth'),
-	        maxWidth = $(this).data('maxwidth'),
-	        val = '',
-	        input = $(this),
-	        testSubject = $('#'+$(this).data('tester_id'));
-	
-	    if (val === (val = input.val())) {return;}
-	
-	    // Enter new content into testSubject
-	    var escaped = val.replace(/&/g, '&amp;').replace(/\s/g,' ').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-	    testSubject.html(escaped);
-	    // Calculate new width + whether to change
-	    var testerWidth = testSubject.width(),
-	        newWidth = (testerWidth + o.comfortZone) >= minWidth ? testerWidth + o.comfortZone : minWidth,
-	        currentWidth = input.width(),
-	        isValidWidthChange = (newWidth < currentWidth && newWidth >= minWidth)
-	                             || (newWidth > minWidth && newWidth < maxWidth);
-	
-	    // Animate width
-	    if (isValidWidthChange) {
-	        input.width(newWidth);
-	    }
+    var delimiter = new Array();
+    var tags_callbacks = new Array();
+    $.fn.doAutosize = function(o){
+        var minWidth = $(this).data('minwidth'),
+            maxWidth = $(this).data('maxwidth'),
+            val = '',
+            input = $(this),
+            testSubject = $('#'+$(this).data('tester_id'));
+
+        if (val === (val = input.val())) {return;}
+
+        // Enter new content into testSubject
+        var escaped = val.replace(/&/g, '&amp;').replace(/\s/g,' ').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        testSubject.html(escaped);
+        // Calculate new width + whether to change
+        var testerWidth = testSubject.width(),
+            newWidth = (testerWidth + o.comfortZone) >= minWidth ? testerWidth + o.comfortZone : minWidth,
+            currentWidth = input.width(),
+            isValidWidthChange = (newWidth < currentWidth && newWidth >= minWidth)
+                || (newWidth > minWidth && newWidth < maxWidth);
+
+        // Animate width
+        if (isValidWidthChange) {
+            input.width(newWidth);
+        }
 
 
-  };
-  $.fn.resetAutosize = function(options){
-    // alert(JSON.stringify(options));
-    var minWidth =  $(this).data('minwidth') || options.minInputWidth || $(this).width(),
-        maxWidth = $(this).data('maxwidth') || options.maxInputWidth || ($(this).closest('.tagsinput').width() - options.inputPadding),
-        val = '',
-        input = $(this),
-        testSubject = $('<tester/>').css({
-            position: 'absolute',
-            top: -9999,
-            left: -9999,
-            width: 'auto',
-            fontSize: input.css('fontSize'),
-            fontFamily: input.css('fontFamily'),
-            fontWeight: input.css('fontWeight'),
-            letterSpacing: input.css('letterSpacing'),
-            whiteSpace: 'nowrap'
-        }),
-        testerId = $(this).attr('id')+'_autosize_tester';
-    if(! $('#'+testerId).length > 0){
-      testSubject.attr('id', testerId);
-      testSubject.appendTo('body');
-    }
+    };
+    $.fn.resetAutosize = function(options){
+        // alert(JSON.stringify(options));
+        var minWidth =  $(this).data('minwidth') || options.minInputWidth || $(this).width(),
+            maxWidth = $(this).data('maxwidth') || options.maxInputWidth || ($(this).closest('.tagsinput').width() - options.inputPadding),
+            val = '',
+            input = $(this),
+            testSubject = $('<tester/>').css({
+                position: 'absolute',
+                top: -9999,
+                left: -9999,
+                width: 'auto',
+                fontSize: input.css('fontSize'),
+                fontFamily: input.css('fontFamily'),
+                fontWeight: input.css('fontWeight'),
+                letterSpacing: input.css('letterSpacing'),
+                whiteSpace: 'nowrap'
+            }),
+            testerId = $(this).attr('id')+'_autosize_tester';
+        if(! $('#'+testerId).length > 0){
+            testSubject.attr('id', testerId);
+            testSubject.appendTo('body');
+        }
 
-    input.data('minwidth', minWidth);
-    input.data('maxwidth', maxWidth);
-    input.data('tester_id', testerId);
-    input.css('width', minWidth);
-  };
-  
-	$.fn.addTag = function(value,options) {
-			options = jQuery.extend({focus:false,callback:true},options);
-			this.each(function() { 
-				var id = $(this).attr('id');
+        input.data('minwidth', minWidth);
+        input.data('maxwidth', maxWidth);
+        input.data('tester_id', testerId);
+        input.css('width', minWidth);
+    };
 
-				var tagslist = $(this).val().split(delimiter[id]);
-				if (tagslist[0] == '') { 
-					tagslist = new Array();
-				}
+    $.fn.addTag = function(value,options) {
+        options = jQuery.extend({focus:false,callback:true},options);
+        this.each(function() {
+            var id = $(this).attr('id');
 
-				value = jQuery.trim(value);
-		
-				if (options.unique) {
-					var skipTag = $(tagslist).tagExist(value);
-					if(skipTag == true) {
-					    //Marks fake input as not_valid to let styling it
-    				    $('#'+id+'_tag').addClass('not_valid');
-    				}
-				} else {
-					var skipTag = false; 
-				}
-				
-				if (value !='' && skipTag != true) { 
-                    $('<span>').addClass('tag').append(
-                        $('<span>').text(value).append('&nbsp;&nbsp;'),
-                        $('<a>', {
-                            href  : '#',
-                            title : 'Removing tag',
-                            text  : 'x'
-                        }).click(function () {
+            var tagslist = $(this).val().split(delimiter[id]);
+            if (tagslist[0] == '') {
+                tagslist = new Array();
+            }
+
+            value = jQuery.trim(value);
+
+            if (options.unique) {
+                var skipTag = $(tagslist).tagExist(value);
+                if(skipTag == true) {
+                    //Marks fake input as not_valid to let styling it
+                    $('#'+id+'_tag').addClass('not_valid');
+                }
+            } else {
+                var skipTag = false;
+            }
+
+            if (value !='' && skipTag != true) {
+                $('<span>').addClass('tag').append(
+                    $('<span>').text(value).append('&nbsp;&nbsp;'),
+                    $('<a>', {
+                        href  : '#',
+                        title : 'Removing tag',
+                        text  : 'x'
+                    }).click(function () {
                             return $('#' + id).removeTag(escape(value));
                         })
-                    ).insertBefore('#' + id + '_addTag');
+                ).insertBefore('#' + id + '_addTag');
 
-					tagslist.push(value);
-				
-					$('#'+id+'_tag').val('');
-					if (options.focus) {
-						$('#'+id+'_tag').focus();
-					} else {		
-						$('#'+id+'_tag').blur();
-					}
-					
-					$.fn.tagsInput.updateTagsField(this,tagslist);
-					
-					if (options.callback && tags_callbacks[id] && tags_callbacks[id]['onAddTag']) {
-						var f = tags_callbacks[id]['onAddTag'];
-						f.call(this, value);
-					}
-					if(tags_callbacks[id] && tags_callbacks[id]['onChange'])
-					{
-						var i = tagslist.length;
-						var f = tags_callbacks[id]['onChange'];
-						f.call(this, $(this), tagslist[i-1]);
-					}					
-				}
-		
-			});		
-			
-			return false;
-		};
-		
-	$.fn.removeTag = function(value) { 
-			value = unescape(value);
-			this.each(function() { 
-				var id = $(this).attr('id');
-	
-				var old = $(this).val().split(delimiter[id]);
-					
-				$('#'+id+'_tagsinput .tag').remove();
-				str = '';
-				for (i=0; i< old.length; i++) { 
-					if (old[i]!=value) { 
-						str = str + delimiter[id] +old[i];
-					}
-				}
-				
-				$.fn.tagsInput.importTags(this,str);
+                tagslist.push(value);
 
-				if (tags_callbacks[id] && tags_callbacks[id]['onRemoveTag']) {
-					var f = tags_callbacks[id]['onRemoveTag'];
-					f.call(this, value);
-				}
-			});
-					
-			return false;
-		};
-	
-	$.fn.tagExist = function(val) {
-		return (jQuery.inArray(val, $(this)) >= 0); //true when tag exists, false when not
-	};
-	
-	// clear all existing tags and import new ones from a string
-	$.fn.importTags = function(str) {
-                id = $(this).attr('id');
-		$('#'+id+'_tagsinput .tag').remove();
-		$.fn.tagsInput.importTags(this,str);
-	}
-		
-	$.fn.tagsInput = function(options) { 
-    var settings = jQuery.extend({
-      interactive:true,
-      defaultText:'add a tag',
-      minChars:0,
-      width:'300px',
-      height:'100px',
-      autocomplete: {selectFirst: false },
-      'hide':true,
-      'delimiter':',',
-      'unique':true,
-      removeWithBackspace:true,
-      placeholderColor:'#666666',
-      autosize: true,
-      comfortZone: 20,
-      inputPadding: 6*2
-    },options);
+                $('#'+id+'_tag').val('');
+                if (options.focus) {
+                    $('#'+id+'_tag').focus();
+                } else {
+                    $('#'+id+'_tag').blur();
+                }
 
-		this.each(function() { 
-			if (settings.hide) { 
-				$(this).hide();				
-			}
-				
-			var id = $(this).attr('id')
-			
-			var data = jQuery.extend({
-				pid:id,
-				real_input: '#'+id,
-				holder: '#'+id+'_tagsinput',
-				input_wrapper: '#'+id+'_addTag',
-				fake_input: '#'+id+'_tag'
-			},settings);
-	
-			delimiter[id] = data.delimiter;
-			
-			if (settings.onAddTag || settings.onRemoveTag || settings.onChange) {
-				tags_callbacks[id] = new Array();
-				tags_callbacks[id]['onAddTag'] = settings.onAddTag;
-				tags_callbacks[id]['onRemoveTag'] = settings.onRemoveTag;
-				tags_callbacks[id]['onChange'] = settings.onChange;
-			}
-	
-			var markup = '<div id="'+id+'_tagsinput" class="tagsinput"><div id="'+id+'_addTag">';
-			
-			if (settings.interactive) {
-				markup = markup + '<input id="'+id+'_tag" value="" data-default="'+settings.defaultText+'" />';
-			}
-			
-			markup = markup + '</div><div class="tags_clear"></div></div>';
-			
-			$(markup).insertAfter(this);
+                $.fn.tagsInput.updateTagsField(this,tagslist);
 
-			$(data.holder).css('width',settings.width);
-			$(data.holder).css('height',settings.height);
-	
-			if ($(data.real_input).val()!='') { 
-				$.fn.tagsInput.importTags($(data.real_input),$(data.real_input).val());
-			}		
-			if (settings.interactive) { 
-				$(data.fake_input).val($(data.fake_input).attr('data-default'));
-				$(data.fake_input).css('color',settings.placeholderColor);
-		        $(data.fake_input).resetAutosize(settings);
-		
-				$(data.holder).bind('click',data,function(event) {
-					$(event.data.fake_input).focus();
-				});
-			
-				$(data.fake_input).bind('focus',data,function(event) {
-					if ($(event.data.fake_input).val()==$(event.data.fake_input).attr('data-default')) { 
-						$(event.data.fake_input).val('');
-					}
-					$(event.data.fake_input).css('color','#000000');		
-				});
-						
-				if (settings.autocomplete_url != undefined) {
-					autocomplete_options = {source: settings.autocomplete_url};
-					for (attrname in settings.autocomplete) { 
-						autocomplete_options[attrname] = settings.autocomplete[attrname]; 
-					}
-				
-					if (jQuery.Autocompleter !== undefined) {
-						$(data.fake_input).autocomplete(settings.autocomplete_url, settings.autocomplete);
-						$(data.fake_input).bind('result',data,function(event,data,formatted) {
-							if (data) {
-								$('#'+id).addTag(data[0] + "",{focus:true,unique:(settings.unique)});
-							}
-					  	});
-					} else if (jQuery.ui.autocomplete !== undefined) {
-						$(data.fake_input).autocomplete(autocomplete_options);
-						$(data.fake_input).bind('autocompleteselect',data,function(event,ui) {
-							$(event.data.real_input).addTag(ui.item.value,{focus:true,unique:(settings.unique)});
-							return false;
-						});
-					}
-				
-					
-				} else {
-						// if a user tabs out of the field, create a new tag
-						// this is only available if autocomplete is not used.
-						$(data.fake_input).bind('blur',data,function(event) { 
-							var d = $(this).attr('data-default');
-							if ($(event.data.fake_input).val()!='' && $(event.data.fake_input).val()!=d) { 
-								if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)) )
-									$(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
-							} else {
-								$(event.data.fake_input).val($(event.data.fake_input).attr('data-default'));
-								$(event.data.fake_input).css('color',settings.placeholderColor);
-							}
-							return false;
-						});
-				
-				}
-				// if user types a comma, create a new tag
-				$(data.fake_input).bind('keypress',data,function(event) {
-					if (event.which==event.data.delimiter.charCodeAt(0) || event.which==13 ) {
-					    event.preventDefault();
-						if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)) )
-							$(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
-					  	$(event.data.fake_input).resetAutosize(settings);
-						return false;
-					} else if (event.data.autosize) {
-			            $(event.data.fake_input).doAutosize(settings);
-            
-          			}
-				});
-				//Delete last tag on backspace
-				data.removeWithBackspace && $(data.fake_input).bind('keydown', function(event)
-				{
-					if(event.keyCode == 8 && $(this).val() == '')
-					{
-						 event.preventDefault();
-						 var last_tag = $(this).closest('.tagsinput').find('.tag:last').text();
-						 var id = $(this).attr('id').replace(/_tag$/, '');
-						 last_tag = last_tag.replace(/[\s]+x$/, '');
-						 $('#' + id).removeTag(escape(last_tag));
-						 $(this).trigger('focus');
-					}
-				});
-				$(data.fake_input).blur();
-				
-				//Removes the not_valid class when user changes the value of the fake input
-				if(data.unique) {
-				    $(data.fake_input).keydown(function(event){
-				        if(event.keyCode == 8 || String.fromCharCode(event.which).match(/\w+|[áéíóúÁÉÍÓÚñÑ,/]+/)) {
-				            $(this).removeClass('not_valid');
-				        }
-				    });
-				}
-			} // if settings.interactive
-			return false;
-		});
-			
-		return this;
-	
-	};
-	
-	$.fn.tagsInput.updateTagsField = function(obj,tagslist) { 
-		var id = $(obj).attr('id');
-		$(obj).val(tagslist.join(delimiter[id]));
-	};
-	
-	$.fn.tagsInput.importTags = function(obj,val) {			
-		$(obj).val('');
-		var id = $(obj).attr('id');
-		var tags = val.split(delimiter[id]);
-		for (i=0; i<tags.length; i++) { 
-			$(obj).addTag(tags[i],{focus:false,callback:false});
-		}
-		if(tags_callbacks[id] && tags_callbacks[id]['onChange'])
-		{
-			var f = tags_callbacks[id]['onChange'];
-			f.call(obj, obj, tags[i]);
-		}
-	};
+                if (options.callback && tags_callbacks[id] && tags_callbacks[id]['onAddTag']) {
+                    var f = tags_callbacks[id]['onAddTag'];
+                    f.call(this, value);
+                }
+                if(tags_callbacks[id] && tags_callbacks[id]['onChange'])
+                {
+                    var i = tagslist.length;
+                    var f = tags_callbacks[id]['onChange'];
+                    f.call(this, $(this), tagslist[i-1]);
+                }
+            }
 
-})(jQuery);
-ttObjects = {
-  room : null,
-  getRoom : function() {
-    for (var memberName in turntable) {
-      var member = turntable[memberName];
-      if (typeof member !== 'object' || member === null) continue;
-      if (typeof member.setupRoom !== 'undefined') {
-        ttObjects.room = member;
-        return member;
-      }
+        });
+
+        return false;
+    };
+
+    $.fn.removeTag = function(value) {
+        value = unescape(value);
+        this.each(function() {
+            var id = $(this).attr('id');
+
+            var old = $(this).val().split(delimiter[id]);
+
+            $('#'+id+'_tagsinput .tag').remove();
+            str = '';
+            for (i=0; i< old.length; i++) {
+                if (old[i]!=value) {
+                    str = str + delimiter[id] +old[i];
+                }
+            }
+
+            $.fn.tagsInput.importTags(this,str);
+
+            if (tags_callbacks[id] && tags_callbacks[id]['onRemoveTag']) {
+                var f = tags_callbacks[id]['onRemoveTag'];
+                f.call(this, value);
+            }
+        });
+
+        return false;
+    };
+
+    $.fn.tagExist = function(val) {
+        return (jQuery.inArray(val, $(this)) >= 0); //true when tag exists, false when not
+    };
+
+    // clear all existing tags and import new ones from a string
+    $.fn.importTags = function(str) {
+        id = $(this).attr('id');
+        $('#'+id+'_tagsinput .tag').remove();
+        $.fn.tagsInput.importTags(this,str);
     }
-    return false;
-  },
 
-  manager : null,
-  getManager : function() {
-    for (var memberName in ttObjects.getRoom()) {
-      var member = ttObjects.room[memberName];
-      if (typeof member !== 'object' || member === null) continue;
-      if (typeof member.blackswan !== 'undefined') {
-        ttObjects.manager = member;
-        return member;
-      }
-    }
-    return false;
-  },
+    $.fn.tagsInput = function(options) {
+        var settings = jQuery.extend({
+            interactive:true,
+            defaultText:'add a tag',
+            minChars:0,
+            width:'300px',
+            height:'100px',
+            autocomplete: {selectFirst: false },
+            'hide':true,
+            'delimiter':',',
+            'unique':true,
+            removeWithBackspace:true,
+            placeholderColor:'#666666',
+            autosize: true,
+            comfortZone: 20,
+            inputPadding: 6*2
+        },options);
 
-  api : null,
-  getApi: function () {
-    var apiRegex = / Preparing message /i;
-    for (var memberName in turntable) {
-      var member = turntable[memberName];
-      if (typeof member !== 'function') continue;
-      member.toString = Function.prototype.toString;
-      if (apiRegex.test(member.toString())) {
-        ttObjects.api = member;
-        return member;
-      }
+        this.each(function() {
+            if (settings.hide) {
+                $(this).hide();
+            }
+
+            var id = $(this).attr('id')
+
+            var data = jQuery.extend({
+                pid:id,
+                real_input: '#'+id,
+                holder: '#'+id+'_tagsinput',
+                input_wrapper: '#'+id+'_addTag',
+                fake_input: '#'+id+'_tag'
+            },settings);
+
+            delimiter[id] = data.delimiter;
+
+            if (settings.onAddTag || settings.onRemoveTag || settings.onChange) {
+                tags_callbacks[id] = new Array();
+                tags_callbacks[id]['onAddTag'] = settings.onAddTag;
+                tags_callbacks[id]['onRemoveTag'] = settings.onRemoveTag;
+                tags_callbacks[id]['onChange'] = settings.onChange;
+            }
+
+            var markup = '<div id="'+id+'_tagsinput" class="tagsinput"><div id="'+id+'_addTag">';
+
+            if (settings.interactive) {
+                markup = markup + '<input id="'+id+'_tag" value="" data-default="'+settings.defaultText+'" />';
+            }
+
+            markup = markup + '</div><div class="tags_clear"></div></div>';
+
+            $(markup).insertAfter(this);
+
+            $(data.holder).css('width',settings.width);
+            $(data.holder).css('height',settings.height);
+
+            if ($(data.real_input).val()!='') {
+                $.fn.tagsInput.importTags($(data.real_input),$(data.real_input).val());
+            }
+            if (settings.interactive) {
+                $(data.fake_input).val($(data.fake_input).attr('data-default'));
+                $(data.fake_input).css('color',settings.placeholderColor);
+                $(data.fake_input).resetAutosize(settings);
+
+                $(data.holder).bind('click',data,function(event) {
+                    $(event.data.fake_input).focus();
+                });
+
+                $(data.fake_input).bind('focus',data,function(event) {
+                    if ($(event.data.fake_input).val()==$(event.data.fake_input).attr('data-default')) {
+                        $(event.data.fake_input).val('');
+                    }
+                    $(event.data.fake_input).css('color','#000000');
+                });
+
+                if (settings.autocomplete_url != undefined) {
+                    autocomplete_options = {source: settings.autocomplete_url};
+                    for (attrname in settings.autocomplete) {
+                        autocomplete_options[attrname] = settings.autocomplete[attrname];
+                    }
+
+                    if (jQuery.Autocompleter !== undefined) {
+                        $(data.fake_input).autocomplete(settings.autocomplete_url, settings.autocomplete);
+                        $(data.fake_input).bind('result',data,function(event,data,formatted) {
+                            if (data) {
+                                $('#'+id).addTag(data[0] + "",{focus:true,unique:(settings.unique)});
+                            }
+                        });
+                    } else if (jQuery.ui.autocomplete !== undefined) {
+                        $(data.fake_input).autocomplete(autocomplete_options);
+                        $(data.fake_input).bind('autocompleteselect',data,function(event,ui) {
+                            $(event.data.real_input).addTag(ui.item.value,{focus:true,unique:(settings.unique)});
+                            return false;
+                        });
+                    }
+
+
+                } else {
+                    // if a user tabs out of the field, create a new tag
+                    // this is only available if autocomplete is not used.
+                    $(data.fake_input).bind('blur',data,function(event) {
+                        var d = $(this).attr('data-default');
+                        if ($(event.data.fake_input).val()!='' && $(event.data.fake_input).val()!=d) {
+                            if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)) )
+                                $(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
+                        } else {
+                            $(event.data.fake_input).val($(event.data.fake_input).attr('data-default'));
+                            $(event.data.fake_input).css('color',settings.placeholderColor);
+                        }
+                        return false;
+                    });
+
+                }
+                // if user types a comma, create a new tag
+                $(data.fake_input).bind('keypress',data,function(event) {
+                    if (event.which==event.data.delimiter.charCodeAt(0) || event.which==13 ) {
+                        event.preventDefault();
+                        if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)) )
+                            $(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
+                        $(event.data.fake_input).resetAutosize(settings);
+                        return false;
+                    } else if (event.data.autosize) {
+                        $(event.data.fake_input).doAutosize(settings);
+
+                    }
+                });
+                //Delete last tag on backspace
+                data.removeWithBackspace && $(data.fake_input).bind('keydown', function(event)
+                {
+                    if(event.keyCode == 8 && $(this).val() == '')
+                    {
+                        event.preventDefault();
+                        var last_tag = $(this).closest('.tagsinput').find('.tag:last').text();
+                        var id = $(this).attr('id').replace(/_tag$/, '');
+                        last_tag = last_tag.replace(/[\s]+x$/, '');
+                        $('#' + id).removeTag(escape(last_tag));
+                        $(this).trigger('focus');
+                    }
+                });
+                $(data.fake_input).blur();
+
+                //Removes the not_valid class when user changes the value of the fake input
+                if(data.unique) {
+                    $(data.fake_input).keydown(function(event){
+                        if(event.keyCode == 8 || String.fromCharCode(event.which).match(/\w+|[áéíóúÁÉÍÓÚñÑ,/]+/)) {
+                            $(this).removeClass('not_valid');
+                        }
+                    });
+                }
+            } // if settings.interactive
+            return false;
+        });
+
+        return this;
+
+    };
+
+    $.fn.tagsInput.updateTagsField = function(obj,tagslist) {
+        var id = $(obj).attr('id');
+        $(obj).val(tagslist.join(delimiter[id]));
+    };
+
+    $.fn.tagsInput.importTags = function(obj,val) {
+        $(obj).val('');
+        var id = $(obj).attr('id');
+        var tags = val.split(delimiter[id]);
+        for (i=0; i<tags.length; i++) {
+            $(obj).addTag(tags[i],{focus:false,callback:false});
+        }
+        if(tags_callbacks[id] && tags_callbacks[id]['onChange'])
+        {
+            var f = tags_callbacks[id]['onChange'];
+            f.call(obj, obj, tags[i]);
+        }
+    };
+
+})(jQuery);ttObjects = {
+    room : null,
+    getRoom : function() {
+        for (var memberName in turntable) {
+            var member = turntable[memberName];
+            if (typeof member !== 'object' || member === null) continue;
+            if (typeof member.setupRoom !== 'undefined') {
+                ttObjects.room = member;
+                return member;
+            }
+        }
+        return false;
+    },
+
+    manager : null,
+    getManager : function() {
+        for (var memberName in ttObjects.getRoom()) {
+            var member = ttObjects.room[memberName];
+            if (typeof member !== 'object' || member === null) continue;
+            if (typeof member.blackswan !== 'undefined') {
+                ttObjects.manager = member;
+                return member;
+            }
+        }
+        return false;
+    },
+
+    api : null,
+    getApi: function () {
+        var apiRegex = / Preparing message /i;
+        for (var memberName in turntable) {
+            var member = turntable[memberName];
+            if (typeof member !== 'function') continue;
+            member.toString = Function.prototype.toString;
+            if (apiRegex.test(member.toString())) {
+                ttObjects.api = member;
+                return member;
+            }
+        }
+        return false;
     }
-    return false;
-  }
 };ttTools = {
 
   roomLoaded : function () {
@@ -424,12 +423,16 @@ ttObjects = {
     turntable.addEventListener('message', $.proxy(this.messageEvent, this));
     turntable.addEventListener('reconnect', $.proxy(this.reconnectEvent, this));
     turntable.addEventListener('userinfo', $.proxy(this.userInfoEvent, this));
+
     $('div#top-panel').next().find('a[id]').on('click', function (e) {
       clearTimeout(ttTools.autoVote.timeout);
     });
 
     this.defaults();
     this.checkVersion();
+    this.enhanceLameButton();
+
+
   },
 
   defaults : function () {
@@ -569,7 +572,7 @@ ttObjects = {
     enabled : function () {
       var enabled = $.cookie('ttTools_autoVote_enabled');
       if (enabled === null || enabled === 'false') return false;
-      return enabled;
+      return 'up';//Always return up if enabled, prevent down even when set in cookie.
     },
     setEnabled : function (enabled) {
       $.cookie('ttTools_autoVote_enabled', enabled);
@@ -645,38 +648,8 @@ ttObjects = {
       $.cookie('ttTools_animations_enabled', enabled);
       enabled ? ttTools.animations.enable() : ttTools.animations.disable();
     },
-    enable : function () {
-      if (ttObjects.manager.add_animation_to_ttTools)
-        ttObjects.manager.add_animation_to = ttObjects.manager.add_animation_to_ttTools;
-      if (ttObjects.manager.speak_ttTools)
-        ttObjects.manager.speak = ttObjects.manager.speak_ttTools;
-
-      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
-        var dancer = ttObjects.manager.djs_uid[uid][0];
-        if (uid === ttObjects.room.currentDj)
-          return ttObjects.manager.add_animation_to(dancer, 'bob');
-        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
-          return ttObjects.manager.add_animation_to(dancer, 'rock');
-      });
-
-      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
-        var dancer = ttObjects.manager.listeners[uid];
-        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
-          return ttObjects.manager.add_animation_to(dancer, 'rock');
-      });
-    },
-    disable : function () {
-      ttObjects.manager.add_animation_to_ttTools = ttObjects.manager.add_animation_to;
-      ttObjects.manager.add_animation_to = $.noop;
-      ttObjects.manager.speak_ttTools = ttObjects.manager.speak;
-      ttObjects.manager.speak = $.noop;
-      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
-        ttObjects.manager.djs_uid[uid][0].stop();
-      });
-      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
-        ttObjects.manager.listeners[uid].stop();
-      });
-    }
+    enable : function () {console.log('Did not enable animations, html5 not supported');},
+    disable : function () {console.log('Did not disable animations, html5 not supported');}
   },
 
   idleIndicator : {
@@ -810,10 +783,16 @@ ttObjects = {
 
   // Utility functions
   checkVersion : function () {
-    if (parseInt($.cookie('ttTools_release')) !== ttTools.release.getTime()) {
-      $.cookie('ttTools_release', ttTools.release.getTime());
-      this.views.info.render();
+    //I do not want to see that popup any more.
+  },
+  enhanceLameButton : function () {
+    if(ttObjects.room.moderators.indexOf(ttObjects.manager.myuserid)==-1){
+        //Room users will expose their lames, mods will not.
+        var buttons = $('.roomView > div:nth-child(2) a[id]');
+        $(buttons[1]).unbind(); // cancel TT's default callback for the button, add in our own.
+        $(buttons[1]).bind('click', this.clickLame);
     }
+
   },
   timestamp : function (millis) {
     millis = util.now() - millis;
@@ -824,6 +803,33 @@ ttObjects = {
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
     return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
+  },
+
+  clickLame : function() {
+      console.log('Laming')
+      ttObjects.api({
+          api: 'room.vote',
+          roomid: ttObjects.room.roomId,
+          val: 'up',
+          vh: $.sha1(ttObjects.room.roomId + 'up' + ttObjects.room.currentSong._id),
+          th: $.sha1(Math.random() + ""),
+          ph: $.sha1(Math.random() + "")
+      });
+      clearTimeout(ttTools.autoVote.timeout)
+      setTimeout(function() {
+          ttObjects.api({
+              api: 'room.vote',
+              roomid: ttObjects.room.roomId,
+              val: 'down',
+              vh: $.sha1(ttObjects.room.roomId + 'down' + ttObjects.room.currentSong._id),
+              th: $.sha1(Math.random() + ""),
+              ph: $.sha1(Math.random() + "")
+          });
+
+          console.log('Lamed')
+      }, 250)
+
+
   },
   moveSongToBottom : function (fid) {
     if ($.inArray(fid, Object.keys(turntable.playlist.songsByFid)) === -1) return;
@@ -905,8 +911,8 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
       });
 
       $('div#autoDJDelay').slider({
-        min   : 0,
-        max   : 5 * ttTools.constants.time.seconds,
+        min   : 0.5 * ttTools.constants.time.seconds,
+        max   : 25 * ttTools.constants.time.seconds,
         step  : ttTools.constants.time.seconds / 10, // Tenths of a second
         value : ttTools.autoDJ.delay(),
         slide : function (event, ui) {
@@ -987,10 +993,11 @@ div.modal ul li {\
   toolbar : {
     render : function () {
       turntable.playlist.setPlaylistHeight($('div.chat-container').css('top').replace('px', ''));
-
+      $('#songs').addClass('top65')
       $('<style/>', {
         type : 'text/css',
         text : "\
+#songs.top65 {top:65px !important;}\
 div.queueView div.songlist { top:95px !important; }\
 div.queueView div.resultsLabel {\
   top:65px !important;\
@@ -1001,7 +1008,7 @@ div.queueView div.resultsLabel {\
 div#playlistTools {\
   left:0;\
   right:0;\
-  top:65px;\
+  top:38px;\
   height:2em;\
   padding:2px 0;\
   position:absolute;\
@@ -1019,7 +1026,7 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
-        $('form.playlistSearch')
+        $('form.song-search')
       );
 
       $('div#buttons').buttonset();
@@ -1118,22 +1125,24 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
           ['label', { 'for' : 'autoAwesome' },
             ['span.ui-icon.ui-icon-circle-arrow-n', { title: 'Automatically upvote songs' }],
           ],
-          ['input#autoLame', { type : 'checkbox' }],
+          /*['input#autoLame', { type : 'checkbox' }],
           ['label', { 'for' : 'autoLame' },
             ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically downvote songs' }],
-          ],
+          ],*/
           ['input#autoDJ', { type : 'checkbox' }],
           ['label', { 'for' : 'autoDJ' },
             ['span.ui-icon.ui-icon-person', { title: 'Attempt to get the next DJ spot' }],
-          ],
+          ],/*
           ['input#animations', { type : 'checkbox' }],
           ['label', { 'for' : 'animations' },
             ['span.ui-icon.ui-icon-video', { title: 'Toggle animations on/off' }]
-          ],
-          ['button#youtube', { title: 'Search YouTube' }],
+          ],*/
+          /*['button#youtube', { title: 'Search YouTube' }],
           ['button#soundcloud', { title: 'Search SoundCloud' }],
+          */
           ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
-          ['button#showTheLove', { title: 'Show The Love' }],
+          /*['button#showTheLove', { title: 'Show The Love' }],
+          */
           ['button#importExport', { title: 'Import/Export' }]
         ]
       ];
@@ -1142,7 +1151,7 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
     update : function () {
       $('#autoDJ').prop('checked', ttTools.autoDJ.enabled()).button('refresh');
       $('#autoAwesome').prop('checked', ttTools.autoVote.enabled() === 'up').button('refresh');
-      $('#autoLame').prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
+      //$('#autoLame').prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
     }
   },
 
@@ -1403,19 +1412,24 @@ ttTools.tags = {
 
   playlistLoaded : function () {
     var defer = $.Deferred();
-    var resolveWhenReady = function () {
-      if (turntable && turntable.playlist && turntable.playlist.files)
-        return defer.resolve();
-      setTimeout(resolveWhenReady, 500);
+    if(this.isSupported()){
+        var resolveWhenReady = function () {
+            if (turntable && turntable.playlist && turntable.playlist.files)
+                return defer.resolve();
+            setTimeout(resolveWhenReady, 500);
+        }
+        resolveWhenReady();
     }
-    resolveWhenReady();
     return defer.promise();
   },
-
+  isSupported : function () {
+        return ttTools.database.isSupported()
+  },
   init : function () {
-    $('<style/>', {
-        type : 'text/css',
-        text : "\
+    if(this.isSupported()){
+        $('<style/>', {
+            type : 'text/css',
+            text : "\
 div.tagsinput { border:1px solid #CCC; background: #FFF; padding:5px; width:300px; height:100px; overflow-y: auto;}\
 div.tagsinput span.tag { border: 1px solid #a5d24a; -moz-border-radius:2px; -webkit-border-radius:2px; display: block; float: left; padding: 5px; text-decoration:none; background: #cde69c; color: #638421; margin-right: 5px; margin-bottom:5px;font-family: helvetica;  font-size:13px;}\
 div.tagsinput span.tag a { font-weight: bold; color: #82ad2b; text-decoration:none; font-size: 11px;  }\
@@ -1424,9 +1438,10 @@ div.tagsinput div { display:block; float: left; }\
 .tags_clear { clear: both; width: 100%; height: 0px; }\
 .not_valid {background: #FBD8DB !important; color: #90111A !important;}\
       "}).appendTo(document.head);
-    this.createTable();
-    this.views.playlist.render();
-    this.defaults();
+        this.createTable();
+        this.views.playlist.render();
+        this.defaults();
+    }
   },
 
   defaults : function () {
@@ -1444,7 +1459,7 @@ div.tagsinput div { display:block; float: left; }\
         ttTools.tags.getFidsForTagLike(filter, function (tx, result) {
           var fids = [];
           for (var i=0; i<result.rows.length; i++) { fids.push(result.rows.item(i).fid); }
-          $('div.queue div.song:hidden').each(function(index, element) {
+          $('ul.songs li.song:hidden').each(function(index, element) {
             var element = $(element);
             var fid = element.data('songData').fileId;
             if ($.inArray(fid, fids) > -1)
@@ -1533,44 +1548,50 @@ ttTools.tags.views = {
 
   playlist : {
     render : function () {
-      $('<style/>', {
-        type : 'text/css',
-        text : "\
-div.song div.ui-icon-tag {\
-  margin: 0;\
-  top: 24px;\
-  right: 5px;\
-  width: 16px;\
-  height: 16px;\
-  cursor: pointer;\
-  position: absolute;\
-}\
+    if(ttTools.tags.isSupported()){
+        $('<style/>', {
+            type : 'text/css',
+            text : "\
+            li.song div.ui-icon-tag {\
+              margin: 0;\
+              top: 24px;\
+              right: 5px;\
+              width: 16px;\
+              height: 16px;\
+              cursor: pointer;\
+              position: absolute;\
+            }\
       "}).appendTo(document.head);
+
+    }
+
     },
 
     update : function () {
-      $('div.song div.ui-icon-tag').remove();
-      var elements = $('div.song')
-        .unbind('click')
-        .on('click', function(e) {
-          ttTools.tags.views.add.render($(this).closest('.song').data('songData'));
-        });
-      ttTools.tags.getFids(function (tx, result) {
-        var fids = [];
-        for (var i=0; i<result.rows.length; i++) {
-          fids.push(result.rows.item(i).fid);
+      if(ttTools.tags.isSupported()){
+          $('li.song div.ui-icon-tag').remove();
+          var elements = $('li.song .title')
+            .unbind('click')
+            .on('click', function(e) {
+              ttTools.tags.views.add.render($(this).closest('.song').data('songData'));
+            });
+          ttTools.tags.getFids(function (tx, result) {
+            var fids = [];
+            for (var i=0; i<result.rows.length; i++) {
+              fids.push(result.rows.item(i).fid);
+            }
+            elements.each(function (index, element) {
+              element = $(element);
+              var fid = element.closest('.song').data('songData').fileId;
+              if ($.inArray(fid, fids) > -1) {
+                $('<div/>', {
+                  'class' : 'ui-icon ui-icon-tag',
+                  title   : 'This song is ttTagged'
+                }).appendTo(element);
+              }
+            });
+          });
         }
-        elements.each(function (index, element) {
-          element = $(element);
-          var fid = element.closest('.song').data('songData').fileId;
-          if ($.inArray(fid, fids) > -1) {
-            $('<div/>', {
-              'class' : 'ui-icon ui-icon-tag',
-              title   : 'This song is ttTagged'
-            }).appendTo(element);
-          }
-        });
-      });
     }
   },
 
@@ -1958,5 +1979,5 @@ ttTools.resources = {
   customIcons : "data:image/png;base64,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",
   bottomButton : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAjCAYAAADxG9hnAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpGNzdGMTE3NDA3MjA2ODExODhDNkVBNURFMTFBNjMxNyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpGOEY5RTg3NDcxNzcxMUUxOTZFQkQwNDQ5QUJBNzAwNyIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpGOEY5RTg3MzcxNzcxMUUxOTZFQkQwNDQ5QUJBNzAwNyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjAyODAxMTc0MDcyMDY4MTE4QzE0RjFDOUZFMkU2MUFDIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkY3N0YxMTc0MDcyMDY4MTE4OEM2RUE1REUxMUE2MzE3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+aPVoDAAAArNJREFUeNrslktvUkEUx2fuvTx1QwmG2l3lG5CwYCMadMmiCca4M32QmuBrUfoRrC58JW3oI+7USOKCpRDFDQvi/QbYbYmEslHe945n2nOT0TRleFWbcJKTO8zc+c/vnhkmf8oYIzLxftGzqVKyqlCp14kJsgYjW7f36vdk3teIZDg0krzoUOZsKon1Y+Gf1jVI9mfbTMrqU9mK8PiUnHEBTEFTSYieAtEzSAkgIjdfHzYnAsIjf9/ru+CgRU0hgZPGeyYp/2qzcPRVrTqI7sAgPD4/8AbcdlpUFeIT+w2TVBsdFr7+slYeVHMoEB5fHnpDAFOAw+vCw9kEiMi1F7XSMHpDg/D4+sgbc9roR95uddnC1ee17LBaI4EgzGN4qADxbBSdkUHGFf8PSGnNm4LnE8gZyLrkvBVID+QGZBAyDrk+CogyxBwOkBZ+8/b8qBURQXJ4MX7DxawvP8T+HC5oQfAqpoSKfBD6GabVlxK0La2c0P4DZAO3x4NiQVyUl9y60blwAtvrOEeHzEDewgU5/BXUCqIWEebw+VF+SUPewHZcBMnjGamjQBT7M8J4sE+F+fg+Zh0ho8K4LpzDvHgmRZA4VsODE/JCP0FBvQ+Ijts3jzpBQUf6jFjnYR9LqGMZrT0nWP46iltnJIOwOdyqbcjvqKXL/pvO34V25+mlTUUlq1TSoXFZ0yBbb9d+jNehaXaadLjpnKLRGJGwaGaPZdsNNhmHtpT2u+xuWlBVGiKnWDTDYKVOg0V2E5XJObTlHb/P7lKKsE0nOjTYjnKnaYZ3liuTd2gru/6AzXkE4/sLotptmeHtpcrZObTE3mzI5qQFqhw7NGaSZrfFIunFg7N3aIk3szGb/dihdTtsIX334N85NIA5cmgAMXVoYw0t+e7y1KFNHdrUoZ1Lh/ZbgAEA9opWGtX4ApQAAAAASUVORK5CYII=",
 }
-ttTools.release = new Date(1333399882000);
+ttTools.release = new Date(1345235268000);
 $.when(ttTools.roomLoaded()).then($.proxy(ttTools.init, ttTools));

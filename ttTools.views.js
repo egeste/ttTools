@@ -58,8 +58,8 @@ div#idleIndicatorDisplay, div#autoDJDisplay, div#autoVoteDisplay { text-align:ce
       });
 
       $('div#autoDJDelay').slider({
-        min   : 0,
-        max   : 5 * ttTools.constants.time.seconds,
+        min   : 0.5 * ttTools.constants.time.seconds,
+        max   : 25 * ttTools.constants.time.seconds,
         step  : ttTools.constants.time.seconds / 10, // Tenths of a second
         value : ttTools.autoDJ.delay(),
         slide : function (event, ui) {
@@ -140,10 +140,11 @@ div.modal ul li {\
   toolbar : {
     render : function () {
       turntable.playlist.setPlaylistHeight($('div.chat-container').css('top').replace('px', ''));
-
+      $('#songs').addClass('top65')
       $('<style/>', {
         type : 'text/css',
         text : "\
+#songs.top65 {top:65px !important;}\
 div.queueView div.songlist { top:95px !important; }\
 div.queueView div.resultsLabel {\
   top:65px !important;\
@@ -154,7 +155,7 @@ div.queueView div.resultsLabel {\
 div#playlistTools {\
   left:0;\
   right:0;\
-  top:65px;\
+  top:38px;\
   height:2em;\
   padding:2px 0;\
   position:absolute;\
@@ -172,7 +173,7 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
-        $('form.playlistSearch')
+        $('form.song-search')
       );
 
       $('div#buttons').buttonset();
@@ -271,22 +272,24 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
           ['label', { 'for' : 'autoAwesome' },
             ['span.ui-icon.ui-icon-circle-arrow-n', { title: 'Automatically upvote songs' }],
           ],
-          ['input#autoLame', { type : 'checkbox' }],
+          /*['input#autoLame', { type : 'checkbox' }],
           ['label', { 'for' : 'autoLame' },
             ['span.ui-icon.ui-icon-circle-arrow-s', { title: 'Automatically downvote songs' }],
-          ],
+          ],*/
           ['input#autoDJ', { type : 'checkbox' }],
           ['label', { 'for' : 'autoDJ' },
             ['span.ui-icon.ui-icon-person', { title: 'Attempt to get the next DJ spot' }],
-          ],
+          ],/*
           ['input#animations', { type : 'checkbox' }],
           ['label', { 'for' : 'animations' },
             ['span.ui-icon.ui-icon-video', { title: 'Toggle animations on/off' }]
-          ],
-          ['button#youtube', { title: 'Search YouTube' }],
+          ],*/
+          /*['button#youtube', { title: 'Search YouTube' }],
           ['button#soundcloud', { title: 'Search SoundCloud' }],
+          */
           ['button#casinoRoll', { title: 'Roll for a spot (casino mode)' }],
-          ['button#showTheLove', { title: 'Show The Love' }],
+          /*['button#showTheLove', { title: 'Show The Love' }],
+          */
           ['button#importExport', { title: 'Import/Export' }]
         ]
       ];
@@ -295,7 +298,7 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
     update : function () {
       $('#autoDJ').prop('checked', ttTools.autoDJ.enabled()).button('refresh');
       $('#autoAwesome').prop('checked', ttTools.autoVote.enabled() === 'up').button('refresh');
-      $('#autoLame').prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
+      //$('#autoLame').prop('checked', ttTools.autoVote.enabled() === 'down').button('refresh');
     }
   },
 

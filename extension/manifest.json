@@ -1,6 +1,6 @@
 {
-  "name"    : "ttTools Loader",
-  "version" : "1.0",
+  "name"    : "ttTools Loader [GPHack]",
+  "version" : "1.0.132",
   "description"    : "All the stuff you wish turntable.fm already had.",
   "icons"          : {
     "16"  : "icons/icon_16.png",

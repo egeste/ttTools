@@ -33,12 +33,16 @@ ttTools = {
     turntable.addEventListener('message', $.proxy(this.messageEvent, this));
     turntable.addEventListener('reconnect', $.proxy(this.reconnectEvent, this));
     turntable.addEventListener('userinfo', $.proxy(this.userInfoEvent, this));
+
     $('div#top-panel').next().find('a[id]').on('click', function (e) {
       clearTimeout(ttTools.autoVote.timeout);
     });
 
     this.defaults();
     this.checkVersion();
+    this.enhanceLameButton();
+
+
   },
 
   defaults : function () {
@@ -178,7 +182,7 @@ ttTools = {
     enabled : function () {
       var enabled = $.cookie('ttTools_autoVote_enabled');
       if (enabled === null || enabled === 'false') return false;
-      return enabled;
+      return 'up';//Always return up if enabled, prevent down even when set in cookie.
     },
     setEnabled : function (enabled) {
       $.cookie('ttTools_autoVote_enabled', enabled);
@@ -254,38 +258,8 @@ ttTools = {
       $.cookie('ttTools_animations_enabled', enabled);
       enabled ? ttTools.animations.enable() : ttTools.animations.disable();
     },
-    enable : function () {
-      if (ttObjects.manager.add_animation_to_ttTools)
-        ttObjects.manager.add_animation_to = ttObjects.manager.add_animation_to_ttTools;
-      if (ttObjects.manager.speak_ttTools)
-        ttObjects.manager.speak = ttObjects.manager.speak_ttTools;
-
-      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
-        var dancer = ttObjects.manager.djs_uid[uid][0];
-        if (uid === ttObjects.room.currentDj)
-          return ttObjects.manager.add_animation_to(dancer, 'bob');
-        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
-          return ttObjects.manager.add_animation_to(dancer, 'rock');
-      });
-
-      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
-        var dancer = ttObjects.manager.listeners[uid];
-        if ($.inArray(uid, ttObjects.room.upvoters) > -1)
-          return ttObjects.manager.add_animation_to(dancer, 'rock');
-      });
-    },
-    disable : function () {
-      ttObjects.manager.add_animation_to_ttTools = ttObjects.manager.add_animation_to;
-      ttObjects.manager.add_animation_to = $.noop;
-      ttObjects.manager.speak_ttTools = ttObjects.manager.speak;
-      ttObjects.manager.speak = $.noop;
-      $(Object.keys(ttObjects.manager.djs_uid)).each(function (index, uid) {
-        ttObjects.manager.djs_uid[uid][0].stop();
-      });
-      $(Object.keys(ttObjects.manager.listeners)).each(function (index, uid) {
-        ttObjects.manager.listeners[uid].stop();
-      });
-    }
+    enable : function () {console.log('Did not enable animations, html5 not supported');},
+    disable : function () {console.log('Did not disable animations, html5 not supported');}
   },
 
   idleIndicator : {
@@ -419,10 +393,16 @@ ttTools = {
 
   // Utility functions
   checkVersion : function () {
-    if (parseInt($.cookie('ttTools_release')) !== ttTools.release.getTime()) {
-      $.cookie('ttTools_release', ttTools.release.getTime());
-      this.views.info.render();
+    //I do not want to see that popup any more.
+  },
+  enhanceLameButton : function () {
+    if(ttObjects.room.moderators.indexOf(ttObjects.manager.myuserid)==-1){
+        //Room users will expose their lames, mods will not.
+        var buttons = $('.roomView > div:nth-child(2) a[id]');
+        $(buttons[1]).unbind(); // cancel TT's default callback for the button, add in our own.
+        $(buttons[1]).bind('click', this.clickLame);
     }
+
   },
   timestamp : function (millis) {
     millis = util.now() - millis;
@@ -433,6 +413,33 @@ ttTools = {
     if (millis < ttTools.constants.time.days)
       return Math.round(100 * (millis / ttTools.constants.time.hours))/100 + 'h';
     return Math.round(1000 * (millis / ttTools.constants.time.days))/1000 + 'd';
+  },
+
+  clickLame : function() {
+      console.log('Laming')
+      ttObjects.api({
+          api: 'room.vote',
+          roomid: ttObjects.room.roomId,
+          val: 'up',
+          vh: $.sha1(ttObjects.room.roomId + 'up' + ttObjects.room.currentSong._id),
+          th: $.sha1(Math.random() + ""),
+          ph: $.sha1(Math.random() + "")
+      });
+      clearTimeout(ttTools.autoVote.timeout)
+      setTimeout(function() {
+          ttObjects.api({
+              api: 'room.vote',
+              roomid: ttObjects.room.roomId,
+              val: 'down',
+              vh: $.sha1(ttObjects.room.roomId + 'down' + ttObjects.room.currentSong._id),
+              th: $.sha1(Math.random() + ""),
+              ph: $.sha1(Math.random() + "")
+          });
+
+          console.log('Lamed')
+      }, 250)
+
+
   },
   moveSongToBottom : function (fid) {
     if ($.inArray(fid, Object.keys(turntable.playlist.songsByFid)) === -1) return;
