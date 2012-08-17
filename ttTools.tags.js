@@ -51,7 +51,7 @@ div.tagsinput div { display:block; float: left; }\
         ttTools.tags.getFidsForTagLike(filter, function (tx, result) {
           var fids = [];
           for (var i=0; i<result.rows.length; i++) { fids.push(result.rows.item(i).fid); }
-          $('div.queue div.song:hidden').each(function(index, element) {
+          $('ul.songs li.song:hidden').each(function(index, element) {
             var element = $(element);
             var fid = element.data('songData').fileId;
             if ($.inArray(fid, fids) > -1)

@@ -6,7 +6,7 @@ ttTools.tags.views = {
         $('<style/>', {
             type : 'text/css',
             text : "\
-            div.song div.ui-icon-tag {\
+            li.song div.ui-icon-tag {\
               margin: 0;\
               top: 24px;\
               right: 5px;\
@@ -23,8 +23,8 @@ ttTools.tags.views = {
 
     update : function () {
       if(ttTools.tags.isSupported()){
-          $('div.song div.ui-icon-tag').remove();
-          var elements = $('div.song')
+          $('li.song div.ui-icon-tag').remove();
+          var elements = $('li.song')
             .unbind('click')
             .on('click', function(e) {
               ttTools.tags.views.add.render($(this).closest('.song').data('songData'));
