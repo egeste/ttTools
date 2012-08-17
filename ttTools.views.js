@@ -172,7 +172,7 @@ div#playlistTools .custom-icons.soundcloud { background-position:34px 0; }\
       "}).appendTo(document.head);
 
       $(util.buildTree(this.tree())).insertAfter(
-        $('form.playlistSearch')
+        $('form.song-search')
       );
 
       $('div#buttons').buttonset();

@@ -33,6 +33,7 @@ ttTools = {
     turntable.addEventListener('message', $.proxy(this.messageEvent, this));
     turntable.addEventListener('reconnect', $.proxy(this.reconnectEvent, this));
     turntable.addEventListener('userinfo', $.proxy(this.userInfoEvent, this));
+
     $('div#top-panel').next().find('a[id]').on('click', function (e) {
       clearTimeout(ttTools.autoVote.timeout);
     });
