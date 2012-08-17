@@ -140,10 +140,11 @@ div.modal ul li {\
   toolbar : {
     render : function () {
       turntable.playlist.setPlaylistHeight($('div.chat-container').css('top').replace('px', ''));
-
+      $('#songs').addClass('top65')
       $('<style/>', {
         type : 'text/css',
         text : "\
+#songs.top65 {top:65px !important;}\
 div.queueView div.songlist { top:95px !important; }\
 div.queueView div.resultsLabel {\
   top:65px !important;\
@@ -154,7 +155,7 @@ div.queueView div.resultsLabel {\
 div#playlistTools {\
   left:0;\
   right:0;\
-  top:65px;\
+  top:38px;\
   height:2em;\
   padding:2px 0;\
   position:absolute;\
