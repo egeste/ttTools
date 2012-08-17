@@ -1,3 +1,6 @@
+#This project is more or less abandoned
+## Sorry
+
 # ttTools
 ## All the stuff you wish turntable.fm already had.
 
