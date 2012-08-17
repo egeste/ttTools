@@ -24,7 +24,7 @@ ttTools.tags.views = {
     update : function () {
       if(ttTools.tags.isSupported()){
           $('li.song div.ui-icon-tag').remove();
-          var elements = $('li.song')
+          var elements = $('li.song .title')
             .unbind('click')
             .on('click', function(e) {
               ttTools.tags.views.add.render($(this).closest('.song').data('songData'));
