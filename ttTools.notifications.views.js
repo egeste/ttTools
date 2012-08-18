@@ -1,3 +1,0 @@
-ttTools.notifications.views = {
-  
-}
