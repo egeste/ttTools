@@ -1,5 +1,4 @@
-#This project is more or less abandoned
-## Sorry
+# RIP Turntable.FM
 
 # ttTools
 ## All the stuff you wish turntable.fm already had.
